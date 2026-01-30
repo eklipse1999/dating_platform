@@ -162,20 +162,6 @@ export default function AdminDashboard() {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-primary/10 rounded-lg relative w-8 h-8">
-                  <Image
-                    src="/images/logo.png"
-                    alt="Committed"
-                    fill
-                    className="object-contain dark:hidden"
-                  />
-                  <Image
-                    src="/images/logo-white.png"
-                    alt="Committed"
-                    fill
-                    className="object-contain hidden dark:block"
-                  />
-                </div>
                 <Shield className="h-6 w-6 text-primary" />
                 <span className="text-xl font-bold text-foreground">
                   Admin
