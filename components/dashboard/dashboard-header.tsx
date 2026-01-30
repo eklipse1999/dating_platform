@@ -205,7 +205,7 @@ export function DashboardHeader() {
               </Link>
               {isAdmin && (
                 <Link
-                  href="/admin/dashboard"
+                  href="/admin"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-3 px-3 py-3 text-gold hover:bg-muted rounded-lg transition-colors"
                 >
