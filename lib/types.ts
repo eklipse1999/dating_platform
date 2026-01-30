@@ -1,5 +1,8 @@
 export type Tier = 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
 
+export const TRIAL_DAYS = 14;
+export const TRIAL_POINTS = 500; // Points granted during trial
+
 export interface UserLocation {
   lat: number;
   lng: number;
@@ -28,6 +31,11 @@ export interface User {
   faithJourney?: string;
   values?: string[];
   isAdmin?: boolean;
+  // Trial related
+  trialStartDate?: Date;
+  trialEndDate?: Date;
+  trialUsed?: boolean;
+  hasActiveTrial?: boolean;
 }
 
 export interface Message {
@@ -93,6 +101,40 @@ export function calculateAccountAgeDays(createdAt: Date): number {
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - createdAt.getTime());
   return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+}
+
+export function getTrialStatus(user: User): { isInTrial: boolean; daysRemaining: number; isExpired: boolean } {
+  if (!user.trialStartDate || !user.trialEndDate) {
+    return { isInTrial: false, daysRemaining: 0, isExpired: false };
+  }
+  
+  const now = new Date();
+  const endDate = new Date(user.trialEndDate);
+  const startDate = new Date(user.trialStartDate);
+  
+  if (now < startDate) {
+    return { isInTrial: false, daysRemaining: 0, isExpired: false };
+  }
+  
+  if (now >= endDate) {
+    return { isInTrial: false, daysRemaining: 0, isExpired: true };
+  }
+  
+  const diffTime = endDate.getTime() - now.getTime();
+  const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return { isInTrial: true, daysRemaining, isExpired: false };
+}
+
+export function isInTrialPeriod(user: User): boolean {
+  if (user.trialUsed) return false;
+  if (!user.trialStartDate || !user.trialEndDate) return false;
+  
+  const now = new Date();
+  const startDate = new Date(user.trialStartDate);
+  const endDate = new Date(user.trialEndDate);
+  
+  return now >= startDate && now < endDate;
 }
 
 export const DATE_KEYWORDS = [

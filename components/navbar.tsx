@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Heart } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/lib/app-context';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -20,11 +21,23 @@ export function Navbar() {
           <Link href="/" className="flex items-center gap-2 group">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="flex items-center justify-center w-10 h-10 rounded-xl bg-secondary text-secondary-foreground"
+              className="relative w-35 h-15"
             >
-              <Heart className="w-5 h-5" />
+              {/* Light mode logo (colored) */}
+              <Image
+                src="/images/commited1.png"
+                alt="Committed"
+                fill
+                className="object-contain dark:hidden"
+              />
+              {/* Dark mode logo (black and white) */}
+              <Image
+                src="/images/commited_white.png"
+                alt="Committed"
+                fill
+                className="object-contain hidden dark:block"
+              />
             </motion.div>
-            <span className="text-xl font-bold text-accent font-serif">Committed</span>
           </Link>
 
           {/* Desktop Navigation */}

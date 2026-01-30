@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import { User, UserLocation, getTierFromPoints, calculateAccountAgeDays } from './types';
+import { User, UserLocation, getTierFromPoints, calculateAccountAgeDays, TRIAL_DAYS, TRIAL_POINTS, getTrialStatus } from './types';
 import { MOCK_USERS, MOCK_CURRENT_USER } from './mock-data';
 
 interface AppContextType {
@@ -27,6 +27,12 @@ interface AppContextType {
   canMessage: boolean;
   canScheduleDates: boolean;
   accountAgeDays: number;
+  
+  // Trial
+  isInTrial: boolean;
+  trialDaysRemaining: number;
+  trialExpired: boolean;
+  activateTrial: () => void;
   
   // Following
   followedUsers: Set<string>;
@@ -64,7 +70,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return true;
     }
     
-    setCurrentUser({ ...MOCK_CURRENT_USER, email });
+    // For demo purposes, give all users a trial
+    const now = new Date();
+    const trialEnd = new Date(now);
+    trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
+    
+    setCurrentUser({
+      ...MOCK_CURRENT_USER,
+      email,
+      trialStartDate: now,
+      trialEndDate: trialEnd,
+      trialUsed: false,
+      hasActiveTrial: true,
+    });
     setIsAuthenticated(true);
     return true;
   }, []);
@@ -72,14 +90,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const signup = useCallback(async (userData: Partial<User> & { password: string; dob: Date }): Promise<boolean> => {
     await new Promise(resolve => setTimeout(resolve, 1000));
     
+    const now = new Date();
+    const trialEnd = new Date(now);
+    trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
+    
     const newUser: User = {
       ...MOCK_CURRENT_USER,
       ...userData,
       id: `user-${Date.now()}`,
-      accountCreatedAt: new Date(),
-      points: 0,
+      accountCreatedAt: now,
+      points: 0, // Start with 0, trial will grant access
       tier: 'Bronze',
       isVerified: false,
+      // Trial fields - user gets trial automatically
+      trialStartDate: now,
+      trialEndDate: trialEnd,
+      trialUsed: false,
+      hasActiveTrial: true,
     };
     
     setCurrentUser(newUser);
@@ -186,9 +213,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [followedUsers]);
 
   const accountAgeDays = currentUser ? calculateAccountAgeDays(currentUser.accountCreatedAt) : 0;
-  const canMessage = currentUser ? currentUser.points > 0 : false;
+  // User can message if they have points OR if they are in their trial period
+  const trialStatus = currentUser ? getTrialStatus(currentUser) : { isInTrial: false, daysRemaining: 0, isExpired: false };
+  const canMessage = currentUser ? (currentUser.points > 0 || trialStatus.isInTrial) : false;
   const canScheduleDates = accountAgeDays >= 21;
   const isAdmin = currentUser?.isAdmin ?? false;
+
+  // Trial related
+  const isInTrial = trialStatus.isInTrial;
+  const trialDaysRemaining = trialStatus.daysRemaining;
+  const trialExpired = trialStatus.isExpired;
+
+  const activateTrial = useCallback(() => {
+    if (currentUser) {
+      const now = new Date();
+      const trialEnd = new Date(now);
+      trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
+      
+      setCurrentUser({
+        ...currentUser,
+        trialStartDate: now,
+        trialEndDate: trialEnd,
+        trialUsed: false,
+        hasActiveTrial: true,
+      });
+    }
+  }, [currentUser]);
 
   return (
     <AppContext.Provider
@@ -212,6 +262,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         toggleFollow,
         isFollowing,
         isAdmin,
+        isInTrial,
+        trialDaysRemaining,
+        trialExpired,
+        activateTrial,
       }}
     >
       {children}

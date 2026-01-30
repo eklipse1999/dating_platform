@@ -14,7 +14,7 @@ import Link from 'next/link';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { isAuthenticated, currentUser, getFilteredUsers, canMessage } = useApp();
+  const { isAuthenticated, currentUser, getFilteredUsers, canMessage, isInTrial, trialDaysRemaining, trialExpired } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -50,8 +50,36 @@ export default function DashboardPage() {
       <DashboardHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Free User Banner */}
-        {isFreeUser && (
+        {/* Trial Banner */}
+        {isInTrial && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-gradient-to-r from-secondary/20 to-primary/20 rounded-2xl border border-secondary/30"
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-secondary/20 rounded-xl">
+                  <Coins className="w-5 h-5 text-secondary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-secondary">Free Trial Active!</h3>
+                  <p className="text-sm text-muted-foreground">
+                    You have <strong>{trialDaysRemaining} days</strong> left in your free trial. Enjoy unlimited messaging!
+                  </p>
+                </div>
+              </div>
+              <Link href="/upgrade">
+                <Button variant="outline" className="border-secondary text-secondary hover:bg-secondary/10">
+                  Upgrade Now
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Free User Banner (when trial is expired) */}
+        {!isInTrial && currentUser.points === 0 && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}

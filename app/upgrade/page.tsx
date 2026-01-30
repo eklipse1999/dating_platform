@@ -15,7 +15,7 @@ import { POINTS_PACKAGES, getPaymentGateway, PointsPackage } from '@/lib/types';
 
 export default function UpgradePage() {
   const router = useRouter();
-  const { isAuthenticated, currentUser, userLocation, addPoints } = useApp();
+  const { isAuthenticated, currentUser, userLocation, addPoints, isInTrial, trialDaysRemaining } = useApp();
   const [selectedPackage, setSelectedPackage] = useState<PointsPackage | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
@@ -102,6 +102,23 @@ export default function UpgradePage() {
           <ArrowLeft className="w-4 h-4" />
           Back to Dashboard
         </Link>
+
+        {/* Trial Banner */}
+        {isInTrial && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-6 bg-gradient-to-r from-secondary/20 to-primary/20 rounded-2xl border border-secondary/30 text-center"
+          >
+            <h2 className="text-xl font-bold text-secondary mb-2">You're on a Free Trial! 🎉</h2>
+            <p className="text-muted-foreground mb-4">
+              You have <strong className="text-secondary">{trialDaysRemaining} days</strong> left to enjoy unlimited messaging and connections.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Ready to commit beyond the trial? Upgrade now to lock in your premium experience!
+            </p>
+          </motion.div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}

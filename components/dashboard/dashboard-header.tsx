@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Heart, MessageCircle, User, Settings, LogOut, Coins, Menu, X, Shield, Crown } from 'lucide-react';
+import Image from 'next/image';
+import { MessageCircle, User, Settings, LogOut, Coins, Menu, X, Shield, Crown, Heart } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 
 export function DashboardHeader() {
   const router = useRouter();
-  const { currentUser, logout, isAdmin } = useApp();
+  const { currentUser, logout, isAdmin, isInTrial, trialDaysRemaining, trialExpired } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -30,16 +31,31 @@ export function DashboardHeader() {
     ? ((currentUser.points - tierInfo.min) / (TIER_RANGES[nextTier as keyof typeof TIER_RANGES].min - tierInfo.min)) * 100 
     : 100;
 
+  // Show upgrade button if user has no points and trial is expired
+  const showUpgrade = currentUser.points === 0 && !isInTrial;
+
   return (
     <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-lg border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-secondary text-secondary-foreground">
-              <Heart className="w-4 h-4" />
+            <div className="relative w-30 h-15">
+              {/* Light mode logo (colored) */}
+              <Image
+                src="/images/commited1.png"
+                alt="Committed"
+                fill
+                className="object-contain dark:hidden"
+              />
+              {/* Dark mode logo (black and white) */}
+              <Image
+                src="/images/commited_white.png"
+                alt="Committed"
+                fill
+                className="object-contain hidden dark:block"
+              />
             </div>
-            <span className="text-lg font-bold text-accent font-serif hidden sm:inline">Committed</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -61,7 +77,7 @@ export function DashboardHeader() {
               <span>Settings</span>
             </Link>
             {isAdmin && (
-              <Link href="/admin/dashboard" className="flex items-center gap-2 text-gold hover:text-gold/80 transition-colors">
+              <Link href="/admin" className="flex items-center gap-2 text-gold hover:text-gold/80 transition-colors">
                 <Crown className="w-4 h-4" />
                 <span>Admin</span>
               </Link>
@@ -71,6 +87,15 @@ export function DashboardHeader() {
           {/* Points & Actions */}
           <div className="flex items-center gap-3">
             <ThemeToggle />
+            
+            {/* Trial Banner */}
+            {isInTrial && (
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-secondary/20 rounded-lg border border-secondary/30">
+                <span className="text-xs font-medium text-secondary">
+                  {trialDaysRemaining} days left in trial
+                </span>
+              </div>
+            )}
             
             {/* Points Display */}
             <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-muted/50 rounded-xl">
@@ -86,7 +111,7 @@ export function DashboardHeader() {
             </div>
 
             {/* Upgrade Button */}
-            {currentUser.points === 0 && (
+            {showUpgrade && (
               <Link href="/upgrade">
                 <Button size="sm" className="bg-secondary hover:bg-secondary/90 text-secondary-foreground">
                   <Coins className="w-4 h-4 mr-1" />

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Heart } from 'lucide-react';
 
 const footerLinks = {
@@ -38,10 +39,13 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-secondary text-secondary-foreground">
-                <Heart className="w-5 h-5" />
+              <div className="relative w-35 h-10">
+                <Image
+                  src="/images/commited_white.png"
+                  alt="Committed"
+                  fill
+                />
               </div>
-              <span className="text-xl font-bold font-serif">Committed</span>
             </Link>
             <p className="text-sm text-accent-foreground/70 leading-relaxed">
               Where Christian singles connect with purpose. Find love built on faith.
