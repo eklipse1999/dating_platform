@@ -7,7 +7,7 @@ import {
   Send, Search, Lock, Calendar, CheckCircle, Shield, ArrowLeft,
   MessageCircle, MoreVertical, Phone, Video, Smile, Paperclip,
   Mic, Image as ImageIcon, Check, CheckCheck, Clock, X, Filter,
-  Archive, Star, Bell, BellOff, Trash2, Pin, Camera
+  Archive, Star, Bell, BellOff, Trash2, Pin, Camera, List
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
@@ -483,6 +483,14 @@ function MessagesContent() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-accent">Chats</h2>
               <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="rounded-full lg:hidden"
+                  onClick={() => setShowMobileChat(true)}
+                >
+                  <MessageCircle className="w-5 h-5" />
+                </Button>
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <MoreVertical className="w-5 h-5" />
                 </Button>
@@ -566,9 +574,10 @@ function MessagesContent() {
               <div className="p-3 bg-card border-b border-border flex items-center gap-3">
                 <button
                   onClick={() => setShowMobileChat(false)}
-                  className="lg:hidden p-2 hover:bg-muted rounded-lg"
+                  className="lg:hidden p-2 hover:bg-muted rounded-lg flex items-center gap-2"
                 >
-                  <ArrowLeft className="w-5 h-5" />
+                  <List className="w-5 h-5" />
+                  <span className="text-sm font-medium">Chats</span>
                 </button>
                 
                 <Link href={`/profile/${selectedConversation.user.id}`} className="flex items-center gap-3 flex-1">
