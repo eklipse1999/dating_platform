@@ -58,7 +58,7 @@ export function LeftSidebar({ mobileMode = 'desktop', onClose }: LeftSidebarProp
         {/* Logo */}
         <div className="p-4 border-b border-border">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="relative w-10 h-10">
+            <div className="relative w-30 h-15">
               <Image
                 src="/images/commited1.png"
                 alt="Committed"
@@ -72,7 +72,6 @@ export function LeftSidebar({ mobileMode = 'desktop', onClose }: LeftSidebarProp
                 className="object-contain hidden dark:block"
               />
             </div>
-            <span className="font-bold text-xl hidden xl:block text-accent">Committed</span>
           </Link>
         </div>
 

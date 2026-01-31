@@ -72,7 +72,7 @@ export function DashboardLayout({ children, showRightSidebar = true, showLeftSid
           </header>
 
           {/* Page Content */}
-          <div className="p-4 lg:p-6 pt-20 lg:pt-6">
+          <div className="p-4 lg:p-6 pt-20 lg:pt-6 pb-20 lg:pb-6">
             {children}
           </div>
         </main>

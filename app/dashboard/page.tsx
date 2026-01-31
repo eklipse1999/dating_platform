@@ -46,7 +46,7 @@ export default function DashboardPage() {
   const isFreeUser = currentUser.points === 0;
 
   return (
-    <DashboardLayout>
+    <DashboardLayout showRightSidebar={false}>
       <div className="max-w-4xl mx-auto">
         {/* Welcome Section */}
         <motion.div

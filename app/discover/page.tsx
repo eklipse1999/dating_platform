@@ -109,7 +109,7 @@ export default function DiscoverPage() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout showRightSidebar={false}>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div
