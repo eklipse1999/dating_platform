@@ -64,6 +64,20 @@ function MessagesContent() {
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageInputRef = useRef<HTMLDivElement>(null);
+
+  // Close emoji picker and media options when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (messageInputRef.current && !messageInputRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+        setShowMediaOptions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Initialize conversations from users
   useEffect(() => {
@@ -366,6 +380,22 @@ function MessagesContent() {
     }
   };
 
+  const cancelRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      // Stop all tracks to release the microphone
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+    }
+    setIsRecording(false);
+    setRecordingTime(0);
+    
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+    }
+    
+    toast.info('Voice note cancelled');
+  };
+
   const formatRecordingTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -406,7 +436,7 @@ function MessagesContent() {
   // If user can't message, show upgrade prompt
   if (!canMessage && !isAdmin) {
     return (
-      <DashboardLayout>
+      <DashboardLayout showRightSidebar={false} showLeftSidebar={false}>
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center max-w-md px-4">
             <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -443,7 +473,7 @@ function MessagesContent() {
   };
 
   return (
-    <DashboardLayout showRightSidebar={false}>
+    <DashboardLayout showRightSidebar={false} showLeftSidebar={false}>
       {/* Chat Container */}
       <div className="flex h-[calc(100vh-7rem)] lg:h-[calc(100vh-4rem)]">
         {/* Conversations List */}
@@ -690,7 +720,7 @@ function MessagesContent() {
               </div>
 
               {/* Message Input - WhatsApp Style */}
-              <div className="p-3 bg-card border-t border-border">
+              <div className="p-3 bg-card border-t border-border" ref={messageInputRef}>
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -808,21 +838,32 @@ function MessagesContent() {
                       <Send className="w-5 h-5" />
                     </Button>
                   ) : isRecording ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-red-500 min-w-[60px]">
-                      {formatRecordingTime(recordingTime)}
-                    </span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="rounded-full bg-red-500 hover:bg-red-600 text-white flex-shrink-0 animate-pulse"
-                      onClick={stopRecording}
-                    >
-                      <Mic className="w-5 h-5" />
-                    </Button>
-                  </div>
-                ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-red-500 min-w-[60px]">
+                        {formatRecordingTime(recordingTime)}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full bg-red-100 hover:bg-red-200 text-red-600 flex-shrink-0"
+                        onClick={cancelRecording}
+                        title="Delete"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full bg-green-100 hover:bg-green-200 text-green-600 flex-shrink-0 animate-pulse"
+                        onClick={stopRecording}
+                        title="Send"
+                      >
+                        <Send className="w-5 h-5" />
+                      </Button>
+                    </div>
+                  ) : (
                   <Button
                     type="button"
                     variant="ghost"
@@ -979,7 +1020,7 @@ function ConversationItem({
 export default function MessagesPage() {
   return (
     <Suspense fallback={
-      <DashboardLayout showRightSidebar={false}>
+      <DashboardLayout showRightSidebar={false} showLeftSidebar={false}>
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="animate-pulse text-muted-foreground">Loading...</div>
         </div>
