@@ -57,39 +57,39 @@
 }
 
 .dark {
-  --background: oklch(0.12 0.02 270);
+  --background: oklch(0.10 0.015 270);
   --foreground: oklch(0.95 0 0);
-  --card: oklch(0.16 0.02 270);
+  --card: oklch(0.14 0.015 270);
   --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.16 0.02 270);
+  --popover: oklch(0.14 0.015 270);
   --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.50 0.10 250);
+  --primary: oklch(0.55 0.10 250);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.55 0.22 25);
+  --secondary: oklch(0.58 0.20 25);
   --secondary-foreground: oklch(0.99 0 0);
-  --muted: oklch(0.25 0.02 270);
-  --muted-foreground: oklch(0.70 0.01 270);
-  --accent: oklch(0.22 0.02 270);
+  --muted: oklch(0.22 0.015 270);
+  --muted-foreground: oklch(0.78 0.01 270);
+  --accent: oklch(0.20 0.015 270);
   --accent-foreground: oklch(0.95 0 0);
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.28 0.02 270);
-  --input: oklch(0.22 0.02 270);
-  --ring: oklch(0.50 0.10 250);
+  --border: oklch(0.25 0.015 270);
+  --input: oklch(0.20 0.015 270);
+  --ring: oklch(0.55 0.10 250);
   --gold: oklch(0.85 0.15 85);
-  --chart-1: oklch(0.50 0.10 250);
-  --chart-2: oklch(0.55 0.22 25);
+  --chart-1: oklch(0.55 0.10 250);
+  --chart-2: oklch(0.58 0.20 25);
   --chart-3: oklch(0.85 0.15 85);
-  --chart-4: oklch(0.70 0.01 270);
-  --chart-5: oklch(0.40 0.02 270);
-  --sidebar: oklch(0.14 0.02 270);
+  --chart-4: oklch(0.75 0.01 270);
+  --chart-5: oklch(0.45 0.015 270);
+  --sidebar: oklch(0.12 0.015 270);
   --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.50 0.10 250);
+  --sidebar-primary: oklch(0.55 0.10 250);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.22 0.02 270);
+  --sidebar-accent: oklch(0.20 0.015 270);
   --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.28 0.02 270);
-  --sidebar-ring: oklch(0.50 0.10 250);
+  --sidebar-border: oklch(0.25 0.015 270);
+  --sidebar-ring: oklch(0.55 0.10 250);
 }
 
 @theme inline {
@@ -141,5 +141,59 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Refined typography for better readability */
+  h1 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+  h2 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+  h3 {
+    @apply text-xl font-semibold tracking-tight;
+  }
+  h4 {
+    @apply text-lg font-medium tracking-tight;
+  }
+  
+  /* Slightly smaller body text for elegance */
+  body {
+    font-size: 0.938rem;
+    line-height: 1.6;
+  }
+  
+  /* Improved text contrast */
+  .text-muted {
+    @apply text-muted-foreground/90;
+  }
+  
+  /* Better link visibility */
+  a {
+    @apply transition-colors duration-200;
+  }
+  
+  /* Refined input typography */
+  input, textarea, select {
+    @apply text-sm;
+  }
+  
+  /* Smaller labels */
+  label {
+    @apply text-sm font-medium;
+  }
+  
+  /* Elegant button text */
+  button {
+    @apply text-sm font-medium;
+  }
+  
+  /* Card typography refinements */
+  .card-title {
+    @apply text-lg font-semibold;
+  }
+  
+  .card-description {
+    @apply text-sm text-muted-foreground;
   }
 }

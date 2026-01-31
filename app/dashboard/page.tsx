@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Search, SlidersHorizontal, Lock, Coins, X } from 'lucide-react';
-import { DashboardHeader } from '@/components/dashboard/dashboard-header';
+import { Search, SlidersHorizontal, Lock, Coins, X, Sparkles, TrendingUp, Heart } from 'lucide-react';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { ProfileCard } from '@/components/dashboard/profile-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,10 +46,22 @@ export default function DashboardPage() {
   const isFreeUser = currentUser.points === 0;
 
   return (
-    <div className="min-h-screen bg-background">
-      <DashboardHeader />
+    <DashboardLayout>
+      <div className="max-w-4xl mx-auto">
+        {/* Welcome Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-2xl font-bold text-accent font-serif mb-2">
+            Welcome back, {currentUser.name.split(' ')[0]}! 👋
+          </h1>
+          <p className="text-muted-foreground">
+            Discover meaningful connections with people who share your faith.
+          </p>
+        </motion.div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Trial Banner */}
         {isInTrial && (
           <motion.div
@@ -60,7 +72,7 @@ export default function DashboardPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-secondary/20 rounded-xl">
-                  <Coins className="w-5 h-5 text-secondary" />
+                  <Sparkles className="w-5 h-5 text-secondary" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-secondary">Free Trial Active!</h3>
@@ -105,8 +117,43 @@ export default function DashboardPage() {
           </motion.div>
         )}
 
+        {/* Quick Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-3 gap-4 mb-8"
+        >
+          <div className="p-4 bg-card rounded-2xl border border-border text-center">
+            <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl mx-auto mb-2">
+              <Heart className="w-5 h-5 text-primary" />
+            </div>
+            <div className="text-2xl font-bold text-accent">12</div>
+            <div className="text-xs text-muted-foreground">New Likes</div>
+          </div>
+          <div className="p-4 bg-card rounded-2xl border border-border text-center">
+            <div className="flex items-center justify-center w-10 h-10 bg-secondary/10 rounded-xl mx-auto mb-2">
+              <TrendingUp className="w-5 h-5 text-secondary" />
+            </div>
+            <div className="text-2xl font-bold text-accent">89%</div>
+            <div className="text-xs text-muted-foreground">Profile Score</div>
+          </div>
+          <div className="p-4 bg-card rounded-2xl border border-border text-center">
+            <div className="flex items-center justify-center w-10 h-10 bg-gold/20 rounded-xl mx-auto mb-2">
+              <Sparkles className="w-5 h-5 text-gold" />
+            </div>
+            <div className="text-2xl font-bold text-accent">5</div>
+            <div className="text-xs text-muted-foreground">Matches</div>
+          </div>
+        </motion.div>
+
         {/* Search and Filters */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-6"
+        >
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
@@ -114,7 +161,7 @@ export default function DashboardPage() {
               placeholder="Search by name or location..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12"
+              className="pl-10 h-12 bg-card"
             />
           </div>
           <Button
@@ -125,7 +172,7 @@ export default function DashboardPage() {
             <SlidersHorizontal className="w-4 h-4 mr-2" />
             Filters
           </Button>
-        </div>
+        </motion.div>
 
         {/* Filters Panel */}
         {showFilters && (
@@ -133,7 +180,7 @@ export default function DashboardPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mb-8 p-6 bg-card rounded-2xl border border-border"
+            className="mb-6 p-6 bg-card rounded-2xl border border-border"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-accent">Filter Profiles</h3>
@@ -189,7 +236,7 @@ export default function DashboardPage() {
 
         {/* Results Header */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-accent">
+          <h2 className="text-lg font-semibold text-accent">
             {isFreeUser ? 'Local Matches' : 'Discover Matches'}
           </h2>
           <span className="text-sm text-muted-foreground">
@@ -199,7 +246,7 @@ export default function DashboardPage() {
 
         {/* Profiles Grid */}
         {filteredUsers.length > 0 ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 gap-6">
             {filteredUsers.map((user, index) => (
               <ProfileCard key={user.id} user={user} index={index} />
             ))}
@@ -236,7 +283,7 @@ export default function DashboardPage() {
             </div>
           </motion.div>
         )}
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

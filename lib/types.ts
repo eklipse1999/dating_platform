@@ -70,6 +70,10 @@ export interface User {
   idVerification?: IDVerification;
   // Security Verification
   securityVerification?: SecurityVerification;
+  // Discover page features
+  joinDate?: Date;
+  likes?: number;
+  lastActive?: string;
 }
 
 export interface Message {

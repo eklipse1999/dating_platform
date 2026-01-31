@@ -56,7 +56,8 @@ const INTERESTS = [
 
 const AVATARS = [
   '👤', '🙂', '😊', '🌟', '💫', '✨', '🎯', '🌸', '🌺', '🌻',
-  '🦋', '🕊️', '💜', '💙', '🤍', '🧡', '💛', '💚', '🩵', '🩷'
+  '🦋', '🕊️', '💜', '💙', '🤍', '🧡', '💛', '💚', '🩵', '🩷',
+  '😇', '😺', '🐱', '🐶', '🐰', '🦊', '🐻', '🐼', '🐨', '🦁'
 ];
 
 function getRandomElement<T>(arr: T[]): T {
@@ -185,7 +186,7 @@ export function generateMockUsers(count: number = 25): User[] {
       tier: getTierFromPoints(points),
       accountCreatedAt,
       isVerified: isFullyVerified,
-      avatar: getRandomElement(AVATARS),
+      avatar: AVATARS[i % AVATARS.length],
       photos: [],
       denomination: getRandomElement(DENOMINATIONS),
       interests: getRandomElement(INTERESTS),
@@ -194,6 +195,9 @@ export function generateMockUsers(count: number = 25): User[] {
       church: generateChurchInfo(location),
       idVerification,
       securityVerification: generateSecurityVerification(accountAgeDays),
+      joinDate: accountCreatedAt,
+      likes: getRandomNumber(10, 500),
+      lastActive: getRandomElement(['now', '5m', '15m', '1h', '2h', '5h', '1d']),
     });
   }
   
