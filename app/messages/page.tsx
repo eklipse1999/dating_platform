@@ -10,7 +10,7 @@ import {
   Archive, Star, Bell, BellOff, Trash2, Pin, Camera
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { LeftSidebar } from '@/components/dashboard/left-sidebar';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { SafetyModal } from '@/components/messaging/safety-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -406,9 +406,8 @@ function MessagesContent() {
   // If user can't message, show upgrade prompt
   if (!canMessage && !isAdmin) {
     return (
-      <div className="min-h-screen bg-background flex">
-        <LeftSidebar />
-        <main className="ml-64 flex-1 flex items-center justify-center">
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center max-w-md px-4">
             <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <Lock className="w-10 h-10 text-primary" />
@@ -423,8 +422,8 @@ function MessagesContent() {
               </Button>
             </Link>
           </div>
-        </main>
-      </div>
+        </div>
+      </DashboardLayout>
     );
   }
 
@@ -444,14 +443,11 @@ function MessagesContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Left Sidebar Navigation */}
-      <LeftSidebar />
-
+    <DashboardLayout showRightSidebar={false}>
       {/* Chat Container */}
-      <div className="ml-64 flex-1 flex h-screen">
-        {/* Conversations List - WhatsApp Style */}
-        <div className={`w-96 bg-card border-r border-border flex flex-col ${showMobileChat ? 'hidden lg:flex' : 'flex'}`}>
+      <div className="flex h-[calc(100vh-7rem)] lg:h-[calc(100vh-4rem)]">
+        {/* Conversations List */}
+        <div className={`w-full sm:w-80 bg-card border-r border-border flex flex-col ${showMobileChat ? 'hidden sm:flex' : 'flex'}`}>
           {/* Header */}
           <div className="p-4 bg-muted/30 border-b border-border">
             <div className="flex items-center justify-between mb-4">
@@ -863,7 +859,7 @@ function MessagesContent() {
         onClose={() => setShowSafetyModal(false)}
         daysRemaining={daysRemaining}
       />
-    </div>
+    </DashboardLayout>
   );
 }
 
@@ -983,11 +979,11 @@ function ConversationItem({
 export default function MessagesPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-background flex">
-        <div className="ml-64 flex-1 flex items-center justify-center">
+      <DashboardLayout showRightSidebar={false}>
+        <div className="flex items-center justify-center min-h-[60vh]">
           <div className="animate-pulse text-muted-foreground">Loading...</div>
         </div>
-      </div>
+      </DashboardLayout>
     }>
       <MessagesContent />
     </Suspense>
