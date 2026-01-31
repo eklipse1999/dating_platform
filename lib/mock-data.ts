@@ -1,4 +1,4 @@
-import { User, getTierFromPoints } from './types';
+import { User, getTierFromPoints, ChurchInfo, IDVerification, SecurityVerification } from './types';
 
 const FIRST_NAMES_MALE = ['James', 'Michael', 'David', 'Daniel', 'Matthew', 'Andrew', 'Joshua', 'Christopher', 'Joseph', 'Samuel', 'Benjamin', 'Nathan'];
 const FIRST_NAMES_FEMALE = ['Sarah', 'Emily', 'Grace', 'Hannah', 'Rachel', 'Rebecca', 'Elizabeth', 'Mary', 'Ruth', 'Abigail', 'Faith', 'Hope'];
@@ -15,6 +15,19 @@ const CITIES = [
   { city: 'Accra', country: 'Ghana', lat: 5.6037, lng: -0.1870 },
   { city: 'Toronto', country: 'Canada', lat: 43.6532, lng: -79.3832 },
   { city: 'Sydney', country: 'Australia', lat: -33.8688, lng: 151.2093 },
+];
+
+const CHURCHES: { name: string; branches: string[] }[] = [
+  { name: 'Redeemed Christian Church of God', branches: ['City of David', 'Jesus House', 'King\'s Court', 'Victory Chapel', 'House of Praise'] },
+  { name: 'Winners Chapel', branches: ['Faith Tabernacle', 'Liberation City', 'Covenant Place', 'Dominion City'] },
+  { name: 'Christ Embassy', branches: ['Loveworld Arena', 'Healing School', 'Christ Embassy Central'] },
+  { name: 'Hillsong Church', branches: ['Hillsong NYC', 'Hillsong LA', 'Hillsong London', 'Hillsong Sydney'] },
+  { name: 'Elevation Church', branches: ['Ballantyne', 'Blakeney', 'University City', 'Matthews'] },
+  { name: 'Saddleback Church', branches: ['Lake Forest', 'San Clemente', 'Irvine', 'Rancho Capistrano'] },
+  { name: 'Lakewood Church', branches: ['Houston Central', 'Lakewood Online'] },
+  { name: 'Life.Church', branches: ['Edmond', 'Oklahoma City', 'Tulsa', 'Dallas'] },
+  { name: 'Bethel Church', branches: ['Redding', 'San Francisco', 'Los Angeles'] },
+  { name: 'Gateway Church', branches: ['Southlake', 'Dallas', 'Fort Worth', 'Frisco'] },
 ];
 
 const BIOS = [
@@ -74,6 +87,69 @@ function generateRandomPoints(): number {
   return weights[0].points;
 }
 
+function generateChurchInfo(location: { city: string; country: string }): ChurchInfo {
+  const church = getRandomElement(CHURCHES);
+  return {
+    name: church.name,
+    branch: getRandomElement(church.branches),
+    city: location.city,
+    country: location.country,
+  };
+}
+
+function generateIDVerification(accountAgeDays: number): IDVerification {
+  const documentTypes: IDVerification['documentType'][] = ['passport', 'drivers_license', 'national_id'];
+  
+  // Determine status based on account age with some randomness
+  let status: IDVerification['status'];
+  const rand = Math.random();
+  
+  if (accountAgeDays >= 21) {
+    // Older accounts: 70% verified, 15% submitted, 10% rejected, 5% pending
+    if (rand > 0.3) status = 'verified';
+    else if (rand > 0.15) status = 'submitted';
+    else if (rand > 0.05) status = 'rejected';
+    else status = 'pending';
+  } else {
+    // Newer accounts: 20% verified, 40% submitted, 10% rejected, 30% pending
+    if (rand > 0.8) status = 'verified';
+    else if (rand > 0.4) status = 'submitted';
+    else if (rand > 0.3) status = 'rejected';
+    else status = 'pending';
+  }
+  
+  const baseVerification: IDVerification = { status };
+  
+  if (status !== 'pending') {
+    baseVerification.documentType = getRandomElement(documentTypes);
+    baseVerification.submittedAt = new Date(Date.now() - getRandomNumber(1, Math.max(1, accountAgeDays)) * 24 * 60 * 60 * 1000);
+  }
+  
+  if (status === 'verified') {
+    baseVerification.verifiedAt = new Date(Date.now() - getRandomNumber(1, 14) * 24 * 60 * 60 * 1000);
+  }
+  
+  if (status === 'rejected') {
+    baseVerification.rejectionReason = 'Document unclear or expired. Please resubmit.';
+  }
+  
+  return baseVerification;
+}
+
+function generateSecurityVerification(accountAgeDays: number): SecurityVerification {
+  const isOlderAccount = accountAgeDays >= 14;
+  
+  return {
+    emailVerified: Math.random() > 0.1, // 90% have email verified
+    phoneVerified: Math.random() > 0.3, // 70% have phone verified
+    twoFactorEnabled: isOlderAccount && Math.random() > 0.6, // 40% of older accounts have 2FA
+    lastPasswordChange: isOlderAccount ? new Date(Date.now() - getRandomNumber(1, 30) * 24 * 60 * 60 * 1000) : undefined,
+    securityQuestionsSet: Math.random() > 0.4, // 60% have security questions
+    trustedDevices: getRandomNumber(1, 3),
+    lastSecurityCheck: new Date(Date.now() - getRandomNumber(1, 7) * 24 * 60 * 60 * 1000),
+  };
+}
+
 export function generateMockUsers(count: number = 25): User[] {
   const users: User[] = [];
   
@@ -86,6 +162,9 @@ export function generateMockUsers(count: number = 25): User[] {
     const accountAgeDays = getRandomNumber(1, 60);
     const accountCreatedAt = new Date();
     accountCreatedAt.setDate(accountCreatedAt.getDate() - accountAgeDays);
+    
+    const idVerification = generateIDVerification(accountAgeDays);
+    const isFullyVerified = accountAgeDays >= 21 && idVerification.status === 'verified';
     
     users.push({
       id: `user-${i + 1}`,
@@ -105,13 +184,16 @@ export function generateMockUsers(count: number = 25): User[] {
       points,
       tier: getTierFromPoints(points),
       accountCreatedAt,
-      isVerified: accountAgeDays >= 21,
+      isVerified: isFullyVerified,
       avatar: getRandomElement(AVATARS),
       photos: [],
       denomination: getRandomElement(DENOMINATIONS),
       interests: getRandomElement(INTERESTS),
       faithJourney: "My faith journey began in childhood and has grown stronger through life's challenges.",
       values: ['Family', 'Integrity', 'Compassion', 'Growth'],
+      church: generateChurchInfo(location),
+      idVerification,
+      securityVerification: generateSecurityVerification(accountAgeDays),
     });
   }
   
@@ -144,4 +226,20 @@ export const MOCK_CURRENT_USER: User = {
   interests: ['Bible Study', 'Hiking', 'Music'],
   faithJourney: "My faith has been my anchor through all of life's seasons.",
   values: ['Family', 'Integrity', 'Compassion'],
+  church: {
+    name: 'Hillsong Church',
+    branch: 'Hillsong NYC',
+    city: 'New York',
+    country: 'USA',
+  },
+  idVerification: {
+    status: 'pending',
+  },
+  securityVerification: {
+    emailVerified: true,
+    phoneVerified: false,
+    twoFactorEnabled: false,
+    securityQuestionsSet: false,
+    trustedDevices: 1,
+  },
 };

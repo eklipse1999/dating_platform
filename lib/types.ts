@@ -10,6 +10,34 @@ export interface UserLocation {
   country: string;
 }
 
+export interface ChurchInfo {
+  name: string;
+  branch?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  pastorName?: string;
+}
+
+export interface IDVerification {
+  status: 'pending' | 'submitted' | 'verified' | 'rejected';
+  documentType?: 'passport' | 'drivers_license' | 'national_id' | 'other';
+  documentNumber?: string;
+  submittedAt?: Date;
+  verifiedAt?: Date;
+  rejectionReason?: string;
+}
+
+export interface SecurityVerification {
+  emailVerified: boolean;
+  phoneVerified: boolean;
+  twoFactorEnabled: boolean;
+  lastPasswordChange?: Date;
+  securityQuestionsSet: boolean;
+  trustedDevices: number;
+  lastSecurityCheck?: Date;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -36,6 +64,12 @@ export interface User {
   trialEndDate?: Date;
   trialUsed?: boolean;
   hasActiveTrial?: boolean;
+  // Church information
+  church?: ChurchInfo;
+  // ID Verification
+  idVerification?: IDVerification;
+  // Security Verification
+  securityVerification?: SecurityVerification;
 }
 
 export interface Message {

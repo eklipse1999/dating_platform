@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Camera, Save, Loader2, Coins, Calendar, CheckCircle } from 'lucide-react';
+import { Camera, Save, Loader2, Coins, Calendar, CheckCircle, Church, Shield, BadgeCheck, AlertCircle, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { TierBadge } from '@/components/tier-badge';
@@ -25,6 +25,8 @@ export default function MyProfilePage() {
     denomination: '',
     faithJourney: '',
     interests: '',
+    churchName: '',
+    churchBranch: '',
   });
 
   useEffect(() => {
@@ -37,6 +39,8 @@ export default function MyProfilePage() {
         denomination: currentUser.denomination || '',
         faithJourney: currentUser.faithJourney || '',
         interests: currentUser.interests?.join(', ') || '',
+        churchName: currentUser.church?.name || '',
+        churchBranch: currentUser.church?.branch || '',
       });
     }
   }, [isAuthenticated, currentUser, router]);
@@ -200,6 +204,34 @@ export default function MyProfilePage() {
               />
             </div>
 
+            {/* Church Information */}
+            <div className="pt-4 border-t border-border">
+              <h4 className="text-md font-semibold text-accent mb-4 flex items-center gap-2">
+                <Church className="w-4 h-4 text-primary" />
+                Church Information
+              </h4>
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="churchName">Church Name</Label>
+                  <Input
+                    id="churchName"
+                    value={formData.churchName}
+                    onChange={(e) => setFormData({ ...formData, churchName: e.target.value })}
+                    placeholder="e.g., Hillsong Church"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="churchBranch">Branch/Location</Label>
+                  <Input
+                    id="churchBranch"
+                    value={formData.churchBranch}
+                    onChange={(e) => setFormData({ ...formData, churchBranch: e.target.value })}
+                    placeholder="e.g., NYC Campus"
+                  />
+                </div>
+              </div>
+            </div>
+
             <Button 
               onClick={handleSave} 
               disabled={isLoading}
@@ -217,6 +249,141 @@ export default function MyProfilePage() {
                 </>
               )}
             </Button>
+          </div>
+
+          {/* ID Verification Section */}
+          <div className="p-6 bg-card rounded-2xl border border-border space-y-6">
+            <h3 className="text-lg font-semibold text-accent flex items-center gap-2">
+              <BadgeCheck className="w-5 h-5 text-primary" />
+              ID Verification
+            </h3>
+            
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
+              <div>
+                <p className="font-medium text-accent">Verification Status</p>
+                <p className="text-sm text-muted-foreground">
+                  {currentUser.idVerification?.status === 'verified' 
+                    ? 'Your ID has been verified'
+                    : currentUser.idVerification?.status === 'submitted'
+                    ? 'Your ID is pending review'
+                    : currentUser.idVerification?.status === 'rejected'
+                    ? 'Your ID verification was rejected'
+                    : 'Submit your ID for verification'}
+                </p>
+              </div>
+              {currentUser.idVerification?.status === 'verified' ? (
+                <div className="flex items-center gap-2 text-green-600">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="font-medium">Verified</span>
+                </div>
+              ) : currentUser.idVerification?.status === 'submitted' ? (
+                <div className="flex items-center gap-2 text-yellow-600">
+                  <AlertCircle className="w-5 h-5" />
+                  <span className="font-medium">Pending</span>
+                </div>
+              ) : currentUser.idVerification?.status === 'rejected' ? (
+                <div className="flex items-center gap-2 text-red-600">
+                  <AlertCircle className="w-5 h-5" />
+                  <span className="font-medium">Rejected</span>
+                </div>
+              ) : (
+                <Button variant="outline" className="gap-2">
+                  <Upload className="w-4 h-4" />
+                  Upload ID
+                </Button>
+              )}
+            </div>
+
+            {currentUser.idVerification?.status === 'rejected' && currentUser.idVerification.rejectionReason && (
+              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+                <p className="text-sm text-red-600">
+                  <strong>Reason:</strong> {currentUser.idVerification.rejectionReason}
+                </p>
+                <Button variant="outline" className="mt-3 gap-2 border-red-500/30 text-red-600 hover:bg-red-500/10">
+                  <Upload className="w-4 h-4" />
+                  Resubmit ID
+                </Button>
+              </div>
+            )}
+
+            <div className="text-sm text-muted-foreground">
+              <p className="mb-2">Accepted documents:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Passport</li>
+                <li>Driver&apos;s License</li>
+                <li>National ID Card</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Security Verification Section */}
+          <div className="p-6 bg-card rounded-2xl border border-border space-y-6">
+            <h3 className="text-lg font-semibold text-accent flex items-center gap-2">
+              <Shield className="w-5 h-5 text-primary" />
+              Security Settings
+            </h3>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
+                <div>
+                  <p className="font-medium text-accent">Email Verification</p>
+                  <p className="text-sm text-muted-foreground">{currentUser.email}</p>
+                </div>
+                {currentUser.securityVerification?.emailVerified ? (
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-medium">Verified</span>
+                  </div>
+                ) : (
+                  <Button variant="outline" size="sm">Verify Email</Button>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
+                <div>
+                  <p className="font-medium text-accent">Phone Verification</p>
+                  <p className="text-sm text-muted-foreground">{currentUser.phone}</p>
+                </div>
+                {currentUser.securityVerification?.phoneVerified ? (
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-medium">Verified</span>
+                  </div>
+                ) : (
+                  <Button variant="outline" size="sm">Verify Phone</Button>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
+                <div>
+                  <p className="font-medium text-accent">Two-Factor Authentication</p>
+                  <p className="text-sm text-muted-foreground">Add an extra layer of security</p>
+                </div>
+                {currentUser.securityVerification?.twoFactorEnabled ? (
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-medium">Enabled</span>
+                  </div>
+                ) : (
+                  <Button variant="outline" size="sm">Enable 2FA</Button>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
+                <div>
+                  <p className="font-medium text-accent">Security Questions</p>
+                  <p className="text-sm text-muted-foreground">For account recovery</p>
+                </div>
+                {currentUser.securityVerification?.securityQuestionsSet ? (
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-medium">Set</span>
+                  </div>
+                ) : (
+                  <Button variant="outline" size="sm">Set Questions</Button>
+                )}
+              </div>
+            </div>
           </div>
         </motion.div>
       </main>

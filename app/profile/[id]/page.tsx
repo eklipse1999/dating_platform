@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
   ArrowLeft, Heart, MessageCircle, MapPin, Lock, Flag, 
-  CheckCircle, Calendar, Cross, BookOpen, Sparkles 
+  CheckCircle, Calendar, Cross, BookOpen, Sparkles, Church, 
+  Shield, BadgeCheck, AlertCircle 
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { TierBadge } from '@/components/tier-badge';
@@ -207,6 +208,93 @@ export default function ProfileViewPage({ params }: { params: Promise<{ id: stri
                 </div>
               </div>
             )}
+
+            {/* Church Information */}
+            {user.church && (
+              <div className="p-6 bg-card rounded-2xl border border-border">
+                <h2 className="text-lg font-semibold text-accent mb-3 flex items-center gap-2">
+                  <Church className="w-5 h-5 text-primary" />
+                  Church
+                </h2>
+                <div className="space-y-2">
+                  <p className="text-foreground font-medium">{user.church.name}</p>
+                  {user.church.branch && (
+                    <p className="text-muted-foreground text-sm">Branch: {user.church.branch}</p>
+                  )}
+                  {user.church.city && user.church.country && (
+                    <p className="text-muted-foreground text-sm flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {user.church.city}, {user.church.country}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Verification Status */}
+            <div className="p-6 bg-card rounded-2xl border border-border">
+              <h2 className="text-lg font-semibold text-accent mb-3 flex items-center gap-2">
+                <Shield className="w-5 h-5 text-primary" />
+                Verification Status
+              </h2>
+              <div className="space-y-3">
+                {/* ID Verification */}
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">ID Verification</span>
+                  {user.idVerification?.status === 'verified' ? (
+                    <span className="flex items-center gap-1 text-green-600 text-sm font-medium">
+                      <BadgeCheck className="w-4 h-4" />
+                      Verified
+                    </span>
+                  ) : user.idVerification?.status === 'submitted' ? (
+                    <span className="flex items-center gap-1 text-yellow-600 text-sm font-medium">
+                      <AlertCircle className="w-4 h-4" />
+                      Pending Review
+                    </span>
+                  ) : user.idVerification?.status === 'rejected' ? (
+                    <span className="flex items-center gap-1 text-red-600 text-sm font-medium">
+                      <AlertCircle className="w-4 h-4" />
+                      Rejected
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-muted-foreground text-sm">
+                      <AlertCircle className="w-4 h-4" />
+                      Not Submitted
+                    </span>
+                  )}
+                </div>
+                
+                {/* Security Verification */}
+                {user.securityVerification && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Email Verified</span>
+                      {user.securityVerification.emailVerified ? (
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Phone Verified</span>
+                      {user.securityVerification.phoneVerified ? (
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Two-Factor Auth</span>
+                      {user.securityVerification.twoFactorEnabled ? (
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </motion.div>
         </div>
       </main>

@@ -6,7 +6,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Heart, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Heart, Loader2, AlertCircle, CheckCircle, Church } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +29,8 @@ export default function SignupPage() {
     dobDay: '',
     dobMonth: '',
     dobYear: '',
+    churchName: '',
+    churchBranch: '',
     ageConfirmed: false,
   });
   
@@ -304,6 +306,33 @@ export default function SignupPage() {
                   <p className="text-sm">{errors.dob}</p>
                 </div>
               )}
+            </div>
+
+            {/* Church Information */}
+            <div className="pt-4 border-t border-border">
+              <Label className="flex items-center gap-2 mb-3">
+                <Church className="w-4 h-4 text-primary" />
+                Church Information (Optional)
+              </Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Input
+                    value={formData.churchName}
+                    onChange={(e) => setFormData({ ...formData, churchName: e.target.value })}
+                    placeholder="Church Name"
+                  />
+                </div>
+                <div>
+                  <Input
+                    value={formData.churchBranch}
+                    onChange={(e) => setFormData({ ...formData, churchBranch: e.target.value })}
+                    placeholder="Branch/Location"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Adding your church helps connect you with members from your faith community.
+              </p>
             </div>
 
             {/* Age Confirmation */}

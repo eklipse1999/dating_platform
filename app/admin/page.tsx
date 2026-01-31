@@ -48,7 +48,11 @@ import {
   X,
   Plus,
   UserPlus,
-  UserMinus
+  UserMinus,
+  BadgeCheck,
+  Clock,
+  FileCheck,
+  XCircle
 } from "lucide-react";
 import Image from "next/image";
 import { TierBadge } from "@/components/tier-badge";
@@ -221,6 +225,7 @@ export default function AdminDashboard() {
           <TabsList className="mb-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="verification">Verification</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="flagged">Flagged</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -442,6 +447,180 @@ export default function AdminDashboard() {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="verification">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* ID Verification Queue */}
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <BadgeCheck className="h-5 w-5 text-primary" />
+                        ID Verification Queue
+                      </CardTitle>
+                      <CardDescription>Review and approve user ID submissions</CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {users.filter(u => u.idVerification?.status === 'submitted').length} Pending
+                      </Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>User</TableHead>
+                        <TableHead>Document Type</TableHead>
+                        <TableHead>Submitted</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {users.filter(u => u.idVerification?.status === 'submitted' || u.idVerification?.status === 'pending').slice(0, 10).map((user) => (
+                        <TableRow key={user.id} className="hover:bg-muted/50">
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                <span className="text-lg">{user.avatar}</span>
+                              </div>
+                              <div>
+                                <p className="font-medium text-foreground">{user.name}</p>
+                                <p className="text-sm text-muted-foreground">{user.email}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {user.idVerification?.documentType ? (
+                              <Badge variant="outline">
+                                {user.idVerification.documentType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground">Not submitted</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {user.idVerification?.submittedAt 
+                              ? new Date(user.idVerification.submittedAt).toLocaleDateString()
+                              : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={user.idVerification?.status === 'submitted' ? 'default' : 'secondary'}
+                              className={user.idVerification?.status === 'submitted' ? 'bg-yellow-500/10 text-yellow-600' : ''}
+                            >
+                              {user.idVerification?.status === 'submitted' ? 'Pending Review' : 'Not Submitted'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => router.push(`/profile/${user.id}`)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              {user.idVerification?.status === 'submitted' && (
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-green-600"
+                                    onClick={() => toast.success(`ID verified for ${user.name}`)}
+                                  >
+                                    <FileCheck className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-red-600"
+                                    onClick={() => toast.error(`ID rejected for ${user.name}`)}
+                                  >
+                                    <XCircle className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {/* Verification Stats */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    Verification Statistics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[
+                      { label: 'Verified Users', count: users.filter(u => u.idVerification?.status === 'verified').length, color: 'bg-green-500', icon: CheckCircle },
+                      { label: 'Pending Review', count: users.filter(u => u.idVerification?.status === 'submitted').length, color: 'bg-yellow-500', icon: Clock },
+                      { label: 'Not Submitted', count: users.filter(u => u.idVerification?.status === 'pending').length, color: 'bg-gray-400', icon: AlertTriangle },
+                      { label: 'Rejected', count: users.filter(u => u.idVerification?.status === 'rejected').length, color: 'bg-red-500', icon: XCircle },
+                    ].map((stat) => (
+                      <div key={stat.label}>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm text-foreground flex items-center gap-2">
+                            <stat.icon className="w-4 h-4" />
+                            {stat.label}
+                          </span>
+                          <span className="text-sm text-muted-foreground">{stat.count}</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div
+                            className={`${stat.color} h-2 rounded-full`}
+                            style={{ width: `${users.length > 0 ? (stat.count / users.length) * 100 : 0}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Security Overview */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Lock className="h-5 w-5" />
+                    Security Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <span className="text-sm">Email Verified</span>
+                      <span className="font-medium">{users.filter(u => u.securityVerification?.emailVerified).length} / {users.length}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <span className="text-sm">Phone Verified</span>
+                      <span className="font-medium">{users.filter(u => u.securityVerification?.phoneVerified).length} / {users.length}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <span className="text-sm">2FA Enabled</span>
+                      <span className="font-medium">{users.filter(u => u.securityVerification?.twoFactorEnabled).length} / {users.length}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <span className="text-sm">Security Questions Set</span>
+                      <span className="font-medium">{users.filter(u => u.securityVerification?.securityQuestionsSet).length} / {users.length}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="content">
