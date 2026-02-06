@@ -6,7 +6,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Heart, Loader2, MapPin } from 'lucide-react';
+import { Eye, EyeOff, Heart, Loader2, MapPin, ScanFace } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,10 +14,12 @@ import { Label } from '@/components/ui/label';
 import { useApp } from '@/lib/app-context';
 import { LocationPermissionModal } from '@/components/location-permission-modal';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FaceIdEnrollment } from '@/components/ui/face-id-enrollment';
+import { hasFaceIdEnrollment } from '@/lib/facetec';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useApp();
+  const { login, loginWithFaceId } = useApp();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -30,6 +32,8 @@ export default function LoginPage() {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [isHuman, setIsHuman] = useState(false);
   const [captchaError, setCaptchaError] = useState('');
+  const [useFaceId, setUseFaceId] = useState(false);
+  const [faceIdEmail, setFaceIdEmail] = useState('');
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -78,6 +82,31 @@ export default function LoginPage() {
   const handleLocationComplete = () => {
     setShowLocationModal(false);
     router.push('/dashboard');
+  };
+
+  const handleFaceIdLogin = async () => {
+    if (!faceIdEmail.trim()) {
+      toast.error('Please enter your email first');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      await loginWithFaceId(faceIdEmail);
+      toast.success('Welcome back!');
+      setShowLocationModal(true);
+    } catch {
+      toast.error('Face ID login failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFaceIdVerificationComplete = async (success: boolean) => {
+    if (success) {
+      await handleFaceIdLogin();
+    }
   };
 
   return (
@@ -189,6 +218,51 @@ export default function LoginPage() {
                 <p className="text-sm text-destructive mt-1">{captchaError}</p>
               )}
 
+              {/* Face ID Toggle */}
+              {!useFaceId && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full text-muted-foreground hover:text-primary"
+                  onClick={() => setUseFaceId(true)}
+                >
+                  <ScanFace className="w-4 h-4 mr-2" />
+                  Log in with Face ID instead
+                </Button>
+              )}
+
+              {/* Face ID Login Section */}
+              {useFaceId && (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="faceIdEmail">Email</Label>
+                    <Input
+                      id="faceIdEmail"
+                      type="email"
+                      value={faceIdEmail}
+                      onChange={(e) => setFaceIdEmail(e.target.value)}
+                      placeholder="Enter your email"
+                    />
+                  </div>
+                  <FaceIdEnrollment
+                    userId={faceIdEmail || 'demo-user'}
+                    mode="verification"
+                    onVerificationComplete={handleFaceIdVerificationComplete}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full text-muted-foreground"
+                    onClick={() => {
+                      setUseFaceId(false);
+                      setFaceIdEmail('');
+                    }}
+                  >
+                    Back to regular login
+                  </Button>
+                </div>
+              )}
+
               {/* Submit */}
               <Button
                 type="submit"
@@ -212,14 +286,6 @@ export default function LoginPage() {
                 </Link>
               </p>
             </form>
-
-            {/* Demo hint */}
-            <div className="mt-8 p-4 bg-muted/50 rounded-xl">
-              <p className="text-sm text-muted-foreground text-center">
-                <strong>Demo:</strong> Use any email and password to log in.<br />
-                Admin: <span className="font-mono text-xs">admin@committed.com</span>
-              </p>
-            </div>
           </motion.div>
         </div>
       </div>

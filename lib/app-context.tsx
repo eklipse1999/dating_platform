@@ -9,6 +9,7 @@ interface AppContextType {
   isAuthenticated: boolean;
   currentUser: User | null;
   login: (email: string, password: string) => Promise<boolean>;
+  loginWithFaceId: (email: string) => Promise<boolean>;
   signup: (userData: Partial<User> & { password: string; dob: Date }) => Promise<boolean>;
   logout: () => void;
   
@@ -108,6 +109,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
       trialEndDate: trialEnd,
       trialUsed: false,
       hasActiveTrial: true,
+    };
+    setCurrentUser(user);
+    setIsAuthenticated(true);
+    localStorage.setItem('committed_user', JSON.stringify(user));
+    localStorage.setItem('committed_auth', 'true');
+    return true;
+  }, []);
+
+  const loginWithFaceId = useCallback(async (email: string): Promise<boolean> => {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // For demo purposes, give all users a trial
+    const now = new Date();
+    const trialEnd = new Date(now);
+    trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
+    
+    const user: User = {
+      ...MOCK_CURRENT_USER,
+      email,
+      trialStartDate: now,
+      trialEndDate: trialEnd,
+      trialUsed: false,
+      hasActiveTrial: true,
+      faceId: {
+        isEnabled: true,
+        lastVerifiedAt: now,
+      },
     };
     setCurrentUser(user);
     setIsAuthenticated(true);
@@ -279,6 +308,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isAuthenticated,
         currentUser,
         login,
+        loginWithFaceId,
         signup,
         logout,
         userLocation,

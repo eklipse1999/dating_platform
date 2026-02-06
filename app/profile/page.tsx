@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Camera, Save, Loader2, Coins, Calendar, CheckCircle, Church, Shield, BadgeCheck, AlertCircle, Upload } from 'lucide-react';
+import { Camera, Save, Loader2, Coins, Calendar, CheckCircle, Church, Shield, BadgeCheck, AlertCircle, Upload, ScanFace } from 'lucide-react';
 import { toast } from 'sonner';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { TierBadge } from '@/components/tier-badge';
@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useApp } from '@/lib/app-context';
 import { calculateAccountAgeDays, TIER_RANGES } from '@/lib/types';
+import { FaceIdEnrollment } from '@/components/ui/face-id-enrollment';
 import Link from 'next/link';
 
 export default function MyProfilePage() {
@@ -396,6 +397,23 @@ export default function MyProfilePage() {
                 ) : (
                   <Button variant="outline" size="sm">Set Questions</Button>
                 )}
+              </div>
+
+              {/* Face ID Section */}
+              <div className="pt-4 border-t border-border">
+                <h4 className="text-md font-semibold text-accent mb-4 flex items-center gap-2">
+                  <ScanFace className="w-4 h-4 text-primary" />
+                  Face ID Authentication
+                </h4>
+                <FaceIdEnrollment 
+                  userId={currentUser.id}
+                  mode="enrollment"
+                  onEnrollmentComplete={(success) => {
+                    if (success) {
+                      // Update user state to reflect enrollment
+                    }
+                  }}
+                />
               </div>
             </div>
           </div>
