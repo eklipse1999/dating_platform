@@ -239,7 +239,7 @@ export default function EventsPage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto">
+      <div className="w-screen max-w-6xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -380,7 +380,7 @@ export default function EventsPage() {
 
         {/* Events Grid */}
         {filteredEvents.length > 0 ? (
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
             {filteredEvents.map((event, index) => (
               <motion.div
                 key={event.id}

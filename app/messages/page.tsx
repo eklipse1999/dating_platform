@@ -7,13 +7,15 @@ import {
   Send, Search, Lock, Calendar, CheckCircle, Shield, ArrowLeft,
   MessageCircle, MoreVertical, Phone, Video, Smile, Paperclip,
   Mic, Image as ImageIcon, Check, CheckCheck, Clock, X, Filter,
-  Archive, Star, Bell, BellOff, Trash2, Pin, Camera, List
+  Archive, Star, Bell, BellOff, Trash2, Pin, Camera,
+  Home, Compass, Heart, Bookmark, Settings, User as UserIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { SafetyModal } from '@/components/messaging/safety-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useApp } from '@/lib/app-context';
 import { containsDateKeywords, User } from '@/lib/types';
 import Link from 'next/link';
@@ -51,7 +53,6 @@ function MessagesContent() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSafetyModal, setShowSafetyModal] = useState(false);
-  const [showMobileChat, setShowMobileChat] = useState(false);
   const [showChatMenu, setShowChatMenu] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'unread' | 'archived'>('all');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -140,7 +141,6 @@ function MessagesContent() {
           setSelectedConversationId(newConv.id);
         }
       }
-      setShowMobileChat(true);
     }
   }, [searchParams, users, conversations]);
 
@@ -404,7 +404,6 @@ function MessagesContent() {
 
   const handleSelectConversation = (convId: string) => {
     setSelectedConversationId(convId);
-    setShowMobileChat(true);
     // Mark as read
     setConversations(prev => prev.map(conv => 
       conv.id === convId ? { ...conv, unreadCount: 0 } : conv
@@ -475,22 +474,124 @@ function MessagesContent() {
   return (
     <DashboardLayout showRightSidebar={false} showLeftSidebar={false}>
       {/* Chat Container */}
-      <div className="flex h-[calc(100vh-7rem)] lg:h-[calc(100vh-4rem)]">
+      <div className="flex h-[calc(100vh-4rem)] overflow-hidden w-screen">
+        {/* Left Navigation Icons - Desktop Only */}
+        <div className="hidden lg:flex flex-col items-center py-4 px-2 bg-card border-r border-border w-16 shrink-0">
+        
+          {/* Navigation Icons */}
+          <div className="flex flex-col gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/dashboard" className="p-3 rounded-lg hover:bg-muted transition-colors">
+                    <Home className="w-5 h-5 text-muted-foreground" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Dashboard</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/discover" className="p-3 rounded-lg hover:bg-muted transition-colors">
+                    <Compass className="w-5 h-5 text-muted-foreground" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Discover</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/matches" className="p-3 rounded-lg hover:bg-muted transition-colors">
+                    <Heart className="w-5 h-5 text-muted-foreground" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Matches</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/events" className="p-3 rounded-lg hover:bg-muted transition-colors">
+                    <Calendar className="w-5 h-5 text-muted-foreground" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Events</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/messages" className="p-3 rounded-lg bg-primary/10 text-primary">
+                    <MessageCircle className="w-5 h-5" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Messages</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/saved" className="p-3 rounded-lg hover:bg-muted transition-colors">
+                    <Bookmark className="w-5 h-5 text-muted-foreground" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Saved</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/notifications" className="p-3 rounded-lg hover:bg-muted transition-colors">
+                    <Bell className="w-5 h-5 text-muted-foreground" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Notifications</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <div className="border-t border-border my-2" />
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/settings" className="p-3 rounded-lg hover:bg-muted transition-colors">
+                    <Settings className="w-5 h-5 text-muted-foreground" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Settings</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/profile" className="p-3 rounded-lg hover:bg-muted transition-colors">
+                    <UserIcon className="w-5 h-5 text-muted-foreground" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Profile</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
+        
         {/* Conversations List */}
-        <div className={`w-full sm:w-80 bg-card border-r border-border flex flex-col ${showMobileChat ? 'hidden sm:flex' : 'flex'}`}>
+        <div className={`w-full sm:w-80 bg-card border-r border-border flex flex-col ${selectedConversationId ? 'hidden lg:flex' : 'flex'}`}>
           {/* Header */}
           <div className="p-4 bg-muted/30 border-b border-border">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 lg:hidden">
               <h2 className="text-xl font-bold text-accent">Chats</h2>
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="rounded-full lg:hidden"
-                  onClick={() => setShowMobileChat(true)}
-                >
-                  <MessageCircle className="w-5 h-5" />
-                </Button>
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <MoreVertical className="w-5 h-5" />
                 </Button>
@@ -567,16 +668,16 @@ function MessagesContent() {
         </div>
 
         {/* Chat Area - WhatsApp Style */}
-        <div className={`flex-1 flex flex-col bg-[url('/images/chat-bg.png')] bg-repeat ${!showMobileChat ? 'hidden lg:flex' : 'flex'}`} style={{ backgroundColor: 'var(--background)' }}>
+        <div className={`flex-1 flex flex-col bg-[url('/images/chat-bg.png')] bg-repeat ${!selectedConversation ? 'hidden lg:flex' : 'flex'}`} style={{ backgroundColor: 'var(--background)' }}>
           {selectedConversation ? (
             <>
               {/* Chat Header */}
               <div className="p-3 bg-card border-b border-border flex items-center gap-3">
                 <button
-                  onClick={() => setShowMobileChat(false)}
+                  onClick={() => { setSelectedConversationId(null); }}
                   className="lg:hidden p-2 hover:bg-muted rounded-lg flex items-center gap-2"
                 >
-                  <List className="w-5 h-5" />
+                  <ArrowLeft className="w-5 h-5" />
                   <span className="text-sm font-medium">Chats</span>
                 </button>
                 

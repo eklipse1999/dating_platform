@@ -25,7 +25,7 @@ export function ProfileCard({ user, index = 0 }: ProfileCardProps) {
       className="group relative bg-card rounded-2xl border border-border overflow-hidden hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
     >
       {/* Avatar */}
-      <div className="relative aspect-square bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
+      <div className="relative h-48 bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
         <span className="text-7xl">{user.avatar}</span>
         
         {/* Tier Badge */}

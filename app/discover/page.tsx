@@ -110,17 +110,17 @@ export default function DiscoverPage() {
 
   return (
     <DashboardLayout showRightSidebar={false}>
-      <div className="max-w-6xl mx-auto">
+      <div className="w-screen max-w-5xl mx-auto px-1 sm:px-1 lg:px-4 py-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6"
         >
-          <h1 className="text-2xl font-bold text-accent font-serif mb-2">
+          <h1 className="text-3xl font-bold text-accent font-serif mb-3">
             Discover Matches
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-base text-muted-foreground">
             Find meaningful connections with people who share your faith and values.
           </p>
         </motion.div>
@@ -130,7 +130,7 @@ export default function DiscoverPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 mb-6"
+          className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 mb-8"
         >
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -139,14 +139,14 @@ export default function DiscoverPage() {
               placeholder="Search by name, interest, or bio..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12 bg-card"
+              className="pl-10 h-12 bg-card text-base"
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Button
               variant="outline"
               onClick={() => setShowFilters(!showFilters)}
-              className={showFilters ? 'bg-primary text-primary-foreground' : ''}
+              className={`h-12 ${showFilters ? 'bg-primary text-primary-foreground' : ''}`}
             >
               <SlidersHorizontal className="w-4 h-4 mr-2" />
               Filters
@@ -154,15 +154,15 @@ export default function DiscoverPage() {
             <div className="flex border border-border rounded-lg overflow-hidden">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-3 ${viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+                className={`p-3 transition-colors ${viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
               >
-                <Grid className="w-4 h-4" />
+                <Grid className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-3 ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+                className={`p-3 transition-colors ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
               >
-                <List className="w-4 h-4" />
+                <List className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -174,17 +174,17 @@ export default function DiscoverPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mb-6 p-6 bg-card rounded-2xl border border-border"
+            className="mb-8 p-6 bg-card rounded-2xl border border-border"
           >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-accent">Filter Profiles</h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-accent">Filter Profiles</h3>
               <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
                 Close
               </Button>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">Age Range</label>
+                <label className="text-sm font-medium text-muted-foreground mb-3 block">Age Range</label>
                 <div className="flex items-center gap-2">
                   <Input
                     type="number"
@@ -192,7 +192,7 @@ export default function DiscoverPage() {
                     max={99}
                     value={filters.ageMin}
                     onChange={(e) => setFilters({ ...filters, ageMin: parseInt(e.target.value) || 18 })}
-                    className="w-20"
+                    className="w-24 h-10"
                   />
                   <span className="text-muted-foreground">to</span>
                   <Input
@@ -201,12 +201,12 @@ export default function DiscoverPage() {
                     max={99}
                     value={filters.ageMax}
                     onChange={(e) => setFilters({ ...filters, ageMax: parseInt(e.target.value) || 99 })}
-                    className="w-20"
+                    className="w-24 h-10"
                   />
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">Location</label>
+                <label className="text-sm font-medium text-muted-foreground mb-3 block">Location</label>
                 <select
                   value={selectedLocation}
                   onChange={(e) => setSelectedLocation(e.target.value)}
@@ -218,7 +218,7 @@ export default function DiscoverPage() {
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">Tier</label>
+                <label className="text-sm font-medium text-muted-foreground mb-3 block">Tier</label>
                 <select
                   value={filters.tier}
                   onChange={(e) => setFilters({ ...filters, tier: e.target.value })}
@@ -233,7 +233,7 @@ export default function DiscoverPage() {
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">Sort By</label>
+                <label className="text-sm font-medium text-muted-foreground mb-3 block">Sort By</label>
                 <select
                   value={activeCategory}
                   onChange={(e) => setActiveCategory(e.target.value)}
@@ -253,13 +253,13 @@ export default function DiscoverPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="flex gap-2 mb-6 overflow-x-auto pb-2"
+          className="flex gap-3 mb-8 overflow-x-auto pb-2 scrollbar-hide"
         >
           {categories.map((category) => (
             <button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                 activeCategory === category.id
                   ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
                   : 'bg-card border border-border hover:bg-muted'
@@ -276,13 +276,13 @@ export default function DiscoverPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex flex-wrap gap-2 mb-6"
+            className="flex flex-wrap gap-2 mb-8"
           >
             {selectedInterests.map(interest => (
               <Badge
                 key={interest}
                 variant="secondary"
-                className="cursor-pointer"
+                className="cursor-pointer text-sm py-1.5 px-3"
                 onClick={() => toggleInterest(interest)}
               >
                 {interest} ×
@@ -295,8 +295,8 @@ export default function DiscoverPage() {
         )}
 
         {/* Results Count */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-accent">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-xl font-semibold text-accent">
             {filteredUsers.length} match{filteredUsers.length !== 1 ? 'es' : ''} found
           </h2>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -308,7 +308,7 @@ export default function DiscoverPage() {
         {/* Profiles Grid/List */}
         {filteredUsers.length > 0 ? (
           viewMode === 'grid' ? (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredUsers.map((user, index) => (
                 <ProfileCard key={user.id} user={user} index={index} />
               ))}
@@ -318,14 +318,14 @@ export default function DiscoverPage() {
               {filteredUsers.map((user) => (
                 <div
                   key={user.id}
-                  className="flex items-center gap-4 p-4 bg-card rounded-2xl border border-border hover:border-primary/50 transition-colors"
+                  className="flex items-center gap-4 p-5 bg-card rounded-2xl border border-border hover:border-primary/50 transition-colors"
                 >
                   <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-4xl">{user.avatar}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-accent truncate">{user.name}</h3>
+                      <h3 className="text-base font-semibold text-accent truncate">{user.name}</h3>
                       <Badge variant="outline" className="text-xs">{user.tier}</Badge>
                       {user.idVerification?.status === 'verified' && (
                         <Award className="w-4 h-4 text-green-500" />
@@ -351,11 +351,11 @@ export default function DiscoverPage() {
                   </div>
                   <div className="flex flex-col gap-2">
                     <Link href={`/profile/${user.id}`}>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="w-20">
                         View
                       </Button>
                     </Link>
-                    <Button size="sm" className="bg-secondary hover:bg-secondary/90">
+                    <Button size="sm" className="bg-secondary hover:bg-secondary/90 w-20">
                       <Heart className="w-4 h-4" />
                     </Button>
                   </div>
@@ -364,12 +364,12 @@ export default function DiscoverPage() {
             </div>
           )
         ) : (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-8 h-8 text-muted-foreground" />
+          <div className="text-center py-20">
+            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+              <Search className="w-10 h-10 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold text-accent mb-2">No matches found</h3>
-            <p className="text-muted-foreground mb-4">Try adjusting your search or filters</p>
+            <h3 className="text-xl font-semibold text-accent mb-3">No matches found</h3>
+            <p className="text-base text-muted-foreground mb-6">Try adjusting your search or filters</p>
             <Button
               variant="outline"
               onClick={() => {
@@ -385,8 +385,8 @@ export default function DiscoverPage() {
 
         {/* Load More */}
         {filteredUsers.length >= 20 && (
-          <div className="text-center mt-8">
-            <Button variant="outline" size="lg" className="px-8">
+          <div className="text-center mt-12">
+            <Button variant="outline" size="lg" className="px-10">
               Load More Profiles
             </Button>
           </div>

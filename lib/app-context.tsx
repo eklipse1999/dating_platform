@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, type ReactNode, useEffect } from 'react';
 import { User, UserLocation, getTierFromPoints, calculateAccountAgeDays, TRIAL_DAYS, TRIAL_POINTS, getTrialStatus } from './types';
 import { MOCK_USERS, MOCK_CURRENT_USER } from './mock-data';
 
@@ -53,20 +53,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [users] = useState<User[]>(MOCK_USERS);
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
 
+  // Persist auth state to localStorage
+  useEffect(() => {
+    const savedUser = localStorage.getItem('committed_user');
+    const savedAuth = localStorage.getItem('committed_auth');
+    if (savedUser && savedAuth === 'true') {
+      try {
+        // Parse JSON with date reviver to convert date strings back to Date objects
+        const user = JSON.parse(savedUser, (key, value) => {
+          // Check if value looks like an ISO date string
+          if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) {
+            return new Date(value);
+          }
+          return value;
+        });
+        setCurrentUser(user);
+        setIsAuthenticated(true);
+      } catch (e) {
+        localStorage.removeItem('committed_user');
+        localStorage.removeItem('committed_auth');
+      }
+    }
+  }, []);
+
   const login = useCallback(async (email: string, _password: string): Promise<boolean> => {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     // Check for admin login
     if (email === 'admin@committed.com') {
-      setCurrentUser({
+      const user: User = {
         ...MOCK_CURRENT_USER,
         email,
         isAdmin: true,
         points: 10000,
         tier: 'Diamond',
-      });
+      };
+      setCurrentUser(user);
       setIsAuthenticated(true);
+      localStorage.setItem('committed_user', JSON.stringify(user));
+      localStorage.setItem('committed_auth', 'true');
       return true;
     }
     
@@ -75,15 +101,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const trialEnd = new Date(now);
     trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
     
-    setCurrentUser({
+    const user: User = {
       ...MOCK_CURRENT_USER,
       email,
       trialStartDate: now,
       trialEndDate: trialEnd,
       trialUsed: false,
       hasActiveTrial: true,
-    });
+    };
+    setCurrentUser(user);
     setIsAuthenticated(true);
+    localStorage.setItem('committed_user', JSON.stringify(user));
+    localStorage.setItem('committed_auth', 'true');
     return true;
   }, []);
 
@@ -111,6 +140,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     
     setCurrentUser(newUser);
     setIsAuthenticated(true);
+    localStorage.setItem('committed_user', JSON.stringify(newUser));
+    localStorage.setItem('committed_auth', 'true');
     return true;
   }, []);
 
@@ -119,6 +150,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCurrentUser(null);
     setUserLocation(null);
     setLocationPermissionStatus('pending');
+    localStorage.removeItem('committed_user');
+    localStorage.removeItem('committed_auth');
   }, []);
 
   const requestLocation = useCallback(async (): Promise<boolean> => {

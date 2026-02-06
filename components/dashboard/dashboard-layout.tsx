@@ -2,7 +2,6 @@
 
 import { ReactNode, useState } from 'react';
 import { LeftSidebar } from './left-sidebar';
-import { RightSidebar } from './right-sidebar';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Menu, X, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -72,17 +71,10 @@ export function DashboardLayout({ children, showRightSidebar = true, showLeftSid
           </header>
 
           {/* Page Content */}
-          <div className="p-4 lg:p-6 pt-20 lg:pt-6 pb-20 lg:pb-6">
+          <div className="p-4 lg:p-6 pt-16 lg:pt-6 pb-20 lg:pb-6">
             {children}
           </div>
         </main>
-
-        {/* Desktop Right Sidebar */}
-        {showRightSidebar && (
-          <aside className="hidden xl:flex flex-col fixed right-0 top-0 h-screen w-80 bg-card border-l border-border z-30 p-6 overflow-y-auto">
-            <RightSidebar />
-          </aside>
-        )}
       </div>
 
       {/* Mobile Bottom Navigation */}

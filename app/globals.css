@@ -139,8 +139,24 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    @apply min-h-screen;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
   body {
     @apply bg-background text-foreground;
+    @apply min-h-screen;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Fix for mobile viewport height issues */
+  @supports (height: 100dvh) {
+    body {
+      min-height: 100dvh;
+    }
   }
   
   /* Refined typography for better readability */
