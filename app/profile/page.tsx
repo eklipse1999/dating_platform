@@ -21,6 +21,7 @@ export default function MyProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
+    career: '',
     bio: '',
     denomination: '',
     faithJourney: '',
@@ -35,6 +36,7 @@ export default function MyProfilePage() {
     } else if (currentUser) {
       setFormData({
         name: currentUser.name,
+        career: currentUser.career || '',
         bio: currentUser.bio,
         denomination: currentUser.denomination || '',
         faithJourney: currentUser.faithJourney || '',
@@ -161,6 +163,18 @@ export default function MyProfilePage() {
                   placeholder="Your name"
                 />
               </div>
+              <div>
+                <Label htmlFor="career">Career</Label>
+                <Input
+                  id="career"
+                  value={formData.career}
+                  onChange={(e) => setFormData({ ...formData, career: e.target.value })}
+                  placeholder="e.g., Software Engineer, Teacher"
+                />
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="denomination">Denomination</Label>
                 <Input
