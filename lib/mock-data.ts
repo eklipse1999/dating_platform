@@ -43,6 +43,13 @@ const BIOS = [
   "Accountant with a love for board games and Bible study. Looking for my person.",
 ];
 
+const CAREERS = [
+  'Software Engineer', 'Teacher', 'Nurse', 'Doctor', 'Business Owner',
+  'Accountant', 'Marketing Manager', 'Graphic Designer', 'Pastor', 'Youth Minister',
+  'Pharmacist', 'Engineer', 'Attorney', 'Financial Analyst', 'Architect',
+  'Chef', 'Fitness Trainer', 'Social Worker', 'Journalist', 'Consultant'
+];
+
 const DENOMINATIONS = ['Baptist', 'Catholic', 'Methodist', 'Presbyterian', 'Non-denominational', 'Pentecostal', 'Lutheran', 'Anglican'];
 
 const INTERESTS = [
@@ -175,6 +182,7 @@ export function generateMockUsers(count: number = 25): User[] {
       gender,
       phone: `+1${getRandomNumber(200, 999)}${getRandomNumber(100, 999)}${getRandomNumber(1000, 9999)}`,
       bio: getRandomElement(BIOS),
+      career: getRandomElement(CAREERS),
       location: {
         lat: location.lat,
         lng: location.lng,
@@ -214,6 +222,7 @@ export const MOCK_CURRENT_USER: User = {
   gender: 'male',
   phone: '+1234567890',
   bio: "Passionate about faith and finding meaningful connections. Love outdoor adventures and deep conversations.",
+  career: 'Software Engineer',
   location: {
     lat: 40.7128,
     lng: -74.0060,

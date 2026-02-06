@@ -37,6 +37,8 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isHuman, setIsHuman] = useState(false);
+  const [captchaError, setCaptchaError] = useState('');
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -85,6 +87,13 @@ export default function SignupPage() {
 
     if (!formData.ageConfirmed) {
       newErrors.ageConfirmed = 'You must confirm you are 18 years or older';
+    }
+
+    if (!isHuman) {
+      setCaptchaError('Please verify that you are not a robot');
+      newErrors.captcha = 'required';
+    } else {
+      setCaptchaError('');
     }
 
     setErrors(newErrors);
@@ -351,11 +360,36 @@ export default function SignupPage() {
             </div>
             {errors.ageConfirmed && <p className="text-sm text-destructive">{errors.ageConfirmed}</p>}
 
+            {/* CAPTCHA - I am not a robot */}
+            <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg border border-border">
+              <Checkbox
+                id="captcha"
+                checked={isHuman}
+                onCheckedChange={(checked) => setIsHuman(checked as boolean)}
+              />
+              <label htmlFor="captcha" className="text-sm leading-relaxed cursor-pointer">
+                <span className="font-medium">I'm not a robot</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <img 
+                    src="https://www.gstatic.com/recaptcha/api2/logo_48.png" 
+                    alt="reCAPTCHA" 
+                    className="w-6 h-6"
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    reCAPTCHA verification
+                  </span>
+                </div>
+              </label>
+            </div>
+            {captchaError && (
+              <p className="text-sm text-destructive mt-1">{captchaError}</p>
+            )}
+
             {/* Submit */}
             <Button
               type="submit"
               className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground h-12"
-              disabled={isLoading}
+              disabled={isLoading || !isHuman}
             >
               {isLoading ? (
                 <>

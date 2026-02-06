@@ -46,6 +46,7 @@ export interface User {
   gender: 'male' | 'female';
   phone: string;
   bio: string;
+  career?: string;
   location: UserLocation;
   distance?: string;
   points: number;

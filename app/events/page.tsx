@@ -239,7 +239,7 @@ export default function EventsPage() {
 
   return (
     <DashboardLayout>
-      <div className="w-screen max-w-6xl mx-auto">
+      <div className="w-screen max-w-5xl mx-auto px-1 sm:px-1 lg:px-4 py-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
