@@ -1,10 +1,14 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { LeftSidebar } from './left-sidebar';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Menu, X, Search } from 'lucide-react';
+import { Menu, X, Search, User, Settings, LogOut, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useApp } from '@/lib/app-context';
+import { TIER_RANGES } from '@/lib/types';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -54,7 +58,7 @@ export function DashboardLayout({ children, showRightSidebar = true, showLeftSid
         {/* Main Content Area */}
         <main className={`flex-1 min-h-screen ${showLeftSidebar ? 'lg:ml-20 xl:ml-64' : ''}`}>
           {/* Desktop Header */}
-          <header className="hidden lg:flex sticky top-0 z-20 h-16 bg-background/80 backdrop-blur-lg border-b border-border items-center justify-between px-6">
+          <header className="hidden lg:flex sticky top-0 z-20 h-16 bg-background/80 backdrop-blur-lg border-b border-border items-center justify-between px-13">
             <div className="flex-1 max-w-xl">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -67,6 +71,8 @@ export function DashboardLayout({ children, showRightSidebar = true, showLeftSid
             </div>
             <div className="flex items-center gap-3">
               <ThemeToggle />
+              {/* User Profile Dropdown - Desktop Only */}
+              <UserProfileDropdown />
             </div>
           </header>
 
@@ -81,6 +87,127 @@ export function DashboardLayout({ children, showRightSidebar = true, showLeftSid
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border z-40 pb-safe">
         <LeftSidebar mobileMode="bottom" />
       </nav>
+    </div>
+  );
+}
+
+// User Profile Dropdown Component - Desktop Only
+function UserProfileDropdown() {
+  const { currentUser, logout, isAdmin } = useApp();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  if (!currentUser) return null;
+
+  const tierInfo = TIER_RANGES[currentUser.tier];
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 p-1.5 rounded-full hover:bg-muted transition-colors"
+      >
+        <div className="w-8 h-8 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full flex items-center justify-center">
+          <span className="text-lg">{currentUser.avatar}</span>
+        </div>
+        <div className="hidden xl:flex flex-col items-start">
+          <span className="text-sm font-medium text-foreground">{currentUser.name}</span>
+          <span className="text-xs text-muted-foreground">{currentUser.points.toLocaleString()} pts</span>
+        </div>
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+              className="absolute right-0 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-lg overflow-hidden z-50"
+            >
+              {/* User Info Header */}
+              <div className="p-4 border-b border-border">
+                <Link href="/profile" onClick={() => setIsOpen(false)}>
+                  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors -m-2">
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full flex items-center justify-center">
+                      <span className="text-2xl">{currentUser.avatar}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-accent truncate">{currentUser.name}</h3>
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm">{tierInfo.icon}</span>
+                        <span className="text-sm text-muted-foreground">{currentUser.tier}</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+                <div className="mt-3 p-2 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Points</span>
+                    <span className="font-semibold text-accent">{currentUser.points.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Menu Items */}
+              <div className="p-2">
+                <Link href="/profile" onClick={() => setIsOpen(false)}>
+                  <button className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+                    <User className="w-4 h-4" />
+                    <span className="font-medium">My Profile</span>
+                  </button>
+                </Link>
+                <Link href="/settings" onClick={() => setIsOpen(false)}>
+                  <button className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+                    <Settings className="w-4 h-4" />
+                    <span className="font-medium">Settings</span>
+                  </button>
+                </Link>
+                {isAdmin && (
+                  <Link href="/admin" onClick={() => setIsOpen(false)}>
+                    <button className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-gold hover:bg-gold/10 transition-colors">
+                      <Crown className="w-4 h-4" />
+                      <span className="font-medium">Admin Panel</span>
+                    </button>
+                  </Link>
+                )}
+              </div>
+
+              {/* Bottom Actions */}
+              <div className="p-2 border-t border-border">
+                <button
+                  onClick={() => {
+                    logout();
+                    setIsOpen(false);
+                  }}
+                  className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="font-medium">Log Out</span>
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

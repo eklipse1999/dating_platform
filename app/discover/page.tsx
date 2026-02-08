@@ -106,8 +106,8 @@ export default function DiscoverPage() {
         ? prev.filter(i => i !== interest)
         : [...prev, interest]
     );
-  };
-
+  }; 
+  
   return (
     <DashboardLayout showRightSidebar={false}>
       <div className="w-screen max-w-5xl mx-auto px-1 sm:px-1 lg:px-4 py-6">

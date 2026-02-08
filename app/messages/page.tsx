@@ -586,7 +586,7 @@ function MessagesContent() {
         </div>
         
         {/* Conversations List */}
-        <div className={`w-full sm:w-80 bg-card border-r border-border flex flex-col ${selectedConversationId ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`w-full sm:w-135 bg-card border-r border-border flex flex-col ${selectedConversationId ? 'hidden lg:flex' : 'flex'}`}>
           {/* Header */}
           <div className="p-4 bg-muted/30 border-b border-border">
             <div className="flex items-center justify-between mb-4 lg:hidden">

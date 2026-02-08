@@ -56,7 +56,7 @@ export function LeftSidebar({ mobileMode = 'desktop', onClose }: LeftSidebarProp
     return (
       <div className="flex flex-col h-full">
         {/* Logo */}
-        <div className="p-4 border-b border-border">
+        <div className="p-0.9 px-4 border-b border-border">
           <Link href="/dashboard" className="flex items-center gap-2">
             <div className="relative w-30 h-15">
               <Image
@@ -75,31 +75,6 @@ export function LeftSidebar({ mobileMode = 'desktop', onClose }: LeftSidebarProp
           </Link>
         </div>
 
-        {/* User Profile - Full sidebar only */}
-        <div className="p-4 border-b border-border hidden xl:block">
-          <Link href="/profile" className="block">
-            <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full flex items-center justify-center">
-                <span className="text-2xl">{currentUser.avatar}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-accent truncate">{currentUser.name}</h3>
-                <TierBadge tier={currentUser.tier} size="sm" />
-              </div>
-            </div>
-          </Link>
-          
-          <div className="mt-3 p-3 bg-muted/50 rounded-xl">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-muted-foreground">Points</span>
-              <span className="font-semibold text-accent">{currentUser.points.toLocaleString()}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-lg">{tierInfo.icon}</span>
-              <span className="text-sm font-medium text-accent">{currentUser.tier}</span>
-            </div>
-          </div>
-        </div>
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-4">

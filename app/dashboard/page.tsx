@@ -47,7 +47,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout showRightSidebar={false}>
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto px-1 sm:px-1 lg:px-8 py-2">
         {/* Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
