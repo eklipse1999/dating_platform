@@ -101,12 +101,12 @@ export function DashboardHeader() {
             <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-muted/50 rounded-xl">
               <div className="flex items-center gap-2">
                 <Coins className="w-4 h-4 text-gold" />
-                <span className="font-semibold text-accent">{currentUser.points.toLocaleString()}</span>
+                <span className="font-semibold text-muted-foreground">{currentUser.points.toLocaleString()}</span>
               </div>
               <div className="w-px h-6 bg-border" />
               <div className="flex items-center gap-1.5">
                 <span className="text-lg">{tierInfo.icon}</span>
-                <span className="text-sm font-medium text-accent">{currentUser.tier}</span>
+                <span className="text-sm font-medium text-muted-foreground">{currentUser.tier}</span>
               </div>
             </div>
 
@@ -162,12 +162,12 @@ export function DashboardHeader() {
               <div className="flex items-center gap-3 px-3 py-3 bg-muted/50 rounded-xl mb-3">
                 <div className="flex items-center gap-2">
                   <Coins className="w-4 h-4 text-gold" />
-                  <span className="font-semibold text-accent">{currentUser.points.toLocaleString()} pts</span>
+                  <span className="font-semibold text-muted-foreground">{currentUser.points.toLocaleString()} pts</span>
                 </div>
                 <div className="w-px h-6 bg-border" />
                 <div className="flex items-center gap-1.5">
                   <span className="text-lg">{tierInfo.icon}</span>
-                  <span className="text-sm font-medium text-accent">{currentUser.tier}</span>
+                  <span className="text-sm font-medium text-muted-foreground">{currentUser.tier}</span>
                 </div>
               </div>
 

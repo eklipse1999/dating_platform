@@ -27,7 +27,7 @@ function SuggestedUserCard({ user, onFollow, isFollowing }: SuggestedUserCardPro
       </Link>
       <div className="flex-1 min-w-0">
         <Link href={`/profile/${user.id}`}>
-          <h4 className="font-medium text-accent text-sm truncate hover:text-primary transition-colors">
+          <h4 className="font-medium text-muted-foreground text-sm truncate hover:text-primary transition-colors">
             {user.name}, {user.age}
           </h4>
         </Link>
@@ -61,7 +61,7 @@ function TrendingTopic({ topic, count, category }: TrendingTopicProps) {
         <span className="text-xs text-muted-foreground">{category}</span>
         <ChevronRight className="w-4 h-4 text-muted-foreground" />
       </div>
-      <h4 className="font-medium text-accent text-sm mt-1">{topic}</h4>
+      <h4 className="font-medium text-muted-foreground text-sm mt-1">{topic}</h4>
       <span className="text-xs text-muted-foreground">{count.toLocaleString()} discussions</span>
     </div>
   );
@@ -99,11 +99,11 @@ export function RightSidebar() {
         {/* Suggested Connections */}
         <div className="bg-muted/30 rounded-2xl p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-accent flex items-center gap-2">
+            <h3 className="font-semibold text-muted-foreground flex items-center gap-2">
               <Users className="w-4 h-4 text-primary" />
               Suggested for You
             </h3>
-            <Link href="/discover" className="text-xs text-primary hover:underline">
+            <Link href="/discover" className="text-xs text-primary hover:underline transition-all hover:shadow-[0_0_10px_rgba(139,92,246,0.3)] px-2 py-1 rounded">
               See all
             </Link>
           </div>
@@ -122,7 +122,7 @@ export function RightSidebar() {
         {/* Premium Members */}
         <div className="bg-gradient-to-br from-gold/10 to-gold/5 rounded-2xl p-4 border border-gold/20">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-accent flex items-center gap-2">
+            <h3 className="font-semibold text-muted-foreground flex items-center gap-2">
               <Crown className="w-4 h-4 text-gold" />
               Premium Members
             </h3>
@@ -135,7 +135,7 @@ export function RightSidebar() {
                     <span className="text-sm">{user.avatar}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-accent text-sm truncate">{user.name}</h4>
+                    <h4 className="font-medium text-muted-foreground text-sm truncate">{user.name}</h4>
                     <TierBadge tier={user.tier} size="sm" />
                   </div>
                 </div>
@@ -147,7 +147,7 @@ export function RightSidebar() {
         {/* Trending Topics */}
         <div className="bg-muted/30 rounded-2xl p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-accent flex items-center gap-2">
+            <h3 className="font-semibold text-muted-foreground flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-primary" />
               Trending Topics
             </h3>
@@ -162,18 +162,18 @@ export function RightSidebar() {
         {/* Upcoming Events */}
         <div className="bg-muted/30 rounded-2xl p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-accent flex items-center gap-2">
+            <h3 className="font-semibold text-muted-foreground flex items-center gap-2">
               <Calendar className="w-4 h-4 text-primary" />
               Upcoming Events
             </h3>
-            <Link href="/events" className="text-xs text-primary hover:underline">
+            <Link href="/events" className="text-xs text-primary hover:underline transition-all hover:shadow-[0_0_10px_rgba(139,92,246,0.3)] px-2 py-1 rounded">
               See all
             </Link>
           </div>
           <div className="space-y-3">
             {upcomingEvents.map((event) => (
               <div key={event.title} className="p-3 bg-card rounded-xl border border-border">
-                <h4 className="font-medium text-accent text-sm">{event.title}</h4>
+                <h4 className="font-medium text-muted-foreground text-sm">{event.title}</h4>
                 <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
                   <span>{event.date}</span>
                   <span>{event.attendees} attending</span>
@@ -188,25 +188,25 @@ export function RightSidebar() {
 
         {/* Quick Stats */}
         <div className="bg-muted/30 rounded-2xl p-4">
-          <h3 className="font-semibold text-accent mb-4 flex items-center gap-2">
+          <h3 className="font-semibold text-muted-foreground mb-4 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />
             Your Activity
           </h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3 bg-card rounded-xl text-center">
-              <div className="text-2xl font-bold text-accent">12</div>
+              <div className="text-2xl font-bold text-muted-foreground">12</div>
               <div className="text-xs text-muted-foreground">Profile Views</div>
             </div>
             <div className="p-3 bg-card rounded-xl text-center">
-              <div className="text-2xl font-bold text-accent">5</div>
+              <div className="text-2xl font-bold text-muted-foreground">5</div>
               <div className="text-xs text-muted-foreground">New Matches</div>
             </div>
             <div className="p-3 bg-card rounded-xl text-center">
-              <div className="text-2xl font-bold text-accent">8</div>
+              <div className="text-2xl font-bold text-muted-foreground">8</div>
               <div className="text-xs text-muted-foreground">Messages</div>
             </div>
             <div className="p-3 bg-card rounded-xl text-center">
-              <div className="text-2xl font-bold text-accent">3</div>
+              <div className="text-2xl font-bold text-muted-foreground">3</div>
               <div className="text-xs text-muted-foreground">Followers</div>
             </div>
           </div>

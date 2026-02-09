@@ -88,7 +88,7 @@ export default function TestimonialsPage() {
               <Heart className="w-4 h-4" />
               Success Stories
             </span>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-accent mb-6 font-serif text-balance">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-muted-foreground mb-6 font-serif text-balance">
               Real Love Stories from <span className="text-secondary">Committed</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -129,7 +129,7 @@ export default function TestimonialsPage() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4 font-serif">
+            <h2 className="text-3xl md:text-4xl font-bold text-muted-foreground mb-4 font-serif">
               Featured Love Story
             </h2>
           </motion.div>
@@ -156,7 +156,7 @@ export default function TestimonialsPage() {
               </div>
               <div className="p-8 lg:p-12 flex flex-col justify-center">
                 <Quote className="w-12 h-12 text-primary/20 mb-6" />
-                <h3 className="text-2xl font-bold text-accent mb-2 hidden lg:block font-serif">
+                <h3 className="text-2xl font-bold text-muted-foreground mb-2 hidden lg:block font-serif">
                   {featuredStory.couple}
                 </h3>
                 <p className="text-muted-foreground mb-4 hidden lg:block">
@@ -188,7 +188,7 @@ export default function TestimonialsPage() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4 font-serif">
+            <h2 className="text-3xl md:text-4xl font-bold text-muted-foreground mb-4 font-serif">
               More Success Stories
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -217,7 +217,7 @@ export default function TestimonialsPage() {
                 </p>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-semibold text-accent">{testimonial.name}</div>
+                    <div className="font-semibold text-muted-foreground">{testimonial.name}</div>
                     <div className="text-sm text-muted-foreground">{testimonial.location}</div>
                   </div>
                   <span className="text-xs text-primary bg-primary/10 px-3 py-1 rounded-full">
@@ -265,7 +265,7 @@ export default function TestimonialsPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4 font-serif">
+            <h2 className="text-3xl md:text-4xl font-bold text-muted-foreground mb-4 font-serif">
               Your Story Could Be Next
             </h2>
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">

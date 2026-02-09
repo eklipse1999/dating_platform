@@ -70,12 +70,12 @@ export default function UpgradePage() {
             <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-10 h-10 text-green-500" />
             </div>
-            <h1 className="text-2xl font-bold text-accent mb-2 font-serif">Payment Successful!</h1>
+            <h1 className="text-2xl font-bold text-muted-foreground mb-2 font-serif">Payment Successful!</h1>
             <p className="text-muted-foreground mb-6">
               {selectedPackage.points.toLocaleString()} points have been added to your account.
             </p>
             <div className="p-4 bg-muted/50 rounded-xl mb-6">
-              <div className="text-3xl font-bold text-accent">
+              <div className="text-3xl font-bold text-muted-foreground">
                 {(currentUser.points).toLocaleString()}
               </div>
               <div className="text-sm text-muted-foreground">Total Points</div>
@@ -127,7 +127,7 @@ export default function UpgradePage() {
         >
           {/* Header */}
           <div className="text-center max-w-2xl mx-auto">
-            <h1 className="text-3xl md:text-4xl font-bold text-accent mb-4 font-serif">
+            <h1 className="text-3xl md:text-4xl font-bold text-muted-foreground mb-4 font-serif">
               Upgrade Your Experience
             </h1>
             <p className="text-muted-foreground">
@@ -139,18 +139,18 @@ export default function UpgradePage() {
           <div className="flex items-center justify-center gap-2 text-sm">
             <MapPin className="w-4 h-4 text-primary" />
             <span className="text-muted-foreground">
-              Detected location: <span className="text-accent font-medium">{userLocation?.country || 'United States'}</span>
+              Detected location: <span className="text-muted-foreground font-medium">{userLocation?.country || 'United States'}</span>
             </span>
             <span className="text-muted-foreground">•</span>
             <span className="text-muted-foreground">
-              Payment via <span className="text-accent font-medium">{paymentGateway}</span>
+              Payment via <span className="text-muted-foreground font-medium">{paymentGateway}</span>
             </span>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Packages */}
             <div className="lg:col-span-2">
-              <h2 className="text-xl font-semibold text-accent mb-4">Select a Package</h2>
+              <h2 className="text-xl font-semibold text-muted-foreground mb-4">Select a Package</h2>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {POINTS_PACKAGES.map((pkg) => (
                   <motion.button
@@ -174,15 +174,15 @@ export default function UpgradePage() {
                     )}
 
                     <div className="mb-4">
-                      <h3 className="font-semibold text-accent">{pkg.name}</h3>
-                      <div className="text-2xl font-bold text-accent">
+                      <h3 className="font-semibold text-muted-foreground">{pkg.name}</h3>
+                      <div className="text-2xl font-bold text-muted-foreground">
                         {pkg.points.toLocaleString()}
                       </div>
                       <div className="text-sm text-muted-foreground">points</div>
                     </div>
 
                     <div className="pt-4 border-t border-border">
-                      <div className="text-xl font-bold text-accent">${pkg.price}</div>
+                      <div className="text-xl font-bold text-muted-foreground">${pkg.price}</div>
                       <div className="text-xs text-muted-foreground">
                         ${(pkg.price / pkg.points * 100).toFixed(2)} per 100 pts
                       </div>
@@ -199,7 +199,7 @@ export default function UpgradePage() {
 
               {/* Benefits */}
               <div className="mt-8 p-6 bg-card rounded-2xl border border-border">
-                <h3 className="font-semibold text-accent mb-4">What you get with points:</h3>
+                <h3 className="font-semibold text-muted-foreground mb-4">What you get with points:</h3>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {[
                     'Send unlimited messages',
@@ -221,7 +221,7 @@ export default function UpgradePage() {
             {/* Payment Form */}
             <div className="lg:col-span-1">
               <div className="sticky top-24 p-6 bg-card rounded-2xl border border-border">
-                <h2 className="text-lg font-semibold text-accent mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-muted-foreground mb-4 flex items-center gap-2">
                   <CreditCard className="w-5 h-5 text-primary" />
                   Payment Details
                 </h2>
@@ -232,15 +232,15 @@ export default function UpgradePage() {
                     <div className="p-4 bg-muted/50 rounded-xl">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-muted-foreground">Package</span>
-                        <span className="font-medium text-accent">{selectedPackage.name}</span>
+                        <span className="font-medium text-muted-foreground">{selectedPackage.name}</span>
                       </div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-muted-foreground">Points</span>
-                        <span className="font-medium text-accent">{selectedPackage.points.toLocaleString()}</span>
+                        <span className="font-medium text-muted-foreground">{selectedPackage.points.toLocaleString()}</span>
                       </div>
                       <div className="flex items-center justify-between pt-2 border-t border-border">
-                        <span className="font-semibold text-accent">Total</span>
-                        <span className="text-xl font-bold text-accent">${selectedPackage.price}</span>
+                        <span className="font-semibold text-muted-foreground">Total</span>
+                        <span className="text-xl font-bold text-muted-foreground">${selectedPackage.price}</span>
                       </div>
                     </div>
 

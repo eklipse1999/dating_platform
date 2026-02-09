@@ -33,7 +33,7 @@ export default function ProfileViewPage({ params }: { params: Promise<{ id: stri
       <div className="min-h-screen bg-background">
         <DashboardHeader />
         <main className="max-w-4xl mx-auto px-4 py-16 text-center">
-          <h1 className="text-2xl font-semibold text-accent mb-2">Profile not found</h1>
+          <h1 className="text-2xl font-semibold text-muted-foreground mb-2">Profile not found</h1>
           <p className="text-muted-foreground mb-6">This profile may have been removed or doesn&apos;t exist.</p>
           <Link href="/dashboard">
             <Button>Back to Browse</Button>
@@ -126,7 +126,7 @@ export default function ProfileViewPage({ params }: { params: Promise<{ id: stri
           >
             {/* Header */}
             <div>
-              <h1 className="text-3xl font-bold text-accent font-serif mb-2">
+              <h1 className="text-3xl font-bold text-muted-foreground font-serif mb-2">
                 {user.name}, {user.age}
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
@@ -146,7 +146,7 @@ export default function ProfileViewPage({ params }: { params: Promise<{ id: stri
 
             {/* Bio */}
             <div className="p-6 bg-card rounded-2xl border border-border">
-              <h2 className="text-lg font-semibold text-accent mb-3 flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-muted-foreground mb-3 flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-primary" />
                 About Me
               </h2>
@@ -156,7 +156,7 @@ export default function ProfileViewPage({ params }: { params: Promise<{ id: stri
             {/* Faith Journey */}
             {user.faithJourney && (
               <div className="p-6 bg-card rounded-2xl border border-border">
-                <h2 className="text-lg font-semibold text-accent mb-3 flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-muted-foreground mb-3 flex items-center gap-2">
                   <Cross className="w-5 h-5 text-primary" />
                   Faith Journey
                 </h2>
@@ -172,7 +172,7 @@ export default function ProfileViewPage({ params }: { params: Promise<{ id: stri
             {/* Interests */}
             {user.interests && user.interests.length > 0 && (
               <div className="p-6 bg-card rounded-2xl border border-border">
-                <h2 className="text-lg font-semibold text-accent mb-3 flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-muted-foreground mb-3 flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-primary" />
                   Interests
                 </h2>
@@ -192,7 +192,7 @@ export default function ProfileViewPage({ params }: { params: Promise<{ id: stri
             {/* Values */}
             {user.values && user.values.length > 0 && (
               <div className="p-6 bg-card rounded-2xl border border-border">
-                <h2 className="text-lg font-semibold text-accent mb-3 flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-muted-foreground mb-3 flex items-center gap-2">
                   <Heart className="w-5 h-5 text-primary" />
                   Values
                 </h2>
@@ -212,7 +212,7 @@ export default function ProfileViewPage({ params }: { params: Promise<{ id: stri
             {/* Church Information */}
             {user.church && (
               <div className="p-6 bg-card rounded-2xl border border-border">
-                <h2 className="text-lg font-semibold text-accent mb-3 flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-muted-foreground mb-3 flex items-center gap-2">
                   <Church className="w-5 h-5 text-primary" />
                   Church
                 </h2>
@@ -233,7 +233,7 @@ export default function ProfileViewPage({ params }: { params: Promise<{ id: stri
 
             {/* Verification Status */}
             <div className="p-6 bg-card rounded-2xl border border-border">
-              <h2 className="text-lg font-semibold text-accent mb-3 flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-muted-foreground mb-3 flex items-center gap-2">
                 <Shield className="w-5 h-5 text-primary" />
                 Verification Status
               </h2>

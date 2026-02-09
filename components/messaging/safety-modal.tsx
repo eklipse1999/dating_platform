@@ -42,7 +42,7 @@ export function SafetyModal({ isOpen, onClose, daysRemaining }: SafetyModalProps
               </div>
 
               {/* Title */}
-              <h2 className="text-2xl font-bold text-accent mb-3 font-serif">
+              <h2 className="text-2xl font-bold text-muted-foreground mb-3 font-serif">
                 Safety First!
               </h2>
 
@@ -54,7 +54,7 @@ export function SafetyModal({ isOpen, onClose, daysRemaining }: SafetyModalProps
 
               {/* Time Remaining */}
               <div className="p-4 bg-muted/50 rounded-xl mb-6">
-                <div className="flex items-center justify-center gap-2 text-lg font-semibold text-accent">
+                <div className="flex items-center justify-center gap-2 text-lg font-semibold text-muted-foreground">
                   <Shield className="w-5 h-5 text-primary" />
                   <span>Time remaining: {daysRemaining} days</span>
                 </div>
@@ -65,7 +65,7 @@ export function SafetyModal({ isOpen, onClose, daysRemaining }: SafetyModalProps
 
               {/* Why we do this */}
               <div className="text-left text-sm text-muted-foreground mb-6 p-4 bg-primary/5 rounded-xl">
-                <h4 className="font-medium text-accent mb-2">Why this safety period?</h4>
+                <h4 className="font-medium text-muted-foreground mb-2">Why this safety period?</h4>
                 <ul className="space-y-1.5">
                   <li>Helps build genuine connections</li>
                   <li>Protects against rushed decisions</li>

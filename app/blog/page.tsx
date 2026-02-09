@@ -113,7 +113,7 @@ export default function BlogPage() {
               <BookOpen className="w-4 h-4" />
               Committed Blog
             </span>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-accent mb-6 font-serif text-balance">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-muted-foreground mb-6 font-serif text-balance">
               Insights for <span className="text-secondary">Faith-Based</span> Dating
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -192,7 +192,7 @@ export default function BlogPage() {
                     {featuredPost.category}
                   </span>
                 </div>
-                <h2 className="text-2xl lg:text-3xl font-bold text-accent mb-4 font-serif">
+                <h2 className="text-2xl lg:text-3xl font-bold text-muted-foreground mb-4 font-serif">
                   {featuredPost.title}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed mb-6">
@@ -233,7 +233,7 @@ export default function BlogPage() {
             viewport={{ once: true }}
             className="mb-8"
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-accent font-serif">
+            <h2 className="text-2xl md:text-3xl font-bold text-muted-foreground font-serif">
               Latest Articles
             </h2>
           </motion.div>
@@ -262,7 +262,7 @@ export default function BlogPage() {
                   </div>
                 </div>
                 <div className="p-6">
-                  <h3 className="text-lg font-semibold text-accent mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                  <h3 className="text-lg font-semibold text-muted-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                     {post.title}
                   </h3>
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
@@ -305,7 +305,7 @@ export default function BlogPage() {
             className="bg-card rounded-3xl border border-border p-8 md:p-12 text-center"
           >
             <BookOpen className="w-12 h-12 text-primary mx-auto mb-6" />
-            <h2 className="text-2xl md:text-3xl font-bold text-accent mb-4 font-serif">
+            <h2 className="text-2xl md:text-3xl font-bold text-muted-foreground mb-4 font-serif">
               Get Faith & Dating Tips
             </h2>
             <p className="text-muted-foreground mb-8 max-w-lg mx-auto">

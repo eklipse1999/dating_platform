@@ -56,7 +56,7 @@ export function DashboardLayout({ children, showRightSidebar = true, showLeftSid
         )}
 
         {/* Main Content Area */}
-        <main className={`flex-1 min-h-screen ${showLeftSidebar ? 'lg:ml-20 xl:ml-64' : ''}`}>
+        <main className={`flex-1 min-h-screen ${showLeftSidebar ? 'lg:ml-20 xl:ml-64' : ''} ${showRightSidebar ? 'xl:mr-80' : ''}`}>
           {/* Desktop Header */}
           <header className="hidden lg:flex sticky top-0 z-20 h-16 bg-background/80 backdrop-blur-lg border-b border-border items-center justify-between px-13">
             <div className="flex-1 max-w-xl">
@@ -151,7 +151,7 @@ function UserProfileDropdown() {
                       <span className="text-2xl">{currentUser.avatar}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-accent truncate">{currentUser.name}</h3>
+                      <h3 className="font-semibold text-muted-foreground truncate">{currentUser.name}</h3>
                       <div className="flex items-center gap-1">
                         <span className="text-sm">{tierInfo.icon}</span>
                         <span className="text-sm text-muted-foreground">{currentUser.tier}</span>
@@ -162,7 +162,7 @@ function UserProfileDropdown() {
                 <div className="mt-3 p-2 bg-muted/50 rounded-lg">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Points</span>
-                    <span className="font-semibold text-accent">{currentUser.points.toLocaleString()}</span>
+                    <span className="font-semibold text-muted-foreground">{currentUser.points.toLocaleString()}</span>
                   </div>
                 </div>
               </div>

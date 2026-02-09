@@ -84,8 +84,8 @@ export function LeftSidebar({ mobileMode = 'desktop', onClose }: LeftSidebarProp
               return (
                 <Link key={item.href} href={item.href}>
                   <motion.div
-                    whileHover={{ x: 4 }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+                    whileHover={{ x: 4, boxShadow: "0 0 20px rgba(139, 92, 246, 0.3)", borderColor: "rgba(139, 92, 246, 0.5)" }}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all border border-transparent ${
                       isActive 
                         ? 'bg-primary text-primary-foreground' 
                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -112,8 +112,8 @@ export function LeftSidebar({ mobileMode = 'desktop', onClose }: LeftSidebarProp
               return (
                 <Link key={item.href} href={item.href}>
                   <motion.div
-                    whileHover={{ x: 4 }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+                    whileHover={{ x: 4, boxShadow: "0 0 20px rgba(139, 92, 246, 0.3)", borderColor: "rgba(139, 92, 246, 0.5)" }}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all border border-transparent ${
                       isActive 
                         ? 'bg-primary text-primary-foreground' 
                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -132,8 +132,8 @@ export function LeftSidebar({ mobileMode = 'desktop', onClose }: LeftSidebarProp
               <div className="my-4 border-t border-border hidden xl:block" />
               <Link href="/admin">
                 <motion.div
-                  whileHover={{ x: 4 }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+                  whileHover={{ x: 4, boxShadow: "0 0 20px rgba(234, 179, 8, 0.3)", borderColor: "rgba(234, 179, 8, 0.5)" }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all border border-transparent ${
                     pathname === '/admin'
                       ? 'bg-gold/20 text-gold'
                       : 'text-gold hover:bg-gold/10'
@@ -177,12 +177,16 @@ export function LeftSidebar({ mobileMode = 'desktop', onClose }: LeftSidebarProp
           const isActive = pathname === item.href;
           return (
             <Link key={item.href} href={item.href}>
-              <div className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${
-                isActive ? 'text-primary' : 'text-muted-foreground'
-              }`}>
+              <motion.div
+                whileHover={{ scale: 1.1, boxShadow: "0 0 15px rgba(139, 92, 246, 0.4)" }}
+                whileTap={{ scale: 0.95 }}
+                className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${
+                  isActive ? 'text-primary' : 'text-muted-foreground'
+                }`}
+              >
                 <item.icon className="w-5 h-5" />
                 <span className="text-xs">{item.label}</span>
-              </div>
+              </motion.div>
             </Link>
           );
         })}
@@ -224,7 +228,7 @@ export function LeftSidebar({ mobileMode = 'desktop', onClose }: LeftSidebarProp
               <span className="text-2xl">{currentUser.avatar}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-accent truncate">{currentUser.name}</h3>
+              <h3 className="font-semibold text-muted-foreground truncate">{currentUser.name}</h3>
               <TierBadge tier={currentUser.tier} size="sm" />
             </div>
           </div>
@@ -233,11 +237,11 @@ export function LeftSidebar({ mobileMode = 'desktop', onClose }: LeftSidebarProp
         <div className="mt-3 p-3 bg-muted/50 rounded-xl">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-muted-foreground">Points</span>
-            <span className="font-semibold text-accent">{currentUser.points.toLocaleString()}</span>
+            <span className="font-semibold text-muted-foreground">{currentUser.points.toLocaleString()}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-lg">{tierInfo.icon}</span>
-            <span className="text-sm font-medium text-accent">{currentUser.tier}</span>
+            <span className="text-sm font-medium text-muted-foreground">{currentUser.tier}</span>
           </div>
         </div>
       </div>
@@ -250,8 +254,8 @@ export function LeftSidebar({ mobileMode = 'desktop', onClose }: LeftSidebarProp
             return (
               <Link key={item.href} href={item.href} onClick={onClose}>
                 <motion.div
-                  whileHover={{ x: 4 }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+                  whileHover={{ x: 4, boxShadow: "0 0 20px rgba(139, 92, 246, 0.3)", borderColor: "rgba(139, 92, 246, 0.5)" }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all border border-transparent ${
                     isActive 
                       ? 'bg-primary text-primary-foreground' 
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -278,8 +282,8 @@ export function LeftSidebar({ mobileMode = 'desktop', onClose }: LeftSidebarProp
             return (
               <Link key={item.href} href={item.href} onClick={onClose}>
                 <motion.div
-                  whileHover={{ x: 4 }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+                  whileHover={{ x: 4, boxShadow: "0 0 20px rgba(139, 92, 246, 0.3)", borderColor: "rgba(139, 92, 246, 0.5)" }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all border border-transparent ${
                     isActive 
                       ? 'bg-primary text-primary-foreground' 
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -298,8 +302,8 @@ export function LeftSidebar({ mobileMode = 'desktop', onClose }: LeftSidebarProp
             <div className="my-4 border-t border-border" />
             <Link href="/admin" onClick={onClose}>
               <motion.div
-                whileHover={{ x: 4 }}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+                whileHover={{ x: 4, boxShadow: "0 0 20px rgba(234, 179, 8, 0.3)", borderColor: "rgba(234, 179, 8, 0.5)" }}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all border border-transparent ${
                   pathname === '/admin'
                     ? 'bg-gold/20 text-gold'
                     : 'text-gold hover:bg-gold/10'

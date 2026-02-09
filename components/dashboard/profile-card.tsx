@@ -22,7 +22,7 @@ export function ProfileCard({ user, index = 0 }: ProfileCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
-      className="group relative bg-card rounded-2xl border border-border overflow-hidden hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+      className="group relative bg-card rounded-2xl border border-border overflow-hidden hover:border-primary/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(139,92,246,0.2)] hover:-translate-y-1"
     >
       {/* Avatar */}
       <div className="relative h-48 bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
@@ -51,7 +51,7 @@ export function ProfileCard({ user, index = 0 }: ProfileCardProps) {
         <div className="flex items-start justify-between mb-2">
           <div>
             <Link href={`/profile/${user.id}`}>
-              <h3 className="font-semibold text-accent hover:text-primary transition-colors">
+              <h3 className="font-semibold text-muted-foreground hover:text-primary transition-colors">
                 {user.name}, {user.age}
               </h3>
             </Link>
@@ -78,7 +78,7 @@ export function ProfileCard({ user, index = 0 }: ProfileCardProps) {
           <Button
             variant={following ? 'default' : 'outline'}
             size="sm"
-            className={`flex-1 ${following ? 'bg-secondary hover:bg-secondary/90 text-secondary-foreground' : ''}`}
+            className={`flex-1 ${following ? 'bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-[0_0_15px_rgba(139,92,246,0.3)]' : 'hover:shadow-[0_0_15px_rgba(139,92,246,0.3)]'}`}
             onClick={() => toggleFollow(user.id)}
           >
             <Heart className={`w-4 h-4 mr-1.5 ${following ? 'fill-current' : ''}`} />
@@ -87,14 +87,14 @@ export function ProfileCard({ user, index = 0 }: ProfileCardProps) {
           
           {canMessage || currentUser?.isAdmin ? (
             <Link href={`/messages?user=${user.id}`} className="flex-1">
-              <Button variant="outline" size="sm" className="w-full bg-transparent">
+              <Button variant="outline" size="sm" className="w-full bg-transparent hover:shadow-[0_0_15px_rgba(139,92,246,0.3)]">
                 <MessageCircle className="w-4 h-4 mr-1.5" />
                 Message
               </Button>
             </Link>
           ) : (
             <Link href="/upgrade" className="flex-1">
-              <Button variant="outline" size="sm" className="w-full text-muted-foreground bg-transparent">
+              <Button variant="outline" size="sm" className="w-full text-muted-foreground bg-transparent hover:shadow-[0_0_15px_rgba(139,92,246,0.3)]">
                 <Lock className="w-4 h-4 mr-1.5" />
                 Locked
               </Button>

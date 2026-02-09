@@ -78,7 +78,7 @@ export default function MyProfilePage() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-8"
         >
-          <h1 className="text-3xl font-bold text-accent font-serif">My Profile</h1>
+          <h1 className="text-3xl font-bold text-muted-foreground font-serif">My Profile</h1>
 
           {/* Stats Card */}
           <div className="p-6 bg-card rounded-2xl border border-border">
@@ -96,7 +96,7 @@ export default function MyProfilePage() {
 
                 {/* Info */}
                 <div>
-                  <h2 className="text-xl font-semibold text-accent">{currentUser.name}</h2>
+                  <h2 className="text-xl font-semibold text-muted-foreground">{currentUser.name}</h2>
                   <p className="text-muted-foreground">{currentUser.email}</p>
                   <div className="flex items-center gap-3 mt-2">
                     <TierBadge tier={currentUser.tier} />
@@ -114,7 +114,7 @@ export default function MyProfilePage() {
               <div className="w-full lg:w-auto lg:min-w-[200px]">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground">Points</span>
-                  <span className="font-semibold text-accent">{currentUser.points.toLocaleString()}</span>
+                  <span className="font-semibold text-muted-foreground">{currentUser.points.toLocaleString()}</span>
                 </div>
                 {nextTier && (
                   <>
@@ -152,7 +152,7 @@ export default function MyProfilePage() {
 
           {/* Edit Form */}
           <div className="p-6 bg-card rounded-2xl border border-border space-y-6">
-            <h3 className="text-lg font-semibold text-accent">Edit Profile</h3>
+            <h3 className="text-lg font-semibold text-muted-foreground">Edit Profile</h3>
 
             <div className="grid sm:grid-cols-2 gap-6">
               <div>
@@ -221,7 +221,7 @@ export default function MyProfilePage() {
 
             {/* Church Information */}
             <div className="pt-4 border-t border-border">
-              <h4 className="text-md font-semibold text-accent mb-4 flex items-center gap-2">
+              <h4 className="text-md font-semibold text-muted-foreground mb-4 flex items-center gap-2">
                 <Church className="w-4 h-4 text-primary" />
                 Church Information
               </h4>
@@ -268,14 +268,14 @@ export default function MyProfilePage() {
 
           {/* ID Verification Section */}
           <div className="p-6 bg-card rounded-2xl border border-border space-y-6">
-            <h3 className="text-lg font-semibold text-accent flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-muted-foreground flex items-center gap-2">
               <BadgeCheck className="w-5 h-5 text-primary" />
               ID Verification
             </h3>
             
             <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
               <div>
-                <p className="font-medium text-accent">Verification Status</p>
+                <p className="font-medium text-muted-foreground">Verification Status</p>
                 <p className="text-sm text-muted-foreground">
                   {currentUser.idVerification?.status === 'verified' 
                     ? 'Your ID has been verified'
@@ -333,7 +333,7 @@ export default function MyProfilePage() {
 
           {/* Security Verification Section */}
           <div className="p-6 bg-card rounded-2xl border border-border space-y-6">
-            <h3 className="text-lg font-semibold text-accent flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-muted-foreground flex items-center gap-2">
               <Shield className="w-5 h-5 text-primary" />
               Security Settings
             </h3>
@@ -341,7 +341,7 @@ export default function MyProfilePage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
                 <div>
-                  <p className="font-medium text-accent">Email Verification</p>
+                  <p className="font-medium text-muted-foreground">Email Verification</p>
                   <p className="text-sm text-muted-foreground">{currentUser.email}</p>
                 </div>
                 {currentUser.securityVerification?.emailVerified ? (
@@ -356,7 +356,7 @@ export default function MyProfilePage() {
 
               <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
                 <div>
-                  <p className="font-medium text-accent">Phone Verification</p>
+                  <p className="font-medium text-muted-foreground">Phone Verification</p>
                   <p className="text-sm text-muted-foreground">{currentUser.phone}</p>
                 </div>
                 {currentUser.securityVerification?.phoneVerified ? (
@@ -371,7 +371,7 @@ export default function MyProfilePage() {
 
               <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
                 <div>
-                  <p className="font-medium text-accent">Two-Factor Authentication</p>
+                  <p className="font-medium text-muted-foreground">Two-Factor Authentication</p>
                   <p className="text-sm text-muted-foreground">Add an extra layer of security</p>
                 </div>
                 {currentUser.securityVerification?.twoFactorEnabled ? (
@@ -386,7 +386,7 @@ export default function MyProfilePage() {
 
               <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
                 <div>
-                  <p className="font-medium text-accent">Security Questions</p>
+                  <p className="font-medium text-muted-foreground">Security Questions</p>
                   <p className="text-sm text-muted-foreground">For account recovery</p>
                 </div>
                 {currentUser.securityVerification?.securityQuestionsSet ? (
@@ -401,7 +401,7 @@ export default function MyProfilePage() {
 
               {/* Face ID Section */}
               <div className="pt-4 border-t border-border">
-                <h4 className="text-md font-semibold text-accent mb-4 flex items-center gap-2">
+                <h4 className="text-md font-semibold text-muted-foreground mb-4 flex items-center gap-2">
                   <ScanFace className="w-4 h-4 text-primary" />
                   Face ID Authentication
                 </h4>

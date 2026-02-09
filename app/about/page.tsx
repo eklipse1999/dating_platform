@@ -73,7 +73,7 @@ export default function AboutPage() {
                 <Heart className="w-4 h-4" />
                 Our Story
               </span>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-accent mb-6 font-serif text-balance">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-muted-foreground mb-6 font-serif text-balance">
                 Connecting Hearts Through <span className="text-secondary">Faith</span>
               </h1>
               <p className="text-lg text-muted-foreground leading-relaxed mb-8">
@@ -122,7 +122,7 @@ export default function AboutPage() {
               <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
                 <Target className="w-7 h-7 text-primary" />
               </div>
-              <h2 className="text-2xl font-bold text-accent mb-4 font-serif">Our Mission</h2>
+              <h2 className="text-2xl font-bold text-muted-foreground mb-4 font-serif">Our Mission</h2>
               <p className="text-muted-foreground leading-relaxed">
                 To provide a trusted platform where Christian singles can discover authentic 
                 connections rooted in faith, leading to God-honoring relationships and marriages 
@@ -140,7 +140,7 @@ export default function AboutPage() {
               <div className="w-14 h-14 rounded-xl bg-secondary/10 flex items-center justify-center mb-6">
                 <Eye className="w-7 h-7 text-secondary" />
               </div>
-              <h2 className="text-2xl font-bold text-accent mb-4 font-serif">Our Vision</h2>
+              <h2 className="text-2xl font-bold text-muted-foreground mb-4 font-serif">Our Vision</h2>
               <p className="text-muted-foreground leading-relaxed">
                 To become the world's most trusted faith-based dating platform, where every 
                 member feels safe, valued, and empowered to find a life partner who shares 
@@ -160,7 +160,7 @@ export default function AboutPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4 font-serif">
+            <h2 className="text-3xl md:text-4xl font-bold text-muted-foreground mb-4 font-serif">
               Our Core Values
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -181,7 +181,7 @@ export default function AboutPage() {
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                   <value.icon className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-accent mb-2">{value.title}</h3>
+                <h3 className="text-lg font-semibold text-muted-foreground mb-2">{value.title}</h3>
                 <p className="text-sm text-muted-foreground">{value.description}</p>
               </motion.div>
             ))}
@@ -212,7 +212,7 @@ export default function AboutPage() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-accent mb-6 font-serif">
+              <h2 className="text-3xl md:text-4xl font-bold text-muted-foreground mb-6 font-serif">
                 Built by Faith, Driven by Purpose
               </h2>
               <div className="space-y-4 text-muted-foreground leading-relaxed">

@@ -162,7 +162,7 @@ export default function NotificationsPage() {
           className="flex items-center justify-between mb-8"
         >
           <div>
-            <h1 className="text-2xl font-bold text-accent font-serif mb-2">
+            <h1 className="text-2xl font-bold text-muted-foreground font-serif mb-2">
               Notifications 🔔
             </h1>
             <p className="text-muted-foreground">
@@ -257,7 +257,7 @@ export default function NotificationsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <h3 className={`font-medium ${!notification.read ? 'text-accent' : 'text-muted-foreground'}`}>
+                          <h3 className={`font-medium ${!notification.read ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
                             {notification.title}
                           </h3>
                           <p className="text-sm text-muted-foreground mt-1">
@@ -310,7 +310,7 @@ export default function NotificationsPage() {
                 <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                   <Bell className="w-8 h-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-semibold text-accent mb-2">
+                <h3 className="text-lg font-semibold text-muted-foreground mb-2">
                   {filter === 'unread' ? 'No unread notifications' : 'No notifications yet'}
                 </h3>
                 <p className="text-muted-foreground">

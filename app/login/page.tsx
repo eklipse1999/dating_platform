@@ -144,10 +144,10 @@ export default function LoginPage() {
               <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-secondary text-secondary-foreground">
                 <Heart className="w-5 h-5" />
               </div>
-              <span className="text-xl font-bold text-accent font-serif">Committed</span>
+              <span className="text-xl font-bold text-muted-foreground font-serif">Committed</span>
             </Link>
 
-            <h1 className="text-3xl font-bold text-accent mb-2 font-serif">Log In</h1>
+            <h1 className="text-3xl font-bold text-muted-foreground mb-2 font-serif">Log In</h1>
             <p className="text-muted-foreground mb-8">Welcome back to our community</p>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -280,7 +280,7 @@ export default function LoginPage() {
               </Button>
 
               <p className="text-center text-sm text-muted-foreground">
-                Don&apos;t have an account?{' '}
+                Don't have an account?{' '}
                 <Link href="/signup" className="text-primary hover:underline font-medium">
                   Sign Up
                 </Link>

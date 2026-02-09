@@ -54,7 +54,7 @@ export default function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-2xl font-bold text-accent font-serif mb-2">
+          <h1 className="text-2xl font-bold text-muted-foreground font-serif mb-2">
             Welcome back, {currentUser.name.split(' ')[0]}! 👋
           </h1>
           <p className="text-muted-foreground">
@@ -103,7 +103,7 @@ export default function DashboardPage() {
                   <Lock className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-accent">Upgrade to unlock messaging</h3>
+                  <h3 className="font-semibold text-muted-foreground">Upgrade to unlock messaging</h3>
                   <p className="text-sm text-muted-foreground">You are viewing 15 local profiles. Upgrade to see more and message!</p>
                 </div>
               </div>
@@ -128,21 +128,21 @@ export default function DashboardPage() {
             <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl mx-auto mb-2">
               <Heart className="w-5 h-5 text-primary" />
             </div>
-            <div className="text-2xl font-bold text-accent">12</div>
+            <div className="text-2xl font-bold text-muted-foreground">12</div>
             <div className="text-xs text-muted-foreground">New Likes</div>
           </div>
           <div className="p-4 bg-card rounded-2xl border border-border text-center">
             <div className="flex items-center justify-center w-10 h-10 bg-secondary/10 rounded-xl mx-auto mb-2">
               <TrendingUp className="w-5 h-5 text-secondary" />
             </div>
-            <div className="text-2xl font-bold text-accent">89%</div>
+            <div className="text-2xl font-bold text-muted-foreground">89%</div>
             <div className="text-xs text-muted-foreground">Profile Score</div>
           </div>
           <div className="p-4 bg-card rounded-2xl border border-border text-center">
             <div className="flex items-center justify-center w-10 h-10 bg-gold/20 rounded-xl mx-auto mb-2">
               <Sparkles className="w-5 h-5 text-gold" />
             </div>
-            <div className="text-2xl font-bold text-accent">5</div>
+            <div className="text-2xl font-bold text-muted-foreground">5</div>
             <div className="text-xs text-muted-foreground">Matches</div>
           </div>
         </motion.div>
@@ -183,7 +183,7 @@ export default function DashboardPage() {
             className="mb-6 p-6 bg-card rounded-2xl border border-border"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-accent">Filter Profiles</h3>
+              <h3 className="font-semibold text-muted-foreground">Filter Profiles</h3>
               <button onClick={() => setShowFilters(false)} className="p-1 hover:bg-muted rounded">
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
@@ -236,7 +236,7 @@ export default function DashboardPage() {
 
         {/* Results Header */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-accent">
+          <h2 className="text-lg font-semibold text-muted-foreground">
             {isFreeUser ? 'Local Matches' : 'Discover Matches'}
           </h2>
           <span className="text-sm text-muted-foreground">
@@ -256,7 +256,7 @@ export default function DashboardPage() {
             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
               <Search className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold text-accent mb-2">No profiles found</h3>
+            <h3 className="text-lg font-semibold text-muted-foreground mb-2">No profiles found</h3>
             <p className="text-muted-foreground">Try adjusting your filters or search query</p>
           </div>
         )}
@@ -270,7 +270,7 @@ export default function DashboardPage() {
             className="mt-12 text-center"
           >
             <div className="inline-block p-8 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl border border-border">
-              <h3 className="text-xl font-semibold text-accent mb-2">Want to see more?</h3>
+              <h3 className="text-xl font-semibold text-muted-foreground mb-2">Want to see more?</h3>
               <p className="text-muted-foreground mb-4">
                 Upgrade to view unlimited profiles and start messaging
               </p>

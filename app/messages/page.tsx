@@ -441,7 +441,7 @@ function MessagesContent() {
             <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <Lock className="w-10 h-10 text-primary" />
             </div>
-            <h1 className="text-3xl font-bold text-accent mb-4 font-serif">Unlock Messaging</h1>
+            <h1 className="text-3xl font-bold text-mute-foreground mb-4 font-serif">Unlock Messaging</h1>
             <p className="text-muted-foreground mb-8">
               Upgrade to a premium plan to start messaging other members and make real connections.
             </p>
@@ -590,7 +590,7 @@ function MessagesContent() {
           {/* Header */}
           <div className="p-4 bg-muted/30 border-b border-border">
             <div className="flex items-center justify-between mb-4 lg:hidden">
-              <h2 className="text-xl font-bold text-accent">Chats</h2>
+              <h2 className="text-xl font-bold text-muted-foreground">Chats</h2>
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <MoreVertical className="w-5 h-5" />
@@ -633,7 +633,7 @@ function MessagesContent() {
             <div className="px-4 py-3 bg-secondary/10 border-b border-border">
               <div className="flex items-center gap-2 text-sm">
                 <Shield className="w-4 h-4 text-secondary" />
-                <span className="text-accent font-medium">Safety Period Active</span>
+                <span className="text-muted-foreground font-medium">Safety Period Active</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Date scheduling unlocked in {daysRemaining} days
@@ -691,7 +691,7 @@ function MessagesContent() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-accent truncate">{selectedConversation.user.name}</h3>
+                    <h3 className="font-semibold text-muted-foreground truncate">{selectedConversation.user.name}</h3>
                     <p className="text-xs text-muted-foreground">
                       {selectedConversation.typing ? (
                         <span className="text-green-500">typing...</span>
@@ -1052,7 +1052,7 @@ function ConversationItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h4 className="font-medium text-accent truncate">{conversation.user.name}</h4>
+            <h4 className="font-medium text-muted-foreground truncate">{conversation.user.name}</h4>
             {conversation.isPinned && <Pin className="w-3 h-3 text-muted-foreground" />}
             {conversation.isMuted && <BellOff className="w-3 h-3 text-muted-foreground" />}
           </div>

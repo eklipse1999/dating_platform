@@ -93,7 +93,7 @@ export default function CareersPage() {
                 <Briefcase className="w-4 h-4" />
                 Join Our Team
               </span>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-accent mb-6 font-serif text-balance">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-muted-foreground mb-6 font-serif text-balance">
                 Help Us Connect <span className="text-secondary">Hearts</span>
               </h1>
               <p className="text-lg text-muted-foreground leading-relaxed mb-8">
@@ -161,7 +161,7 @@ export default function CareersPage() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4 font-serif">
+            <h2 className="text-3xl md:text-4xl font-bold text-muted-foreground mb-4 font-serif">
               Our Values
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -182,7 +182,7 @@ export default function CareersPage() {
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl font-bold text-primary">{index + 1}</span>
                 </div>
-                <h3 className="text-lg font-semibold text-accent mb-2">{value.title}</h3>
+                <h3 className="text-lg font-semibold text-muted-foreground mb-2">{value.title}</h3>
                 <p className="text-sm text-muted-foreground">{value.description}</p>
               </motion.div>
             ))}
@@ -199,7 +199,7 @@ export default function CareersPage() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4 font-serif">
+            <h2 className="text-3xl md:text-4xl font-bold text-muted-foreground mb-4 font-serif">
               Why Join Committed?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -220,7 +220,7 @@ export default function CareersPage() {
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                   <benefit.icon className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-accent mb-2">{benefit.title}</h3>
+                <h3 className="text-lg font-semibold text-muted-foreground mb-2">{benefit.title}</h3>
                 <p className="text-sm text-muted-foreground">{benefit.description}</p>
               </motion.div>
             ))}
@@ -237,7 +237,7 @@ export default function CareersPage() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4 font-serif">
+            <h2 className="text-3xl md:text-4xl font-bold text-muted-foreground mb-4 font-serif">
               Open Positions
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -258,7 +258,7 @@ export default function CareersPage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-accent group-hover:text-primary transition-colors">
+                      <h3 className="text-lg font-semibold text-muted-foreground group-hover:text-primary transition-colors">
                         {job.title}
                       </h3>
                       <span className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">

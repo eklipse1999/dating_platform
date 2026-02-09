@@ -102,7 +102,7 @@ export function FaceIdEnrollment({
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
           <User className="w-8 h-8 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-semibold text-accent mb-2">No Face ID Enrolled</h3>
+        <h3 className="text-lg font-semibold text-muted-foreground mb-2">No Face ID Enrolled</h3>
         <p className="text-muted-foreground mb-4">
           You need to set up Face ID in your security settings before you can use it for login.
         </p>
@@ -121,7 +121,7 @@ export function FaceIdEnrollment({
             <Camera className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-accent">
+            <h3 className="text-lg font-semibold text-muted-foreground">
               {currentMode === 'enrollment' ? 'Set Up Face ID' : 'Verify Face ID'}
             </h3>
             <p className="text-sm text-muted-foreground">

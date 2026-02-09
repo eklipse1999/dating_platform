@@ -138,7 +138,7 @@ export default function SavedPage() {
           className="space-y-8"
         >
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-accent font-serif">Saved</h1>
+            <h1 className="text-3xl font-bold text-muted-foreground font-serif">Saved</h1>
             <span className="text-muted-foreground">{savedItems.length} items</span>
           </div>
 
@@ -183,7 +183,7 @@ export default function SavedPage() {
                         <div className="flex items-start justify-between gap-2">
                           <div>
                             <Link href={`/profile/${item.user.id}`}>
-                              <h3 className="font-semibold text-accent hover:text-primary transition-colors">
+                              <h3 className="font-semibold text-muted-foreground hover:text-primary transition-colors">
                                 {item.user.name}, {item.user.age}
                               </h3>
                             </Link>
@@ -228,7 +228,7 @@ export default function SavedPage() {
                       <div className="flex-1">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <h3 className="font-semibold text-accent">{item.title}</h3>
+                            <h3 className="font-semibold text-muted-foreground">{item.title}</h3>
                             <p className="text-sm text-muted-foreground mt-1">
                               {item.description}
                             </p>
@@ -262,7 +262,7 @@ export default function SavedPage() {
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                 <Bookmark className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-accent mb-2">No saved items</h3>
+              <h3 className="text-lg font-semibold text-muted-foreground mb-2">No saved items</h3>
               <p className="text-muted-foreground">
                 {activeTab === 'all' 
                   ? 'Save profiles and events to see them here' 

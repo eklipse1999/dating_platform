@@ -46,7 +46,7 @@ export function TestimonialsSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-accent mb-4 font-serif">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-muted-foreground mb-4 font-serif">
             Love Stories
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -85,7 +85,7 @@ export function TestimonialsSection() {
                   {testimonial.avatar}
                 </div>
                 <div>
-                  <div className="font-semibold text-accent">{testimonial.name}</div>
+                  <div className="font-semibold text-muted-foreground">{testimonial.name}</div>
                   <div className="text-sm text-muted-foreground">{testimonial.location}</div>
                 </div>
               </div>

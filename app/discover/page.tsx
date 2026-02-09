@@ -117,7 +117,7 @@ export default function DiscoverPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <h1 className="text-3xl font-bold text-accent font-serif mb-3">
+          <h1 className="text-3xl font-bold text-muted-foreground font-serif mb-3">
             Discover Matches
           </h1>
           <p className="text-base text-muted-foreground">
@@ -177,7 +177,7 @@ export default function DiscoverPage() {
             className="mb-8 p-6 bg-card rounded-2xl border border-border"
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-accent">Filter Profiles</h3>
+              <h3 className="text-lg font-semibold text-muted-foreground">Filter Profiles</h3>
               <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
                 Close
               </Button>
@@ -296,7 +296,7 @@ export default function DiscoverPage() {
 
         {/* Results Count */}
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-xl font-semibold text-accent">
+          <h2 className="text-xl font-semibold text-muted-foreground">
             {filteredUsers.length} match{filteredUsers.length !== 1 ? 'es' : ''} found
           </h2>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -325,7 +325,7 @@ export default function DiscoverPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-base font-semibold text-accent truncate">{user.name}</h3>
+                      <h3 className="text-base font-semibold text-muted-foreground truncate">{user.name}</h3>
                       <Badge variant="outline" className="text-xs">{user.tier}</Badge>
                       {user.idVerification?.status === 'verified' && (
                         <Award className="w-4 h-4 text-green-500" />
@@ -368,7 +368,7 @@ export default function DiscoverPage() {
             <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
               <Search className="w-10 h-10 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-semibold text-accent mb-3">No matches found</h3>
+            <h3 className="text-xl font-semibold text-muted-foreground mb-3">No matches found</h3>
             <p className="text-base text-muted-foreground mb-6">Try adjusting your search or filters</p>
             <Button
               variant="outline"

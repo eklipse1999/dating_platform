@@ -90,7 +90,7 @@ export default function SettingsPage() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-8"
         >
-          <h1 className="text-3xl font-bold text-accent font-serif">Settings</h1>
+          <h1 className="text-3xl font-bold text-muted-foreground font-serif">Settings</h1>
 
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Tabs */}
@@ -119,7 +119,7 @@ export default function SettingsPage() {
                 {/* Account Tab */}
                 {activeTab === 'account' && (
                   <div className="space-y-6">
-                    <h2 className="text-lg font-semibold text-accent">Account Settings</h2>
+                    <h2 className="text-lg font-semibold text-muted-foreground">Account Settings</h2>
                     
                     <div className="space-y-4">
                       <div>
@@ -143,7 +143,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="pt-6 border-t border-border space-y-4">
-                      <h3 className="font-medium text-accent">Change Password</h3>
+                      <h3 className="font-medium text-muted-foreground">Change Password</h3>
                       <div>
                         <Label htmlFor="currentPassword">Current Password</Label>
                         <Input
@@ -180,12 +180,12 @@ export default function SettingsPage() {
                 {/* Privacy Tab */}
                 {activeTab === 'privacy' && (
                   <div className="space-y-6">
-                    <h2 className="text-lg font-semibold text-accent">Privacy Settings</h2>
+                    <h2 className="text-lg font-semibold text-muted-foreground">Privacy Settings</h2>
                     
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-medium text-accent">Profile Visibility</h4>
+                          <h4 className="font-medium text-muted-foreground">Profile Visibility</h4>
                           <p className="text-sm text-muted-foreground">Allow others to see your profile</p>
                         </div>
                         <Switch
@@ -195,7 +195,7 @@ export default function SettingsPage() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-medium text-accent">Show Distance</h4>
+                          <h4 className="font-medium text-muted-foreground">Show Distance</h4>
                           <p className="text-sm text-muted-foreground">Display your distance from other users</p>
                         </div>
                         <Switch
@@ -204,7 +204,7 @@ export default function SettingsPage() {
                         />
                       </div>
                       <div>
-                        <h4 className="font-medium text-accent mb-2">Who can message you</h4>
+                        <h4 className="font-medium text-muted-foreground mb-2">Who can message you</h4>
                         <select
                           value={privacySettings.allowMessagesFrom}
                           onChange={(e) => setPrivacySettings({ ...privacySettings, allowMessagesFrom: e.target.value })}
@@ -222,10 +222,10 @@ export default function SettingsPage() {
                 {/* Notifications Tab */}
                 {activeTab === 'notifications' && (
                   <div className="space-y-6">
-                    <h2 className="text-lg font-semibold text-accent">Notification Preferences</h2>
+                    <h2 className="text-lg font-semibold text-muted-foreground">Notification Preferences</h2>
                     
                     <div>
-                      <h3 className="font-medium text-accent mb-4">Email Notifications</h3>
+                      <h3 className="font-medium text-muted-foreground mb-4">Email Notifications</h3>
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <span className="text-sm">New messages</span>
@@ -252,7 +252,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="pt-6 border-t border-border">
-                      <h3 className="font-medium text-accent mb-4">Push Notifications</h3>
+                      <h3 className="font-medium text-muted-foreground mb-4">Push Notifications</h3>
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <span className="text-sm">New messages</span>
@@ -276,7 +276,7 @@ export default function SettingsPage() {
                 {/* Payment History Tab */}
                 {activeTab === 'payments' && (
                   <div className="space-y-6">
-                    <h2 className="text-lg font-semibold text-accent">Payment History</h2>
+                    <h2 className="text-lg font-semibold text-muted-foreground">Payment History</h2>
                     
                     <div className="text-center py-12 text-muted-foreground">
                       <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -289,7 +289,7 @@ export default function SettingsPage() {
                 {/* Blocked Users Tab */}
                 {activeTab === 'safety' && (
                   <div className="space-y-6">
-                    <h2 className="text-lg font-semibold text-accent">Blocked Users</h2>
+                    <h2 className="text-lg font-semibold text-muted-foreground">Blocked Users</h2>
                     
                     <div className="text-center py-12 text-muted-foreground">
                       <Ban className="w-12 h-12 mx-auto mb-3 opacity-50" />

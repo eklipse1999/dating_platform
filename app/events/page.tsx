@@ -248,7 +248,7 @@ export default function EventsPage() {
         >
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-accent font-serif mb-2">
+              <h1 className="text-2xl font-bold text-muted-foreground font-serif mb-2">
                 Discover Events
               </h1>
               <p className="text-muted-foreground">
@@ -300,7 +300,7 @@ export default function EventsPage() {
             className="mb-6 p-6 bg-card rounded-2xl border border-border"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-accent">Filter Events</h3>
+              text-muted-foreground
               <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
                 Close
               </Button>
@@ -373,7 +373,7 @@ export default function EventsPage() {
 
         {/* Results Count */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-accent">
+          <h2 className="text-lg font-semibold text-muted-foreground">
             {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''} found
           </h2>
         </div>
@@ -430,7 +430,7 @@ export default function EventsPage() {
                     </div>
                     
                     {/* Title */}
-                    <h3 className="font-bold text-accent mb-2 line-clamp-1">{event.title}</h3>
+                    text-muted-foreground
                     
                     {/* Description */}
                     <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
@@ -463,7 +463,7 @@ export default function EventsPage() {
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground">Hosted by</p>
-                          <p className="text-sm font-medium text-accent">{event.host}</p>
+                          text-muted-foreground
                         </div>
                       </div>
                       
@@ -471,7 +471,7 @@ export default function EventsPage() {
                         {event.isFree ? (
                           <span className="text-sm font-semibold text-green-500">Free</span>
                         ) : (
-                          <span className="text-sm font-semibold text-accent">
+                          <span className="text-sm font-semibold text-muted-foreground">
                             ₦{event.price?.toLocaleString()}
                           </span>
                         )}
@@ -503,9 +503,8 @@ export default function EventsPage() {
         ) : (
           <div className="text-center py-16">
             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-              <Calendar className="w-8 h-8 text-muted-foreground" />
+              <h3 className="text-lg font-semibold text-muted-foreground mb-2">No events found</h3>
             </div>
-            <h3 className="text-lg font-semibold text-accent mb-2">No events found</h3>
             <p className="text-muted-foreground mb-4">Try adjusting your search or filters</p>
             <Button
               variant="outline"
@@ -528,7 +527,7 @@ export default function EventsPage() {
           transition={{ delay: 0.5 }}
           className="mt-12"
         >
-          <h2 className="text-xl font-bold text-accent font-serif mb-6">
+          <h2 className="text-xl font-bold text-muted-foreground font-serif mb-6">
             <Sparkles className="w-5 h-5 inline mr-2 text-secondary" />
             Featured Events
           </h2>
@@ -537,7 +536,7 @@ export default function EventsPage() {
             <div className="flex flex-col lg:flex-row items-center gap-6">
               <div className="flex-1 text-center lg:text-left">
                 <Badge className="mb-3">Featured Event</Badge>
-                <h3 className="text-2xl font-bold text-accent mb-2">
+                <h3 className="text-2xl font-bold text-muted-foreground mb-2">
                   Christian Singles Conference 2024
                 </h3>
                 <p className="text-muted-foreground mb-4">

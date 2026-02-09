@@ -72,7 +72,7 @@ export function LocationPermissionModal({ isOpen, onComplete }: LocationPermissi
               {/* Content */}
               {status === 'idle' && (
                 <>
-                  <h2 className="text-2xl font-bold text-accent text-center mb-3 font-serif">
+                  <h2 className="text-2xl font-bold text-muted-foreground text-center mb-3 font-serif">
                     Enable Location
                   </h2>
                   <p className="text-muted-foreground text-center mb-6 leading-relaxed">
@@ -99,7 +99,7 @@ export function LocationPermissionModal({ isOpen, onComplete }: LocationPermissi
 
               {(status === 'requesting' || locationPermissionStatus === 'requesting') && (
                 <>
-                  <h2 className="text-2xl font-bold text-accent text-center mb-3 font-serif">
+                  <h2 className="text-2xl font-bold text-muted-foreground text-center mb-3 font-serif">
                     Getting Your Location
                   </h2>
                   <p className="text-muted-foreground text-center mb-6 leading-relaxed">
@@ -110,14 +110,14 @@ export function LocationPermissionModal({ isOpen, onComplete }: LocationPermissi
 
               {status === 'granted' && userLocation && (
                 <>
-                  <h2 className="text-2xl font-bold text-accent text-center mb-3 font-serif">
+                  <h2 className="text-2xl font-bold text-muted-foreground text-center mb-3 font-serif">
                     Location Enabled!
                   </h2>
                   <p className="text-muted-foreground text-center mb-4 leading-relaxed">
                     We detected your location:
                   </p>
                   <div className="bg-muted/50 rounded-xl p-4 text-center mb-6">
-                    <div className="text-lg font-semibold text-accent">
+                    <div className="text-lg font-semibold text-muted-foreground">
                       {userLocation.city}, {userLocation.country}
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -132,7 +132,7 @@ export function LocationPermissionModal({ isOpen, onComplete }: LocationPermissi
 
               {status === 'denied' && (
                 <>
-                  <h2 className="text-2xl font-bold text-accent text-center mb-3 font-serif">
+                  <h2 className="text-2xl font-bold text-muted-foreground text-center mb-3 font-serif">
                     Location Access Required
                   </h2>
                   <p className="text-muted-foreground text-center mb-6 leading-relaxed">

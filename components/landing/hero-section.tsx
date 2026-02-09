@@ -35,7 +35,7 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-accent leading-tight mb-6 font-serif text-balance"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-muted-foreground leading-tight mb-6 font-serif text-balance"
             >
               Find Love{' '}
               <span className="text-secondary">Built on Faith</span>
@@ -90,21 +90,21 @@ export function HeroSection() {
                 <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mx-auto mb-3">
                   <Users className="w-6 h-6" />
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-accent">50K+</div>
+                <div className="text-2xl md:text-3xl font-bold text-muted-foreground">50K+</div>
                 <div className="text-sm text-muted-foreground">Active Members</div>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-secondary/10 text-secondary mx-auto mb-3">
                   <Shield className="w-6 h-6" />
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-accent">100%</div>
+                <div className="text-2xl md:text-3xl font-bold text-muted-foreground">100%</div>
                 <div className="text-sm text-muted-foreground">Verified Profiles</div>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gold/20 text-gold mx-auto mb-3">
                   <Globe className="w-6 h-6" />
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-accent">30+</div>
+                <div className="text-2xl md:text-3xl font-bold text-muted-foreground">30+</div>
                 <div className="text-sm text-muted-foreground">Countries</div>
               </div>
             </motion.div>
@@ -133,7 +133,7 @@ export function HeroSection() {
                     <Shield className="w-6 h-6 text-secondary" />
                   </div>
                   <div>
-                    <div className="font-semibold text-accent text-sm">Verified & Safe</div>
+                    <div className="font-semibold text-muted-foreground text-sm">Verified & Safe</div>
                     <div className="text-xs text-muted-foreground">Faith-first dating</div>
                   </div>
                 </div>

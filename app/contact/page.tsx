@@ -102,7 +102,7 @@ export default function ContactPage() {
               <MessageSquare className="w-4 h-4" />
               Contact Us
             </span>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-accent mb-6 font-serif text-balance">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-muted-foreground mb-6 font-serif text-balance">
               We'd Love to <span className="text-secondary">Hear</span> From You
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -130,7 +130,7 @@ export default function ContactPage() {
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                   <info.icon className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-accent mb-1">{info.title}</h3>
+                <h3 className="text-lg font-semibold text-muted-foreground mb-1">{info.title}</h3>
                 <p className="text-sm text-muted-foreground mb-2">{info.description}</p>
                 <p className="text-sm font-medium text-primary">{info.value}</p>
               </motion.a>
@@ -150,14 +150,14 @@ export default function ContactPage() {
               viewport={{ once: true }}
               className="bg-card p-8 rounded-2xl border border-border"
             >
-              <h2 className="text-2xl font-bold text-accent mb-6 font-serif">
+              <h2 className="text-2xl font-bold text-muted-foreground mb-6 font-serif">
                 Send us a Message
               </h2>
               
               {isSubmitted ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
-                  <h3 className="text-xl font-semibold text-accent mb-2">Message Sent!</h3>
+                  <h3 className="text-xl font-semibold text-muted-foreground mb-2">Message Sent!</h3>
                   <p className="text-muted-foreground text-center">
                     Thank you for reaching out. We will get back to you soon.
                   </p>
@@ -251,7 +251,7 @@ export default function ContactPage() {
               
               {/* Social Links */}
               <div className="bg-card p-6 rounded-xl border border-border">
-                <h3 className="text-lg font-semibold text-accent mb-4">Follow Us</h3>
+                <h3 className="text-lg font-semibold text-muted-foreground mb-4">Follow Us</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   Stay connected with us on social media for updates, tips, and success stories.
                 </p>
@@ -276,7 +276,7 @@ export default function ContactPage() {
 
               {/* FAQ Link */}
               <div className="bg-primary/5 p-6 rounded-xl border border-primary/20">
-                <h3 className="text-lg font-semibold text-accent mb-2">Have Questions?</h3>
+                <h3 className="text-lg font-semibold text-muted-foreground mb-2">Have Questions?</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   Check out our FAQ for quick answers to common questions.
                 </p>

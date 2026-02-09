@@ -55,7 +55,7 @@ export default function MatchesPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-2xl font-bold text-accent font-serif mb-2">
+          <h1 className="text-2xl font-bold text-muted-foreground font-serif mb-2">
             Your Matches 💕
           </h1>
           <p className="text-muted-foreground">
@@ -130,7 +130,7 @@ export default function MatchesPage() {
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <Link href={`/profile/${user.id}`}>
-                        <h3 className="font-semibold text-accent hover:text-primary transition-colors">
+                        <h3 className="font-semibold text-muted-foreground hover:text-primary transition-colors">
                           {user.name}, {user.age}
                         </h3>
                       </Link>
@@ -180,7 +180,7 @@ export default function MatchesPage() {
             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
               <Heart className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold text-accent mb-2">No matches yet</h3>
+            <h3 className="text-lg font-semibold text-muted-foreground mb-2">No matches yet</h3>
             <p className="text-muted-foreground mb-4">Start exploring to find your perfect match!</p>
             <Link href="/discover">
               <Button>Discover People</Button>

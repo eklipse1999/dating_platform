@@ -73,7 +73,7 @@ export function FeaturesSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-accent mb-4 font-serif">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-muted-foreground mb-4 font-serif">
             Why Choose Committed?
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -98,7 +98,7 @@ export function FeaturesSection() {
               <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl ${feature.color} mb-6`}>
                 <feature.icon className="w-7 h-7" />
               </div>
-              <h3 className="text-xl font-semibold text-accent mb-3">{feature.title}</h3>
+              <h3 className="text-xl font-semibold text-muted-foreground mb-3">{feature.title}</h3>
               <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
             </motion.div>
           ))}
