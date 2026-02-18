@@ -64,12 +64,18 @@ export default function LoginPage() {
 
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
+  
+  if (!validateForm()) {
+    return;
+  }
   setIsLoading(true);
 
   try {
     await authService.login({ email: formData.email,password: formData.password});
     toast.success('Login successful!');
     router.push('/dashboard');
+    console.log('🔄 Redirecting to dashboard...');
+    window.location.href = '/dashboard';
   } catch (error: any) {
     toast.error(error.response?.data || 'Login failed');
   } finally {
@@ -85,6 +91,11 @@ const handleSubmit = async (e: React.FormEvent) => {
   const handleFaceIdLogin = async () => {
     if (!faceIdEmail.trim()) {
       toast.error('Please enter your email first');
+      return;
+    }
+
+    if (!loginWithFaceId) {
+      toast.error('Face ID login is not available');
       return;
     }
 

@@ -1,264 +1,145 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, type ReactNode, useEffect } from 'react';
-import { User, UserLocation, getTierFromPoints, calculateAccountAgeDays, TRIAL_DAYS, TRIAL_POINTS, getTrialStatus } from './types';
-import { MOCK_USERS, MOCK_CURRENT_USER } from './mock-data';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { User } from './types';
+import { authService } from './api/services/auth.service';
+import { usersService } from './api/services/users.service';
+import { MOCK_USERS } from './mock-data'; // Temporary fallback
 
 interface AppContextType {
-  // Auth state
   isAuthenticated: boolean;
   currentUser: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  loginWithFaceId: (email: string) => Promise<boolean>;
-  signup: (userData: Partial<User> & { password: string; dob: Date }) => Promise<boolean>;
-  logout: () => void;
-  
-  // Location state
-  userLocation: UserLocation | null;
-  locationPermissionStatus: 'pending' | 'granted' | 'denied' | 'requesting';
-  requestLocation: () => Promise<boolean>;
-  
-  // Users
-  users: User[];
-  getFilteredUsers: (filters?: { tier?: string; maxDistance?: number; ageRange?: [number, number] }) => User[];
-  getUserById: (id: string) => User | undefined;
-  
-  // Points & Tier
-  addPoints: (amount: number) => void;
-  canMessage: boolean;
-  canScheduleDates: boolean;
-  accountAgeDays: number;
-  
-  // Trial
+  getFilteredUsers: (filters?: any) => User[];
+  canMessage: (otherUserId: string) => boolean;
   isInTrial: boolean;
   trialDaysRemaining: number;
   trialExpired: boolean;
-  activateTrial: () => void;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  loginWithFaceId?: (email: string) => Promise<void>;
   
-  // Following
-  followedUsers: Set<string>;
-  toggleFollow: (userId: string) => void;
+  // Additional functions that ProfileCard needs
   isFollowing: (userId: string) => boolean;
-  
-  // Admin
-  isAdmin: boolean;
+  toggleFollow: (userId: string) => void;
+  likeUser: (userId: string) => void;
+  isLiked: (userId: string) => boolean;
+  saveUser: (userId: string) => void;
+  isSaved: (userId: string) => boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export function AppProvider({ children }: { children: ReactNode }) {
+export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
-  const [locationPermissionStatus, setLocationPermissionStatus] = useState<'pending' | 'granted' | 'denied' | 'requesting'>('pending');
-  const [users] = useState<User[]>(MOCK_USERS);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Track user interactions
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
+  const [likedUsers, setLikedUsers] = useState<Set<string>>(new Set());
+  const [savedUsers, setSavedUsers] = useState<Set<string>>(new Set());
 
-  // Persist auth state to localStorage
+  // Check authentication on mount
   useEffect(() => {
-    const savedUser = localStorage.getItem('committed_user');
-    const savedAuth = localStorage.getItem('committed_auth');
-    if (savedUser && savedAuth === 'true') {
-      try {
-        // Parse JSON with date reviver to convert date strings back to Date objects
-        const user = JSON.parse(savedUser, (key, value) => {
-          // Check if value looks like an ISO date string
-          if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) {
-            return new Date(value);
-          }
-          return value;
-        });
+    const checkAuth = () => {
+      const token = authService.getToken();
+      const storedUser = authService.getStoredUser();
+      
+      if (token && storedUser) {
+        // Create a basic user object from stored data
+        const user: User = {
+          id: storedUser.id || 'current-user',
+          name: storedUser.username || storedUser.email?.split('@')[0] || 'User',
+          email: storedUser.email,
+          age: 25, // Default
+          gender: 'male', // Default
+          phone: '',
+          bio: '',
+          location: {
+            lat: 0,
+            lng: 0,
+            city: 'Unknown',
+            country: 'Unknown',
+          },
+          points: 500, // Default trial points
+          tier: 'Silver',
+          accountCreatedAt: new Date(),
+          isVerified: false,
+          avatar: '👤',
+          photos: [],
+          interests: [],
+          values: [],
+        };
+        
         setCurrentUser(user);
         setIsAuthenticated(true);
-      } catch (e) {
-        localStorage.removeItem('committed_user');
-        localStorage.removeItem('committed_auth');
       }
-    }
-  }, []);
-
-  const login = useCallback(async (email: string, _password: string): Promise<boolean> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Check for admin login
-    if (email === 'admin@committed.com') {
-      const user: User = {
-        ...MOCK_CURRENT_USER,
-        email,
-        isAdmin: true,
-        points: 10000,
-        tier: 'Diamond',
-      };
-      setCurrentUser(user);
-      setIsAuthenticated(true);
-      localStorage.setItem('committed_user', JSON.stringify(user));
-      localStorage.setItem('committed_auth', 'true');
-      return true;
-    }
-    
-    // For demo purposes, give all users a trial
-    const now = new Date();
-    const trialEnd = new Date(now);
-    trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
-    
-    const user: User = {
-      ...MOCK_CURRENT_USER,
-      email,
-      trialStartDate: now,
-      trialEndDate: trialEnd,
-      trialUsed: false,
-      hasActiveTrial: true,
+      
+      setIsLoading(false);
     };
-    setCurrentUser(user);
-    setIsAuthenticated(true);
-    localStorage.setItem('committed_user', JSON.stringify(user));
-    localStorage.setItem('committed_auth', 'true');
-    return true;
+
+    checkAuth();
   }, []);
 
-  const loginWithFaceId = useCallback(async (email: string): Promise<boolean> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+  const login = async (email: string, password: string) => {
+    const response = await authService.login({ email, password });
     
-    // For demo purposes, give all users a trial
-    const now = new Date();
-    const trialEnd = new Date(now);
-    trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
-    
+    // Create user from response
     const user: User = {
-      ...MOCK_CURRENT_USER,
-      email,
-      trialStartDate: now,
-      trialEndDate: trialEnd,
-      trialUsed: false,
-      hasActiveTrial: true,
-      faceId: {
-        isEnabled: true,
-        lastVerifiedAt: now,
+      id: response.user?.id || 'current-user',
+      name: response.user?.username || email.split('@')[0],
+      email: email,
+      age: 25,
+      gender: 'male',
+      phone: '',
+      bio: '',
+      location: {
+        lat: 0,
+        lng: 0,
+        city: 'Unknown',
+        country: 'Unknown',
       },
+      points: 500,
+      tier: 'Silver',
+      accountCreatedAt: new Date(),
+      isVerified: false,
+      avatar: '👤',
+      photos: [],
+      interests: [],
+      values: [],
     };
+    
     setCurrentUser(user);
     setIsAuthenticated(true);
-    localStorage.setItem('committed_user', JSON.stringify(user));
-    localStorage.setItem('committed_auth', 'true');
-    return true;
-  }, []);
+  };
 
-  const signup = useCallback(async (userData: Partial<User> & { password: string; dob: Date }): Promise<boolean> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const now = new Date();
-    const trialEnd = new Date(now);
-    trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
-    
-    const newUser: User = {
-      ...MOCK_CURRENT_USER,
-      ...userData,
-      id: `user-${Date.now()}`,
-      accountCreatedAt: now,
-      points: 0, // Start with 0, trial will grant access
-      tier: 'Bronze',
-      isVerified: false,
-      // Trial fields - user gets trial automatically
-      trialStartDate: now,
-      trialEndDate: trialEnd,
-      trialUsed: false,
-      hasActiveTrial: true,
-    };
-    
-    setCurrentUser(newUser);
-    setIsAuthenticated(true);
-    localStorage.setItem('committed_user', JSON.stringify(newUser));
-    localStorage.setItem('committed_auth', 'true');
-    return true;
-  }, []);
-
-  const logout = useCallback(() => {
-    setIsAuthenticated(false);
+  const logout = async () => {
+    await authService.logout();
     setCurrentUser(null);
-    setUserLocation(null);
-    setLocationPermissionStatus('pending');
-    localStorage.removeItem('committed_user');
-    localStorage.removeItem('committed_auth');
-  }, []);
+    setIsAuthenticated(false);
+    setFollowedUsers(new Set());
+    setLikedUsers(new Set());
+    setSavedUsers(new Set());
+  };
 
-  const requestLocation = useCallback(async (): Promise<boolean> => {
-    setLocationPermissionStatus('requesting');
-    
-    return new Promise((resolve) => {
-      if (!navigator.geolocation) {
-        setLocationPermissionStatus('denied');
-        resolve(false);
-        return;
-      }
+  // For now, return mock users until backend implements user discovery
+  const getFilteredUsers = (filters?: any) => {
+    // You can later replace this with API call
+    return MOCK_USERS.slice(0, 15); // Return first 15 for free users
+  };
 
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          
-          // In production, you'd reverse geocode to get city/country
-          const location: UserLocation = {
-            lat: latitude,
-            lng: longitude,
-            city: 'New York',
-            country: 'USA',
-          };
-          
-          setUserLocation(location);
-          setLocationPermissionStatus('granted');
-          
-          if (currentUser) {
-            setCurrentUser({ ...currentUser, location });
-          }
-          
-          resolve(true);
-        },
-        () => {
-          setLocationPermissionStatus('denied');
-          resolve(false);
-        },
-        { enableHighAccuracy: true, timeout: 10000 }
-      );
-    });
-  }, [currentUser]);
+  const canMessage = (otherUserId: string) => {
+    if (!currentUser) return false;
+    // For now, allow messaging if user has points
+    return currentUser.points > 0;
+  };
 
-  const getFilteredUsers = useCallback((filters?: { tier?: string; maxDistance?: number; ageRange?: [number, number] }) => {
-    let filtered = [...users];
-    
-    // Free users only see local profiles (10-15)
-    if (currentUser && currentUser.points === 0) {
-      filtered = filtered.slice(0, 15);
-    }
-    
-    // Premium users see users in same tier range
-    if (currentUser && currentUser.points > 0 && filters?.tier) {
-      filtered = filtered.filter(u => u.tier === filters.tier);
-    }
-    
-    if (filters?.ageRange) {
-      filtered = filtered.filter(u => u.age >= filters.ageRange![0] && u.age <= filters.ageRange![1]);
-    }
-    
-    return filtered;
-  }, [users, currentUser]);
+  // Follow/unfollow functions
+  const isFollowing = (userId: string): boolean => {
+    return followedUsers.has(userId);
+  };
 
-  const getUserById = useCallback((id: string) => {
-    return users.find(u => u.id === id);
-  }, [users]);
-
-  const addPoints = useCallback((amount: number) => {
-    if (currentUser) {
-      const newPoints = currentUser.points + amount;
-      setCurrentUser({
-        ...currentUser,
-        points: newPoints,
-        tier: getTierFromPoints(newPoints),
-      });
-    }
-  }, [currentUser]);
-
-  const toggleFollow = useCallback((userId: string) => {
+  const toggleFollow = (userId: string) => {
     setFollowedUsers(prev => {
       const newSet = new Set(prev);
       if (newSet.has(userId)) {
@@ -268,78 +149,85 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       return newSet;
     });
-  }, []);
+  };
 
-  const isFollowing = useCallback((userId: string) => {
-    return followedUsers.has(userId);
-  }, [followedUsers]);
+  // Like functions
+  const isLiked = (userId: string): boolean => {
+    return likedUsers.has(userId);
+  };
 
-  const accountAgeDays = currentUser ? calculateAccountAgeDays(currentUser.accountCreatedAt) : 0;
-  // User can message if they have points OR if they are in their trial period
-  const trialStatus = currentUser ? getTrialStatus(currentUser) : { isInTrial: false, daysRemaining: 0, isExpired: false };
-  const canMessage = currentUser ? (currentUser.points > 0 || trialStatus.isInTrial) : false;
-  const canScheduleDates = accountAgeDays >= 21;
-  const isAdmin = currentUser?.isAdmin ?? false;
+  const likeUser = (userId: string) => {
+    setLikedUsers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+    
+    // TODO: Call API to like user
+    // await matchesService.likeUser(userId);
+  };
 
-  // Trial related
-  const isInTrial = trialStatus.isInTrial;
-  const trialDaysRemaining = trialStatus.daysRemaining;
-  const trialExpired = trialStatus.isExpired;
+  // Save functions
+  const isSaved = (userId: string): boolean => {
+    return savedUsers.has(userId);
+  };
 
-  const activateTrial = useCallback(() => {
-    if (currentUser) {
-      const now = new Date();
-      const trialEnd = new Date(now);
-      trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
-      
-      setCurrentUser({
-        ...currentUser,
-        trialStartDate: now,
-        trialEndDate: trialEnd,
-        trialUsed: false,
-        hasActiveTrial: true,
-      });
-    }
-  }, [currentUser]);
+  const saveUser = (userId: string) => {
+    setSavedUsers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+    
+    // TODO: Call API to save user
+    // await matchesService.saveUser(userId);
+  };
 
-  return (
-    <AppContext.Provider
-      value={{
-        isAuthenticated,
-        currentUser,
-        login,
-        loginWithFaceId,
-        signup,
-        logout,
-        userLocation,
-        locationPermissionStatus,
-        requestLocation,
-        users,
-        getFilteredUsers,
-        getUserById,
-        addPoints,
-        canMessage,
-        canScheduleDates,
-        accountAgeDays,
-        followedUsers,
-        toggleFollow,
-        isFollowing,
-        isAdmin,
-        isInTrial,
-        trialDaysRemaining,
-        trialExpired,
-        activateTrial,
-      }}
-    >
-      {children}
-    </AppContext.Provider>
-  );
+  const isInTrial = currentUser ? currentUser.points > 0 && currentUser.points <= 500 : false;
+  const trialDaysRemaining = 14; // Default
+  const trialExpired = false;
+
+  const value: AppContextType = {
+    isAuthenticated,
+    currentUser,
+    getFilteredUsers,
+    canMessage,
+    isInTrial,
+    trialDaysRemaining,
+    trialExpired,
+    login,
+    logout,
+    isFollowing,
+    toggleFollow,
+    likeUser,
+    isLiked,
+    saveUser,
+    isSaved,
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
 export function useApp() {
   const context = useContext(AppContext);
-  if (context === undefined) {
-    throw new Error('useApp must be used within an AppProvider');
+  if (!context) {
+    throw new Error('useApp must be used within AppProvider');
   }
   return context;
 }
