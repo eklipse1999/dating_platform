@@ -16,6 +16,8 @@ import { LocationPermissionModal } from '@/components/location-permission-modal'
 import { Checkbox } from '@/components/ui/checkbox';
 import { FaceIdEnrollment } from '@/components/ui/face-id-enrollment';
 import { hasFaceIdEnrollment } from '@/lib/facetec';
+import { authService } from '@/lib/api/services/auth.service';
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -59,25 +61,21 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
 
-    setIsLoading(true);
-    
-    try {
-      await login(formData.email, formData.password);
-      toast.success('Welcome back!');
-      setShowLocationModal(true);
-    } catch {
-      toast.error('Invalid email or password');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
+
+  try {
+    await authService.login({ email: formData.email,password: formData.password});
+    toast.success('Login successful!');
+    router.push('/dashboard');
+  } catch (error: any) {
+    toast.error(error.response?.data || 'Login failed');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleLocationComplete = () => {
     setShowLocationModal(false);

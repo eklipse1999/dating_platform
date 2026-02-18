@@ -15,6 +15,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { TierBadge } from '@/components/tier-badge';
 import { useApp } from '@/lib/app-context';
+import { usersService } from '@/lib/api/services/users.service';
+import { User } from '@/lib/types';
+import { toast } from 'sonner';
 import Link from 'next/link';
 
 const categories = [
@@ -42,7 +45,12 @@ const interests = [
 
 export default function DiscoverPage() {
   const router = useRouter();
-  const { isAuthenticated, currentUser, getFilteredUsers, canMessage, isInTrial, trialDaysRemaining } = useApp();
+  const { isAuthenticated, currentUser } = useApp();
+  
+  // State for users from API
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -55,47 +63,64 @@ export default function DiscoverPage() {
     tier: 'all',
   });
 
+  // Check authentication
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/login');
     }
   }, [isAuthenticated, router]);
 
-  if (!isAuthenticated || !currentUser) {
-    return null;
-  }
-
-  // Get users based on active category
-  const getCategoryUsers = () => {
-    let users = getFilteredUsers({
-      ageRange: [filters.ageMin, filters.ageMax],
-      tier: filters.tier === 'all' ? undefined : filters.tier,
-    });
-
-    // Apply category filters
-    switch (activeCategory) {
-      case 'recent':
-        users = users.filter(u => u.joinDate).sort((a, b) => ((b.joinDate as Date).getTime() - (a.joinDate as Date).getTime())).slice(0, 20);
-        break;
-      case 'popular':
-        users = users.sort((a, b) => ((b.likes ?? 0) - (a.likes ?? 0))).slice(0, 20);
-        break;
-      case 'verified':
-        users = users.filter(u => u.idVerification?.status === 'verified').slice(0, 20);
-        break;
-      case 'premium':
-        users = users.filter(u => ['Gold', 'Platinum', 'Diamond'].includes(u.tier)).slice(0, 20);
-        break;
-      default:
-        users = users.slice(0, 20);
+  // Load users from API when filters change
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadUsers();
     }
+  }, [activeCategory, filters, isAuthenticated]);
 
-    return users;
+  // Function to load users from API
+  const loadUsers = async () => {
+    setIsLoading(true);
+    try {
+      console.log('📥 Loading users from API...');
+      
+      const filterParams = {
+        ageMin: filters.ageMin,
+        ageMax: filters.ageMax,
+        tier: filters.tier !== 'all' ? filters.tier : undefined,
+        category: activeCategory as 'all' | 'recent' | 'popular' | 'verified' | 'premium' | 'nearby' | undefined,
+        limit: 20,
+      };
+
+      console.log('Filter params:', filterParams);
+
+      const data = await usersService.discoverUsers(filterParams);
+      
+      console.log('✅ Users loaded:', data);
+      
+      if (Array.isArray(data) && data.length > 0) {
+        setUsers(data);
+      } else {
+        console.warn('⚠️ No users returned from API');
+        setUsers([]);
+        toast.info('No users found. The discover feature may not be available yet.');
+      }
+    } catch (error: any) {
+      console.error('❌ Failed to load users:', error);
+      console.error('Error details:', error.response?.data || error.message);
+      
+      // Don't show error toast, just log it
+      // toast.error('Failed to load users. Please try again.');
+      
+      // Set empty array instead of keeping old data
+      setUsers([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const users = getCategoryUsers();
+  // Filter users based on search query
   const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.bio?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.interests?.some(interest => interest.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -106,7 +131,12 @@ export default function DiscoverPage() {
         ? prev.filter(i => i !== interest)
         : [...prev, interest]
     );
-  }; 
+  };
+
+  // Show loading state
+  if (!isAuthenticated || !currentUser) {
+    return null;
+  }
   
   return (
     <DashboardLayout showRightSidebar={false}>
@@ -297,7 +327,7 @@ export default function DiscoverPage() {
         {/* Results Count */}
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-xl font-semibold text-muted-foreground">
-            {filteredUsers.length} match{filteredUsers.length !== 1 ? 'es' : ''} found
+            {isLoading ? 'Loading...' : `${filteredUsers.length} match${filteredUsers.length !== 1 ? 'es' : ''} found`}
           </h2>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Sparkles className="w-4 h-4" />
@@ -305,8 +335,15 @@ export default function DiscoverPage() {
           </div>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex justify-center items-center py-20">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+
         {/* Profiles Grid/List */}
-        {filteredUsers.length > 0 ? (
+        {!isLoading && filteredUsers.length > 0 ? (
           viewMode === 'grid' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredUsers.map((user, index) => (
@@ -337,15 +374,15 @@ export default function DiscoverPage() {
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <MapPin className="w-3 h-3" />
-                        {user.location.city}, {user.location.country}
+                        {user.location?.city}, {user.location?.country}
                       </span>
                       <span className="flex items-center gap-1">
                         <Heart className="w-3 h-3" />
-                        {user.likes} likes
+                        {user.likes || 0} likes
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        Active {user.lastActive}
+                        Active {user.lastActive || 'recently'}
                       </span>
                     </div>
                   </div>
@@ -363,30 +400,29 @@ export default function DiscoverPage() {
               ))}
             </div>
           )
-        ) : (
+        ) : !isLoading ? (
           <div className="text-center py-20">
             <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
               <Search className="w-10 h-10 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-semibold text-muted-foreground mb-3">No matches found</h3>
-            <p className="text-base text-muted-foreground mb-6">Try adjusting your search or filters</p>
+            <h3 className="text-xl font-semibold text-muted-foreground mb-3">No users available yet</h3>
+            <p className="text-base text-muted-foreground mb-6">
+              The discover feature is being set up by your backend developer.<br/>
+              Check back soon or contact support.
+            </p>
             <Button
               variant="outline"
-              onClick={() => {
-                setSearchQuery('');
-                setActiveCategory('all');
-                setFilters({ ageMin: 18, ageMax: 50, tier: 'all' });
-              }}
+              onClick={() => loadUsers()}
             >
-              Clear filters
+              Retry
             </Button>
           </div>
-        )}
+        ) : null}
 
         {/* Load More */}
-        {filteredUsers.length >= 20 && (
+        {!isLoading && filteredUsers.length >= 20 && (
           <div className="text-center mt-12">
-            <Button variant="outline" size="lg" className="px-10">
+            <Button variant="outline" size="lg" className="px-10" onClick={loadUsers}>
               Load More Profiles
             </Button>
           </div>
