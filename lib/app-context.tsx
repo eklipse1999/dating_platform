@@ -48,8 +48,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (token && storedUser) {
         // Create a basic user object from stored data
         const user: User = {
-          id: storedUser.id || 'current-user',
-          name: storedUser.username || storedUser.email?.split('@')[0] || 'User',
+          id: storedUser?.id,
+          first_name: storedUser?.first_name,
+          last_name:storedUser?.last_name,
+          name: storedUser?.username,
           email: storedUser.email,
           age: 25, // Default
           gender: 'male', // Default
@@ -61,8 +63,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             city: 'Unknown',
             country: 'Unknown',
           },
-          points: 500, // Default trial points
-          tier: 'Silver',
+          points: 50, // Default trial points
+          tier: 'Bronze',
           accountCreatedAt: new Date(),
           isVerified: false,
           avatar: '👤',
@@ -87,7 +89,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Create user from response
     const user: User = {
       id: response.user?.id || 'current-user',
-      name: response.user?.username || email.split('@')[0],
+      first_name: response.data?.first_name,
+      last_name:response.data?.last_name,
+      name: response.user?.username,
       email: email,
       age: 25,
       gender: 'male',
@@ -99,7 +103,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         city: 'Unknown',
         country: 'Unknown',
       },
-      points: 500,
+      points: 50,
       tier: 'Silver',
       accountCreatedAt: new Date(),
       isVerified: false,
@@ -109,6 +113,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       values: [],
     };
     
+    console.log(user);
     setCurrentUser(user);
     setIsAuthenticated(true);
   };

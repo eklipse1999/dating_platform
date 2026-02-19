@@ -47,7 +47,9 @@ export interface SecurityVerification {
 
 export interface User {
   id: string;
-  name: string;
+  first_name: string;
+  last_name: string;
+  name:string;
   email: string;
   age: number;
   gender: 'male' | 'female';

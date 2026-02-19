@@ -1,424 +1,541 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Camera, Save, Loader2, Coins, Calendar, CheckCircle, Church, Shield, BadgeCheck, AlertCircle, Upload, ScanFace } from 'lucide-react';
-import { toast } from 'sonner';
-import { DashboardHeader } from '@/components/dashboard/dashboard-header';
-import { TierBadge } from '@/components/tier-badge';
+import { 
+  Camera, Edit, Save, X, MapPin, Briefcase, Heart, 
+  Church, BookOpen, Award, Shield, Loader2
+} from 'lucide-react';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useApp } from '@/lib/app-context';
-import { calculateAccountAgeDays, TIER_RANGES } from '@/lib/types';
-import { FaceIdEnrollment } from '@/components/ui/face-id-enrollment';
-import Link from 'next/link';
+import { usersService } from '@/lib/api/services/users.service';
+import { toast } from 'sonner';
+import { TierBadge } from '@/components/tier-badge';
 
-export default function MyProfilePage() {
+export default function ProfilePage() {
   const router = useRouter();
   const { isAuthenticated, currentUser } = useApp();
-  const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    career: '',
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  
+  // Profile data state
+  const [profileData, setProfileData] = useState({
+    first_name: '',
+    last_name: '',
+    username: '',
+    email: '',
+    age: 25,
+    gender: 'male' as 'male' | 'female',
+    phone: '',
     bio: '',
+    career: '',
     denomination: '',
+    city: '',
+    country: '',
+    interests: [] as string[],
+    values: [] as string[],
     faithJourney: '',
-    interests: '',
     churchName: '',
     churchBranch: '',
   });
 
+  // Photo upload state
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+
+  // Check authentication
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/login');
-    } else if (currentUser) {
-      setFormData({
-        name: currentUser.name,
-        career: currentUser.career || '',
-        bio: currentUser.bio,
-        denomination: currentUser.denomination || '',
-        faithJourney: currentUser.faithJourney || '',
-        interests: currentUser.interests?.join(', ') || '',
-        churchName: currentUser.church?.name || '',
-        churchBranch: currentUser.church?.branch || '',
-      });
+      return;
     }
-  }, [isAuthenticated, currentUser, router]);
+    
+    // Load profile data
+    loadProfileData();
+  }, [isAuthenticated, router]);
+
+  const loadProfileData = async () => {
+    try {
+      setIsLoadingProfile(true);
+      
+      // Try to fetch full profile from backend
+      const userProfile = await usersService.getCurrentUser();
+      
+      // Update profile data with backend data
+      setProfileData({
+        first_name: userProfile.first_name || currentUser?.first_name || '',
+        last_name: userProfile.last_name || currentUser?.last_name || '',
+        username: userProfile.name || currentUser?.name || '',
+        email: userProfile.email || currentUser?.email || '',
+        age: userProfile.age || currentUser?.age || 25,
+        gender: (userProfile.gender || currentUser?.gender || 'male') as 'male' | 'female',
+        phone: userProfile.phone || currentUser?.phone || '',
+        bio: userProfile.bio || currentUser?.bio || '',
+        career: userProfile.career || currentUser?.career || '',
+        denomination: userProfile.denomination || currentUser?.denomination || '',
+        city: userProfile.location?.city || currentUser?.location?.city || '',
+        country: userProfile.location?.country || currentUser?.location?.country || '',
+        interests: userProfile.interests || currentUser?.interests || [],
+        values: userProfile.values || currentUser?.values || [],
+        faithJourney: userProfile.faithJourney || currentUser?.faithJourney || '',
+        churchName: userProfile.church?.name || '',
+        churchBranch: userProfile.church?.branch || '',
+      });
+      
+    } catch (error) {
+      console.error('Failed to load profile:', error);
+      
+      // Fallback to current user data
+      if (currentUser) {
+        setProfileData({
+          first_name: currentUser.first_name || '',
+          last_name: currentUser.last_name || '',
+          username: currentUser.name || '',
+          email: currentUser.email || '',
+          age: currentUser.age || 25,
+          gender: currentUser.gender || 'male',
+          phone: currentUser.phone || '',
+          bio: currentUser.bio || '',
+          career: currentUser.career || '',
+          denomination: currentUser.denomination || '',
+          city: currentUser.location?.city || '',
+          country: currentUser.location?.country || '',
+          interests: currentUser.interests || [],
+          values: currentUser.values || [],
+          faithJourney: currentUser.faithJourney || '',
+          churchName: currentUser.church?.name || '',
+          churchBranch: currentUser.church?.branch || '',
+        });
+      }
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    setProfileData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePhotoUpload = async () => {
+    if (!selectedFile) return;
+
+    try {
+      const photoUrl = await usersService.uploadPhoto(selectedFile);
+      toast.success('Photo uploaded successfully!');
+      setPreviewUrl('');
+      setSelectedFile(null);
+      return photoUrl;
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to upload photo');
+      throw error;
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+
+    try {
+      // Upload photo first if selected
+      let photoUrl = null;
+      if (selectedFile) {
+        photoUrl = await handlePhotoUpload();
+      }
+
+      // Prepare update data
+      const updateData = {
+        name: profileData.username,
+        bio: profileData.bio,
+        career: profileData.career,
+        age: profileData.age,
+        phone: profileData.phone,
+        location: {
+          city: profileData.city,
+          country: profileData.country,
+        },
+        denomination: profileData.denomination,
+        interests: profileData.interests,
+        faithJourney: profileData.faithJourney,
+        values: profileData.values,
+        church: {
+          name: profileData.churchName,
+          branch: profileData.churchBranch,
+          city: profileData.city,
+          country: profileData.country,
+        },
+      };
+
+      // Update profile
+      await usersService.updateProfile(updateData);
+      
+      toast.success('Profile updated successfully!');
+      setIsEditing(false);
+      
+      // Reload profile data
+      await loadProfileData();
+      
+    } catch (error: any) {
+      console.error('Save error:', error);
+      toast.error(error.message || 'Failed to update profile');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (!isAuthenticated || !currentUser) {
     return null;
   }
 
-  const accountAge = calculateAccountAgeDays(currentUser.accountCreatedAt);
-  const tierInfo = TIER_RANGES[currentUser.tier];
-  const nextTier = currentUser.tier === 'Diamond' ? null : 
-    Object.entries(TIER_RANGES).find(([, range]) => range.min > currentUser.points)?.[0];
-  const pointsToNext = nextTier ? TIER_RANGES[nextTier as keyof typeof TIER_RANGES].min - currentUser.points : 0;
-  const progressPercentage = nextTier 
-    ? ((currentUser.points - tierInfo.min) / (TIER_RANGES[nextTier as keyof typeof TIER_RANGES].min - tierInfo.min)) * 100 
-    : 100;
-
-  const handleSave = async () => {
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    toast.success('Profile updated successfully!');
-    setIsLoading(false);
-  };
+  if (isLoadingProfile) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <DashboardHeader />
+    <DashboardLayout>
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-muted-foreground mb-2">My Profile</h1>
+            <p className="text-muted-foreground">Manage your personal information and preferences</p>
+          </div>
+          
+          {!isEditing ? (
+            <Button onClick={() => setIsEditing(true)}>
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Profile
+            </Button>
+          ) : (
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => {
+                setIsEditing(false);
+                loadProfileData(); // Reset changes
+              }}>
+                <X className="w-4 h-4 mr-2" />
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+        </div>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Profile Picture Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-8"
+          className="bg-card rounded-2xl border border-border p-6 mb-6"
         >
-          <h1 className="text-3xl font-bold text-muted-foreground font-serif">My Profile</h1>
-
-          {/* Stats Card */}
-          <div className="p-6 bg-card rounded-2xl border border-border">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-              <div className="flex items-center gap-6">
-                {/* Avatar */}
-                <div className="relative">
-                  <div className="w-24 h-24 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl flex items-center justify-center">
-                    <span className="text-5xl">{currentUser.avatar}</span>
-                  </div>
-                  <button className="absolute -bottom-2 -right-2 p-2 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors">
-                    <Camera className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Info */}
-                <div>
-                  <h2 className="text-xl font-semibold text-muted-foreground">{currentUser.name}</h2>
-                  <p className="text-muted-foreground">{currentUser.email}</p>
-                  <div className="flex items-center gap-3 mt-2">
-                    <TierBadge tier={currentUser.tier} />
-                    {currentUser.isVerified && (
-                      <div className="flex items-center gap-1 px-2 py-1 bg-green-500/20 text-green-600 rounded-full text-xs font-medium">
-                        <CheckCircle className="w-3 h-3" />
-                        <span>Verified</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Points Progress */}
-              <div className="w-full lg:w-auto lg:min-w-[200px]">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-muted-foreground">Points</span>
-                  <span className="font-semibold text-muted-foreground">{currentUser.points.toLocaleString()}</span>
-                </div>
-                {nextTier && (
-                  <>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden mb-2">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progressPercentage}%` }}
-                        transition={{ duration: 0.5 }}
-                        className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">{pointsToNext} points to {nextTier}</p>
-                  </>
+          <h2 className="text-xl font-semibold text-muted-foreground mb-4">Profile Picture</h2>
+          
+          <div className="flex items-center gap-6">
+            <div className="relative">
+              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-6xl">
+                {previewUrl ? (
+                  <img src={previewUrl} alt="Preview" className="w-32 h-32 rounded-full object-cover" />
+                ) : (
+                  currentUser.avatar || '👤'
                 )}
-                <Link href="/upgrade">
-                  <Button size="sm" className="mt-3 bg-secondary hover:bg-secondary/90 text-secondary-foreground">
-                    <Coins className="w-4 h-4 mr-1" />
-                    Buy Points
-                  </Button>
-                </Link>
               </div>
-            </div>
-
-            {/* Account Age */}
-            <div className="mt-6 pt-6 border-t border-border flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="w-4 h-4" />
-              <span>Member for {accountAge} days</span>
-              {!currentUser.isVerified && (
-                <span className="text-xs bg-muted px-2 py-1 rounded-full">
-                  {21 - accountAge > 0 ? `${21 - accountAge} days until verified` : 'Verification pending'}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Edit Form */}
-          <div className="p-6 bg-card rounded-2xl border border-border space-y-6">
-            <h3 className="text-lg font-semibold text-muted-foreground">Edit Profile</h3>
-
-            <div className="grid sm:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Your name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="career">Career</Label>
-                <Input
-                  id="career"
-                  value={formData.career}
-                  onChange={(e) => setFormData({ ...formData, career: e.target.value })}
-                  placeholder="e.g., Software Engineer, Teacher"
-                />
-              </div>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="denomination">Denomination</Label>
-                <Input
-                  id="denomination"
-                  value={formData.denomination}
-                  onChange={(e) => setFormData({ ...formData, denomination: e.target.value })}
-                  placeholder="e.g., Baptist, Catholic, etc."
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="bio">Bio</Label>
-              <Textarea
-                id="bio"
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                placeholder="Tell others about yourself..."
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="faithJourney">Faith Journey</Label>
-              <Textarea
-                id="faithJourney"
-                value={formData.faithJourney}
-                onChange={(e) => setFormData({ ...formData, faithJourney: e.target.value })}
-                placeholder="Share your faith journey..."
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="interests">Interests (comma-separated)</Label>
-              <Input
-                id="interests"
-                value={formData.interests}
-                onChange={(e) => setFormData({ ...formData, interests: e.target.value })}
-                placeholder="e.g., Hiking, Music, Reading"
-              />
-            </div>
-
-            {/* Church Information */}
-            <div className="pt-4 border-t border-border">
-              <h4 className="text-md font-semibold text-muted-foreground mb-4 flex items-center gap-2">
-                <Church className="w-4 h-4 text-primary" />
-                Church Information
-              </h4>
-              <div className="grid sm:grid-cols-2 gap-6">
-                <div>
-                  <Label htmlFor="churchName">Church Name</Label>
-                  <Input
-                    id="churchName"
-                    value={formData.churchName}
-                    onChange={(e) => setFormData({ ...formData, churchName: e.target.value })}
-                    placeholder="e.g., Hillsong Church"
+              
+              {isEditing && (
+                <label className="absolute bottom-0 right-0 w-10 h-10 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors">
+                  <Camera className="w-5 h-5 text-primary-foreground" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoSelect}
+                    className="hidden"
                   />
-                </div>
-                <div>
-                  <Label htmlFor="churchBranch">Branch/Location</Label>
-                  <Input
-                    id="churchBranch"
-                    value={formData.churchBranch}
-                    onChange={(e) => setFormData({ ...formData, churchBranch: e.target.value })}
-                    placeholder="e.g., NYC Campus"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <Button 
-              onClick={handleSave} 
-              disabled={isLoading}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Changes
-                </>
-              )}
-            </Button>
-          </div>
-
-          {/* ID Verification Section */}
-          <div className="p-6 bg-card rounded-2xl border border-border space-y-6">
-            <h3 className="text-lg font-semibold text-muted-foreground flex items-center gap-2">
-              <BadgeCheck className="w-5 h-5 text-primary" />
-              ID Verification
-            </h3>
-            
-            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
-              <div>
-                <p className="font-medium text-muted-foreground">Verification Status</p>
-                <p className="text-sm text-muted-foreground">
-                  {currentUser.idVerification?.status === 'verified' 
-                    ? 'Your ID has been verified'
-                    : currentUser.idVerification?.status === 'submitted'
-                    ? 'Your ID is pending review'
-                    : currentUser.idVerification?.status === 'rejected'
-                    ? 'Your ID verification was rejected'
-                    : 'Submit your ID for verification'}
-                </p>
-              </div>
-              {currentUser.idVerification?.status === 'verified' ? (
-                <div className="flex items-center gap-2 text-green-600">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="font-medium">Verified</span>
-                </div>
-              ) : currentUser.idVerification?.status === 'submitted' ? (
-                <div className="flex items-center gap-2 text-yellow-600">
-                  <AlertCircle className="w-5 h-5" />
-                  <span className="font-medium">Pending</span>
-                </div>
-              ) : currentUser.idVerification?.status === 'rejected' ? (
-                <div className="flex items-center gap-2 text-red-600">
-                  <AlertCircle className="w-5 h-5" />
-                  <span className="font-medium">Rejected</span>
-                </div>
-              ) : (
-                <Button variant="outline" className="gap-2">
-                  <Upload className="w-4 h-4" />
-                  Upload ID
-                </Button>
+                </label>
               )}
             </div>
-
-            {currentUser.idVerification?.status === 'rejected' && currentUser.idVerification.rejectionReason && (
-              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-                <p className="text-sm text-red-600">
-                  <strong>Reason:</strong> {currentUser.idVerification.rejectionReason}
-                </p>
-                <Button variant="outline" className="mt-3 gap-2 border-red-500/30 text-red-600 hover:bg-red-500/10">
-                  <Upload className="w-4 h-4" />
-                  Resubmit ID
-                </Button>
-              </div>
-            )}
-
-            <div className="text-sm text-muted-foreground">
-              <p className="mb-2">Accepted documents:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Passport</li>
-                <li>Driver&apos;s License</li>
-                <li>National ID Card</li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Security Verification Section */}
-          <div className="p-6 bg-card rounded-2xl border border-border space-y-6">
-            <h3 className="text-lg font-semibold text-muted-foreground flex items-center gap-2">
-              <Shield className="w-5 h-5 text-primary" />
-              Security Settings
-            </h3>
             
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
-                <div>
-                  <p className="font-medium text-muted-foreground">Email Verification</p>
-                  <p className="text-sm text-muted-foreground">{currentUser.email}</p>
-                </div>
-                {currentUser.securityVerification?.emailVerified ? (
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="font-medium">Verified</span>
-                  </div>
-                ) : (
-                  <Button variant="outline" size="sm">Verify Email</Button>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
-                <div>
-                  <p className="font-medium text-muted-foreground">Phone Verification</p>
-                  <p className="text-sm text-muted-foreground">{currentUser.phone}</p>
-                </div>
-                {currentUser.securityVerification?.phoneVerified ? (
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="font-medium">Verified</span>
-                  </div>
-                ) : (
-                  <Button variant="outline" size="sm">Verify Phone</Button>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
-                <div>
-                  <p className="font-medium text-muted-foreground">Two-Factor Authentication</p>
-                  <p className="text-sm text-muted-foreground">Add an extra layer of security</p>
-                </div>
-                {currentUser.securityVerification?.twoFactorEnabled ? (
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="font-medium">Enabled</span>
-                  </div>
-                ) : (
-                  <Button variant="outline" size="sm">Enable 2FA</Button>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
-                <div>
-                  <p className="font-medium text-muted-foreground">Security Questions</p>
-                  <p className="text-sm text-muted-foreground">For account recovery</p>
-                </div>
-                {currentUser.securityVerification?.securityQuestionsSet ? (
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="font-medium">Set</span>
-                  </div>
-                ) : (
-                  <Button variant="outline" size="sm">Set Questions</Button>
-                )}
-              </div>
-
-              {/* Face ID Section */}
-              <div className="pt-4 border-t border-border">
-                <h4 className="text-md font-semibold text-muted-foreground mb-4 flex items-center gap-2">
-                  <ScanFace className="w-4 h-4 text-primary" />
-                  Face ID Authentication
-                </h4>
-                <FaceIdEnrollment 
-                  userId={currentUser.id}
-                  mode="enrollment"
-                  onEnrollmentComplete={(success) => {
-                    if (success) {
-                      // Update user state to reflect enrollment
-                    }
-                  }}
-                />
+            <div>
+              <h3 className="text-lg font-semibold text-muted-foreground">
+                {profileData.first_name} {profileData.last_name}
+              </h3>
+              <p className="text-muted-foreground">@{profileData.username}</p>
+              <div className="mt-2">
+                <TierBadge tier={currentUser.tier} />
               </div>
             </div>
           </div>
         </motion.div>
-      </main>
-    </div>
+
+        {/* Basic Information */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-card rounded-2xl border border-border p-6 mb-6"
+        >
+          <h2 className="text-xl font-semibold text-muted-foreground mb-4 flex items-center gap-2">
+            <Award className="w-5 h-5" />
+            Basic Information
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label>First Name</Label>
+              <Input
+                value={profileData.first_name}
+                onChange={(e) => handleInputChange('first_name', e.target.value)}
+                disabled={!isEditing}
+              />
+            </div>
+
+            <div>
+              <Label>Last Name</Label>
+              <Input
+                value={profileData.last_name}
+                onChange={(e) => handleInputChange('last_name', e.target.value)}
+                disabled={!isEditing}
+              />
+            </div>
+
+            <div>
+              <Label>Username</Label>
+              <Input
+                value={profileData.username}
+                onChange={(e) => handleInputChange('username', e.target.value)}
+                disabled={!isEditing}
+              />
+            </div>
+
+            <div>
+              <Label>Email</Label>
+              <Input
+                value={profileData.email}
+                disabled
+                className="bg-muted"
+              />
+            </div>
+
+            <div>
+              <Label>Age</Label>
+              <Input
+                type="number"
+                value={profileData.age}
+                onChange={(e) => handleInputChange('age', parseInt(e.target.value))}
+                disabled={!isEditing}
+              />
+            </div>
+
+            <div>
+              <Label>Gender</Label>
+              <select
+                value={profileData.gender}
+                onChange={(e) => handleInputChange('gender', e.target.value)}
+                disabled={!isEditing}
+                className="w-full h-10 px-3 rounded-md border border-input bg-background"
+              >
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+
+            <div>
+              <Label>Phone</Label>
+              <Input
+                value={profileData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                disabled={!isEditing}
+              />
+            </div>
+
+            <div>
+              <Label>Career</Label>
+              <Input
+                value={profileData.career}
+                onChange={(e) => handleInputChange('career', e.target.value)}
+                disabled={!isEditing}
+                placeholder="e.g., Software Engineer"
+              />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Location */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-card rounded-2xl border border-border p-6 mb-6"
+        >
+          <h2 className="text-xl font-semibold text-muted-foreground mb-4 flex items-center gap-2">
+            <MapPin className="w-5 h-5" />
+            Location
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label>City</Label>
+              <Input
+                value={profileData.city}
+                onChange={(e) => handleInputChange('city', e.target.value)}
+                disabled={!isEditing}
+                placeholder="e.g., New York"
+              />
+            </div>
+
+            <div>
+              <Label>Country</Label>
+              <Input
+                value={profileData.country}
+                onChange={(e) => handleInputChange('country', e.target.value)}
+                disabled={!isEditing}
+                placeholder="e.g., USA"
+              />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Bio */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-card rounded-2xl border border-border p-6 mb-6"
+        >
+          <h2 className="text-xl font-semibold text-muted-foreground mb-4 flex items-center gap-2">
+            <BookOpen className="w-5 h-5" />
+            About Me
+          </h2>
+
+          <div>
+            <Label>Bio</Label>
+            <Textarea
+              value={profileData.bio}
+              onChange={(e) => handleInputChange('bio', e.target.value)}
+              disabled={!isEditing}
+              placeholder="Tell us about yourself..."
+              rows={4}
+            />
+          </div>
+        </motion.div>
+
+        {/* Faith Information */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-card rounded-2xl border border-border p-6 mb-6"
+        >
+          <h2 className="text-xl font-semibold text-muted-foreground mb-4 flex items-center gap-2">
+            <Church className="w-5 h-5" />
+            Faith & Church
+          </h2>
+
+          <div className="space-y-4">
+            <div>
+              <Label>Denomination</Label>
+              <Input
+                value={profileData.denomination}
+                onChange={(e) => handleInputChange('denomination', e.target.value)}
+                disabled={!isEditing}
+                placeholder="e.g., Baptist, Catholic, Non-denominational"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Church Name</Label>
+                <Input
+                  value={profileData.churchName}
+                  onChange={(e) => handleInputChange('churchName', e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="e.g., Hillsong Church"
+                />
+              </div>
+
+              <div>
+                <Label>Church Branch</Label>
+                <Input
+                  value={profileData.churchBranch}
+                  onChange={(e) => handleInputChange('churchBranch', e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="e.g., NYC Campus"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Faith Journey</Label>
+              <Textarea
+                value={profileData.faithJourney}
+                onChange={(e) => handleInputChange('faithJourney', e.target.value)}
+                disabled={!isEditing}
+                placeholder="Share your faith journey..."
+                rows={4}
+              />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Account Security */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="bg-card rounded-2xl border border-border p-6"
+        >
+          <h2 className="text-xl font-semibold text-muted-foreground mb-4 flex items-center gap-2">
+            <Shield className="w-5 h-5" />
+            Account Security
+          </h2>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div>
+                <p className="font-medium">Email Verification</p>
+                <p className="text-sm text-muted-foreground">
+                  {currentUser.isVerified ? 'Verified' : 'Not verified'}
+                </p>
+              </div>
+              {currentUser.isVerified ? (
+                <Award className="w-5 h-5 text-green-500" />
+              ) : (
+                <Button variant="outline" size="sm">Verify Now</Button>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </DashboardLayout>
   );
 }

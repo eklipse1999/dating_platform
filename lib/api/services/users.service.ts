@@ -46,7 +46,7 @@ export const usersService = {
    */
   async getCurrentUser(): Promise<User> {
     try {
-      const response = await apiClient.get(API_CONFIG.ENDPOINTS.USERS.PROFILE);
+      const response = await apiClient.get(API_CONFIG.ENDPOINTS.USERS.ME);
       return response.data;
     } catch (error: any) {
       console.error('Get current user error:', error.response?.data || error.message);
@@ -79,7 +79,7 @@ export const usersService = {
   async uploadPhoto(file: File): Promise<string> {
     try {
       const formData = new FormData();
-      formData.append('photo', file);
+      formData.append('image', file); // Backend might expect 'image' instead of 'photo'
       
       const response = await apiClient.post(
         API_CONFIG.ENDPOINTS.PROFILE.UPLOAD_IMAGE,
@@ -91,7 +91,7 @@ export const usersService = {
         }
       );
       
-      return response.data.url || response.data.photoUrl;
+      return response.data.url || response.data.photoUrl || response.data.imageUrl;
     } catch (error: any) {
       console.error('Upload photo error:', error.response?.data || error.message);
       throw new Error(error.response?.data?.message || 'Failed to upload photo');
@@ -99,11 +99,11 @@ export const usersService = {
   },
 
   /**
-   * Discover users based on filters
+   * Discover users (Get all users via Admin endpoint)
    */
   async discoverUsers(filters?: DiscoverFilters): Promise<User[]> {
     try {
-      const response = await apiClient.get(API_CONFIG.ENDPOINTS.USERS.DISCOVER, {
+      const response = await apiClient.get(API_CONFIG.ENDPOINTS.USERS.BY_ADMIN, {
         params: filters,
       });
       return response.data.users || response.data || [];
@@ -115,26 +115,11 @@ export const usersService = {
   },
 
   /**
-   * Search users by query
-   */
-  async searchUsers(query: string, filters?: DiscoverFilters): Promise<User[]> {
-    try {
-      const response = await apiClient.get(API_CONFIG.ENDPOINTS.USERS.SEARCH, {
-        params: { q: query, ...filters },
-      });
-      return response.data.users || response.data || [];
-    } catch (error: any) {
-      console.error('Search users error:', error.response?.data || error.message);
-      return [];
-    }
-  },
-
-  /**
-   * Get user by ID
+   * Get user by ID (profile)
    */
   async getUserById(userId: string): Promise<User> {
     try {
-      const response = await apiClient.get(`${API_CONFIG.ENDPOINTS.USERS.GET_BY_ID}/${userId}`);
+      const response = await apiClient.get(`${API_CONFIG.ENDPOINTS.PROFILE.GET_BY_ID}/${userId}`);
       return response.data;
     } catch (error: any) {
       console.error('Get user by ID error:', error.response?.data || error.message);
@@ -145,14 +130,17 @@ export const usersService = {
   /**
    * Update user location
    */
-  async updateLocation(latitude: number, longitude: number): Promise<void> {
+  async updateLocation(latitude: number, longitude: number, city?: string, country?: string): Promise<void> {
     try {
       await apiClient.put(API_CONFIG.ENDPOINTS.USERS.UPDATE_LOCATION, {
-        lat: latitude,
-        lng: longitude,
+        latitude,
+        longitude,
+        city,
+        country,
       });
     } catch (error: any) {
       console.error('Update location error:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.message || 'Failed to update location');
     }
   },
 };
