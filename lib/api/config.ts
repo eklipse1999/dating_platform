@@ -22,20 +22,20 @@ export const API_CONFIG = {
       UNLIKE: '/like/unlike',              // Unlike a user
       MATCHES: '/like/matches',            // Get matches
     },
-    
+
     // Matches (mutual)
     MATCHES: {
       LIST: '/matches',                    // Get mutual matches
     },
-    
+
     // Blocking
     BLOCKS: {
       CREATE: '/blocks/create',            // Block a user
       LIST: '/blocks/list/user',           // Get blocked users
-      REMOVE: '/blocks/remove',            // Unblock a user
+      REMOVE: '/blocks/remove',           // Unblock a user
       CAN_INTERACT: '/block/can-interact', // Check if can interact
     },
-    
+
     // Events
     EVENTS: {
       LIST: '/events',                     // Get all events
@@ -44,16 +44,23 @@ export const API_CONFIG = {
       UPDATE: '/events',                   // Update event
       DELETE: '/events',                   // Delete event
     },
-    
+
     // Payments
     PAYMENTS: {
       PROCESS: '/payments',                // Process payment
     },
-    
+
     // Profile
     PROFILE: {
       GET_BY_ID: '/profile',               // Get profile by ID
       UPLOAD_IMAGE: '/profile/upload-image', // Upload profile image
+    },
+
+    // Messages
+    MESSAGES: {
+      LIST: '/messages',                   // Get messages
+      SEND: '/messages/send',              // Send message
+      CONVERSATIONS: '/messages/conversations', // Get conversations
     },
   }
 };

@@ -16,7 +16,6 @@ import { LocationPermissionModal } from '@/components/location-permission-modal'
 import { Checkbox } from '@/components/ui/checkbox';
 import { FaceIdEnrollment } from '@/components/ui/face-id-enrollment';
 import { hasFaceIdEnrollment } from '@/lib/facetec';
-import { authService } from '@/lib/api/services/auth.service';
 
 
 export default function LoginPage() {
@@ -71,13 +70,14 @@ const handleSubmit = async (e: React.FormEvent) => {
   setIsLoading(true);
 
   try {
-    await authService.login({ email: formData.email,password: formData.password});
+    // Use the login function from app context to set user state
+    await login(formData.email, formData.password);
     toast.success('Login successful!');
-    router.push('/dashboard');
-    console.log('🔄 Redirecting to dashboard...');
-    window.location.href = '/dashboard';
+    // Show location permission modal before redirecting to dashboard
+    setShowLocationModal(true);
+    console.log('🔄 Requesting location before dashboard...');
   } catch (error: any) {
-    toast.error(error.response?.data || 'Login failed');
+    toast.error(error.message || 'Login failed');
   } finally {
     setIsLoading(false);
   }

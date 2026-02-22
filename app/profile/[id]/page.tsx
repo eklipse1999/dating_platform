@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -13,12 +13,14 @@ import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { TierBadge } from '@/components/tier-badge';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/lib/app-context';
-import { calculateAccountAgeDays } from '@/lib/types';
+import { User, calculateAccountAgeDays } from '@/lib/types';
 
 export default function ProfileViewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const { isAuthenticated, getUserById, toggleFollow, isFollowing, canMessage, currentUser } = useApp();
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -26,19 +28,26 @@ export default function ProfileViewPage({ params }: { params: Promise<{ id: stri
     }
   }, [isAuthenticated, router]);
 
-  const user = getUserById(id);
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (getUserById) {
+        try {
+          const userData = await getUserById(id);
+          setUser(userData);
+        } catch (error) {
+          console.error('Failed to fetch user:', error);
+        }
+      }
+      setIsLoading(false);
+    };
+    
+    fetchUser();
+  }, [id, getUserById]);
 
-  if (!isAuthenticated || !user) {
+  if (isLoading || !user) {
     return (
-      <div className="min-h-screen bg-background">
-        <DashboardHeader />
-        <main className="max-w-4xl mx-auto px-4 py-16 text-center">
-          <h1 className="text-2xl font-semibold text-muted-foreground mb-2">Profile not found</h1>
-          <p className="text-muted-foreground mb-6">This profile may have been removed or doesn&apos;t exist.</p>
-          <Link href="/dashboard">
-            <Button>Back to Browse</Button>
-          </Link>
-        </main>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -93,7 +102,7 @@ export default function ProfileViewPage({ params }: { params: Promise<{ id: stri
                   {following ? 'Following' : 'Follow'}
                 </Button>
                 
-                {canMessage || currentUser?.isAdmin ? (
+                {canMessage(user.id) || currentUser?.isAdmin ? (
                   <Link href={`/messages?user=${user.id}`} className="block">
                     <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                       <MessageCircle className="w-4 h-4 mr-2" />
@@ -132,7 +141,7 @@ export default function ProfileViewPage({ params }: { params: Promise<{ id: stri
               <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <MapPin className="w-4 h-4" />
-                  <span>{user.location.city}, {user.location.country}</span>
+                  <span>{user.location.country}</span>
                 </div>
                 {user.distance && (
                   <span className="text-sm">{user.distance} away</span>

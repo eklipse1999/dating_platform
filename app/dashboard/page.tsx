@@ -40,7 +40,7 @@ export default function DashboardPage() {
 
   const filteredUsers = users.filter(user => 
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.location.city.toLowerCase().includes(searchQuery.toLowerCase())
+    user.location.country?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const isFreeUser = currentUser.points === 0;

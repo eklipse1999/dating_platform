@@ -13,7 +13,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 
 export function DashboardHeader() {
   const router = useRouter();
-  const { currentUser, logout, isAdmin, isInTrial, trialDaysRemaining, trialExpired } = useApp();
+  const { currentUser, logout, isInTrial, trialDaysRemaining } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -76,12 +76,6 @@ export function DashboardHeader() {
               <Settings className="w-4 h-4" />
               <span>Settings</span>
             </Link>
-            {isAdmin && (
-              <Link href="/admin" className="flex items-center gap-2 text-gold hover:text-gold/80 transition-colors">
-                <Crown className="w-4 h-4" />
-                <span>Admin</span>
-              </Link>
-            )}
           </nav>
 
           {/* Points & Actions */}
@@ -203,16 +197,6 @@ export function DashboardHeader() {
                 <Settings className="w-5 h-5" />
                 <span>Settings</span>
               </Link>
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-3 text-gold hover:bg-muted rounded-lg transition-colors"
-                >
-                  <Shield className="w-5 h-5" />
-                  <span>Admin Panel</span>
-                </Link>
-              )}
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-3 w-full px-3 py-3 text-destructive hover:bg-muted rounded-lg transition-colors"

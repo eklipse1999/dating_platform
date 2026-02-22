@@ -57,7 +57,7 @@ export function ProfileCard({ user, index = 0 }: ProfileCardProps) {
             </Link>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <MapPin className="w-3 h-3" />
-              <span>{user.location.city}</span>
+              <span>{user.location.country}</span>
               {user.distance && (
                 <>
                   <span className="mx-1">•</span>
@@ -85,7 +85,7 @@ export function ProfileCard({ user, index = 0 }: ProfileCardProps) {
             {following ? 'Following' : 'Follow'}
           </Button>
           
-          {canMessage || currentUser?.isAdmin ? (
+          {canMessage(user.id) || currentUser?.isAdmin ? (
             <Link href={`/messages?user=${user.id}`} className="flex-1">
               <Button variant="outline" size="sm" className="w-full bg-transparent hover:shadow-[0_0_15px_rgba(139,92,246,0.3)]">
                 <MessageCircle className="w-4 h-4 mr-1.5" />

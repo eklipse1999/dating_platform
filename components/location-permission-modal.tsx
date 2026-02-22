@@ -114,14 +114,16 @@ export function LocationPermissionModal({ isOpen, onComplete }: LocationPermissi
                     Location Enabled!
                   </h2>
                   <p className="text-muted-foreground text-center mb-4 leading-relaxed">
-                    We detected your location:
+                    Your location has been detected:
                   </p>
                   <div className="bg-muted/50 rounded-xl p-4 text-center mb-6">
-                    <div className="text-lg font-semibold text-muted-foreground">
-                      {userLocation.city}, {userLocation.country}
+                    <div className="text-2xl font-bold text-primary">
+                      {userLocation.country && userLocation.country !== 'Unknown' 
+                        ? userLocation.country 
+                        : 'Location Set'}
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
+                    <div className="text-sm text-muted-foreground mt-2">
+                      {userLocation.lat.toFixed(2)}°N, {userLocation.lng.toFixed(2)}°W
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground text-center">

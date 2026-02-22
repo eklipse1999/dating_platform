@@ -33,7 +33,7 @@ function SuggestedUserCard({ user, onFollow, isFollowing }: SuggestedUserCardPro
         </Link>
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <MapPin className="w-3 h-3" />
-          <span className="truncate">{user.location.city}</span>
+          <span className="truncate">{user.location.country}</span>
         </div>
       </div>
       <Button
@@ -68,18 +68,20 @@ function TrendingTopic({ topic, count, category }: TrendingTopicProps) {
 }
 
 export function RightSidebar() {
-  const { users, toggleFollow, isFollowing, currentUser } = useApp();
+  const appContext = useApp();
+  const users = appContext?.users || [];
+  const { toggleFollow, isFollowing, currentUser } = appContext;
 
   if (!currentUser) return null;
 
   // Get suggested users (different tier or location)
   const suggestedUsers = users
-    .filter(u => u.id !== currentUser.id)
+    .filter((u: User) => u.id !== currentUser.id)
     .slice(0, 5);
 
   // Get premium users
   const premiumUsers = users
-    .filter(u => u.tier === 'Diamond' || u.tier === 'Platinum')
+    .filter((u: User) => u.tier === 'Diamond' || u.tier === 'Platinum')
     .slice(0, 3);
 
   const trendingTopics = [

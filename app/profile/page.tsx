@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
   Camera, Edit, Save, X, MapPin, Briefcase, Heart, 
-  Church, BookOpen, Award, Shield, Loader2
+  Church, BookOpen, Award, Shield, Loader2, Upload,
+  CheckCircle, XCircle, Clock, AlertCircle, Key, Lock,
+  Smartphone, Mail, RefreshCw
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Button } from '@/components/ui/button';
@@ -16,6 +18,7 @@ import { useApp } from '@/lib/app-context';
 import { usersService } from '@/lib/api/services/users.service';
 import { toast } from 'sonner';
 import { TierBadge } from '@/components/tier-badge';
+import { Badge } from '@/components/ui/badge';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -36,7 +39,6 @@ export default function ProfilePage() {
     bio: '',
     career: '',
     denomination: '',
-    city: '',
     country: '',
     interests: [] as string[],
     values: [] as string[],
@@ -49,6 +51,24 @@ export default function ProfilePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
 
+  // ID Verification state
+  const [idVerification, setIdVerification] = useState({
+    status: 'pending' as 'pending' | 'submitted' | 'verified' | 'rejected',
+    documentType: '',
+    submittedAt: null as Date | null,
+    verifiedAt: null as Date | null,
+    rejectionReason: '',
+  });
+  const [idDocument, setIdDocument] = useState<File | null>(null);
+
+  // Security state
+  const [securitySettings, setSecuritySettings] = useState({
+    emailVerified: false,
+    phoneVerified: false,
+    twoFactorEnabled: false,
+    lastPasswordChange: null as Date | null,
+  });
+
   // Check authentication
   useEffect(() => {
     if (!isAuthenticated) {
@@ -56,7 +76,6 @@ export default function ProfilePage() {
       return;
     }
     
-    // Load profile data
     loadProfileData();
   }, [isAuthenticated, router]);
 
@@ -79,7 +98,6 @@ export default function ProfilePage() {
         bio: userProfile.bio || currentUser?.bio || '',
         career: userProfile.career || currentUser?.career || '',
         denomination: userProfile.denomination || currentUser?.denomination || '',
-        city: userProfile.location?.city || currentUser?.location?.city || '',
         country: userProfile.location?.country || currentUser?.location?.country || '',
         interests: userProfile.interests || currentUser?.interests || [],
         values: userProfile.values || currentUser?.values || [],
@@ -87,9 +105,31 @@ export default function ProfilePage() {
         churchName: userProfile.church?.name || '',
         churchBranch: userProfile.church?.branch || '',
       });
+
+      // Load ID verification status
+      if (userProfile.idVerification) {
+        setIdVerification({
+          status: userProfile.idVerification.status || 'pending',
+          documentType: userProfile.idVerification.documentType || '',
+          submittedAt: userProfile.idVerification.submittedAt || null,
+          verifiedAt: userProfile.idVerification.verifiedAt || null,
+          rejectionReason: userProfile.idVerification.rejectionReason || '',
+        });
+      }
+
+      // Load security verification
+      if (userProfile.securityVerification) {
+        setSecuritySettings({
+          emailVerified: userProfile.securityVerification.emailVerified || false,
+          phoneVerified: userProfile.securityVerification.phoneVerified || false,
+          twoFactorEnabled: userProfile.securityVerification.twoFactorEnabled || false,
+          lastPasswordChange: userProfile.securityVerification.lastPasswordChange || null,
+        });
+      }
       
     } catch (error) {
       console.error('Failed to load profile:', error);
+      toast.error('Using cached profile data. Some features may not work until backend CORS is fixed.');
       
       // Fallback to current user data
       if (currentUser) {
@@ -104,7 +144,6 @@ export default function ProfilePage() {
           bio: currentUser.bio || '',
           career: currentUser.career || '',
           denomination: currentUser.denomination || '',
-          city: currentUser.location?.city || '',
           country: currentUser.location?.country || '',
           interests: currentUser.interests || [],
           values: currentUser.values || [],
@@ -134,18 +173,24 @@ export default function ProfilePage() {
     }
   };
 
-  const handlePhotoUpload = async () => {
-    if (!selectedFile) return;
+  const handleIdDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIdDocument(file);
+      toast.success('Document selected. Click "Submit for Verification" to upload.');
+    }
+  };
+
+  const handleSubmitIdVerification = async () => {
+    if (!idDocument) {
+      toast.error('Please select a document first');
+      return;
+    }
 
     try {
-      const photoUrl = await usersService.uploadPhoto(selectedFile);
-      toast.success('Photo uploaded successfully!');
-      setPreviewUrl('');
-      setSelectedFile(null);
-      return photoUrl;
+      toast.info('ID verification feature will be available once backend CORS is fixed');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to upload photo');
-      throw error;
+      toast.error(error.message || 'Failed to submit document');
     }
   };
 
@@ -153,36 +198,30 @@ export default function ProfilePage() {
     setIsSaving(true);
 
     try {
-      // Upload photo first if selected
-      let photoUrl = null;
-      if (selectedFile) {
-        photoUrl = await handlePhotoUpload();
-      }
+      console.log('💾 Attempting to save profile...');
+      console.log('Data to save:', profileData);
 
-      // Prepare update data
-      const updateData = {
-        name: profileData.username,
-        bio: profileData.bio,
-        career: profileData.career,
-        age: profileData.age,
-        phone: profileData.phone,
-        location: {
-          city: profileData.city,
-          country: profileData.country,
-        },
-        denomination: profileData.denomination,
-        interests: profileData.interests,
-        faithJourney: profileData.faithJourney,
-        values: profileData.values,
-        church: {
-          name: profileData.churchName,
-          branch: profileData.churchBranch,
-          city: profileData.city,
-          country: profileData.country,
-        },
-      };
+      // Show CORS warning
+      toast.info('Note: Backend CORS needs to be configured to allow requests from localhost:3000');
 
-      // Update profile
+      // Prepare update data - match exact backend format
+  const updateData = {
+      age: profileData.age || 25,
+      bio: profileData.bio || "",
+      career: profileData.career || "",
+      church_branch: profileData.churchBranch || "",
+      church_name: profileData.churchName || "",
+      denomination: profileData.denomination || "",
+      gender: profileData.gender || "male",
+      interests: profileData.interests || [],
+      key: "",
+      looking_for: "",
+      profile_image: ""
+    };
+
+      console.log('Sending update:', updateData);
+
+      // Try to update profile
       await usersService.updateProfile(updateData);
       
       toast.success('Profile updated successfully!');
@@ -192,10 +231,28 @@ export default function ProfilePage() {
       await loadProfileData();
       
     } catch (error: any) {
-      console.error('Save error:', error);
-      toast.error(error.message || 'Failed to update profile');
+      console.error('❌ Save error:', error);
+      
+      if (error.message?.includes('CORS') || error.message?.includes('Network Error')) {
+        toast.error('CORS Error: Ask your backend developer to add "http://localhost:3000" to allowed origins');
+      } else {
+        toast.error(error.message || 'Failed to update profile');
+      }
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const getVerificationStatusBadge = (status: string) => {
+    switch (status) {
+      case 'verified':
+        return <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Verified</Badge>;
+      case 'submitted':
+        return <Badge className="bg-blue-500"><Clock className="w-3 h-3 mr-1" />Under Review</Badge>;
+      case 'rejected':
+        return <Badge className="bg-red-500"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
+      default:
+        return <Badge variant="outline"><AlertCircle className="w-3 h-3 mr-1" />Pending</Badge>;
     }
   };
 
@@ -216,6 +273,7 @@ export default function ProfilePage() {
   return (
     <DashboardLayout>
       <div className="max-w-4xl mx-auto px-4 py-8">
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -232,7 +290,7 @@ export default function ProfilePage() {
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => {
                 setIsEditing(false);
-                loadProfileData(); // Reset changes
+                loadProfileData();
               }}>
                 <X className="w-4 h-4 mr-2" />
                 Cancel
@@ -290,6 +348,12 @@ export default function ProfilePage() {
                 {profileData.first_name} {profileData.last_name}
               </h3>
               <p className="text-muted-foreground">@{profileData.username}</p>
+              {(profileData.country || currentUser?.location?.country) && (
+                <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                  <MapPin className="w-3 h-3" />
+                  {profileData.country || currentUser?.location?.country}
+                </p>
+              )}
               <div className="mt-2">
                 <TierBadge tier={currentUser.tier} />
               </div>
@@ -404,16 +468,6 @@ export default function ProfilePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label>City</Label>
-              <Input
-                value={profileData.city}
-                onChange={(e) => handleInputChange('city', e.target.value)}
-                disabled={!isEditing}
-                placeholder="e.g., New York"
-              />
-            </div>
-
-            <div>
               <Label>Country</Label>
               <Input
                 value={profileData.country}
@@ -507,31 +561,182 @@ export default function ProfilePage() {
           </div>
         </motion.div>
 
-        {/* Account Security */}
+        {/* ID Verification Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
+          className="bg-card rounded-2xl border border-border p-6 mb-6"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-muted-foreground flex items-center gap-2">
+              <Award className="w-5 h-5" />
+              ID Verification
+            </h2>
+            {getVerificationStatusBadge(idVerification.status)}
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Verify your identity to increase trust and unlock premium features
+            </p>
+
+            {idVerification.status === 'rejected' && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-800">
+                  <strong>Rejection Reason:</strong> {idVerification.rejectionReason || 'Please resubmit your document'}
+                </p>
+              </div>
+            )}
+
+            {idVerification.status !== 'verified' && (
+              <>
+                <div>
+                  <Label>Document Type</Label>
+                  <select
+                    value={idVerification.documentType}
+                    onChange={(e) => setIdVerification(prev => ({ ...prev, documentType: e.target.value }))}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                  >
+                    <option value="">Select document type</option>
+                    <option value="passport">Passport</option>
+                    <option value="drivers_license">Driver's License</option>
+                    <option value="national_id">National ID Card</option>
+                  </select>
+                </div>
+
+                <div>
+                  <Label>Upload Document</Label>
+                  <div className="mt-2">
+                    <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors">
+                      <div className="text-center">
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          {idDocument ? idDocument.name : 'Click to upload ID document'}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          JPG, PNG or PDF (max 10MB)
+                        </p>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        onChange={handleIdDocumentSelect}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={handleSubmitIdVerification}
+                  disabled={!idDocument || !idVerification.documentType}
+                  className="w-full"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Submit for Verification
+                </Button>
+              </>
+            )}
+
+            {idVerification.status === 'verified' && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <div>
+                    <p className="font-medium text-green-900">Identity Verified</p>
+                    <p className="text-sm text-green-700">
+                      Verified on {idVerification.verifiedAt ? new Date(idVerification.verifiedAt).toLocaleDateString() : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Security Verification Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
           className="bg-card rounded-2xl border border-border p-6"
         >
           <h2 className="text-xl font-semibold text-muted-foreground mb-4 flex items-center gap-2">
             <Shield className="w-5 h-5" />
-            Account Security
+            Security & Verification
           </h2>
 
           <div className="space-y-3">
+            {/* Email Verification */}
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <div>
-                <p className="font-medium">Email Verification</p>
-                <p className="text-sm text-muted-foreground">
-                  {currentUser.isVerified ? 'Verified' : 'Not verified'}
-                </p>
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">Email Verification</p>
+                  <p className="text-sm text-muted-foreground">{profileData.email}</p>
+                </div>
               </div>
-              {currentUser.isVerified ? (
-                <Award className="w-5 h-5 text-green-500" />
+              {securitySettings.emailVerified ? (
+                <CheckCircle className="w-5 h-5 text-green-500" />
               ) : (
-                <Button variant="outline" size="sm">Verify Now</Button>
+                <Button variant="outline" size="sm">Verify Email</Button>
               )}
+            </div>
+
+            {/* Phone Verification */}
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <Smartphone className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">Phone Verification</p>
+                  <p className="text-sm text-muted-foreground">
+                    {profileData.phone || 'No phone number added'}
+                  </p>
+                </div>
+              </div>
+              {securitySettings.phoneVerified ? (
+                <CheckCircle className="w-5 h-5 text-green-500" />
+              ) : (
+                <Button variant="outline" size="sm" disabled={!profileData.phone}>
+                  Verify Phone
+                </Button>
+              )}
+            </div>
+
+            {/* Two-Factor Authentication */}
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <Key className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">Two-Factor Authentication</p>
+                  <p className="text-sm text-muted-foreground">
+                    {securitySettings.twoFactorEnabled ? 'Enabled' : 'Disabled'}
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm">
+                {securitySettings.twoFactorEnabled ? 'Manage' : 'Enable 2FA'}
+              </Button>
+            </div>
+
+            {/* Password Change */}
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <Lock className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">Password</p>
+                  <p className="text-sm text-muted-foreground">
+                    {securitySettings.lastPasswordChange 
+                      ? `Last changed ${new Date(securitySettings.lastPasswordChange).toLocaleDateString()}`
+                      : 'Never changed'}
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Change Password
+              </Button>
             </div>
           </div>
         </motion.div>

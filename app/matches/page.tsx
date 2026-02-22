@@ -136,7 +136,7 @@ export default function MatchesPage() {
                       </Link>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <MapPin className="w-3 h-3" />
-                        <span>{user.location.city}</span>
+                        <span>{user.location.country || user.location.city || 'Unknown'}</span>
                       </div>
                     </div>
                     <Badge variant="outline" className="text-xs">
