@@ -114,11 +114,11 @@ export interface PointsPackage {
 }
 
 export const POINTS_PACKAGES: PointsPackage[] = [
-  { id: 'starter', name: 'Starter', points: 500, price: 9.99, currency: 'USD' },
-  { id: 'popular', name: 'Popular', points: 1500, price: 24.99, currency: 'USD', isBestValue: true },
-  { id: 'premium', name: 'Premium', points: 3000, price: 44.99, currency: 'USD' },
-  { id: 'elite', name: 'Elite', points: 5000, price: 69.99, currency: 'USD' },
-  { id: 'ultimate', name: 'Ultimate', points: 10000, price: 119.99, currency: 'USD' },
+  { id: 'starter', name: 'Starter', points: 500, price: 7.99, currency: 'USD' },
+  { id: 'popular', name: 'Popular', points: 1500, price: 21.99, currency: 'USD', isBestValue: true },
+  { id: 'premium', name: 'Premium', points: 3000, price: 39.99, currency: 'USD' },
+  { id: 'elite', name: 'Elite', points: 5000, price: 59.99, currency: 'USD' },
+  { id: 'ultimate', name: 'Ultimate', points: 10000, price: 99.99, currency: 'USD' },
 ];
 
 export const TIER_RANGES: Record<Tier, { min: number; max: number; icon: string; color: string }> = {
