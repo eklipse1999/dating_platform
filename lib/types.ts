@@ -28,13 +28,6 @@ export interface IDVerification {
   rejectionReason?: string;
 }
 
-export interface FaceIdInfo {
-  isEnabled: boolean;
-  enrollmentIdentifier?: string;
-  enrolledAt?: Date;
-  lastVerifiedAt?: Date;
-}
-
 export interface SecurityVerification {
   emailVerified: boolean;
   phoneVerified: boolean;
@@ -78,8 +71,6 @@ export interface User {
   church?: ChurchInfo;
   // ID Verification
   idVerification?: IDVerification;
-  // Face ID Verification
-  faceId?: FaceIdInfo;
   // Security Verification
   securityVerification?: SecurityVerification;
   // Discover page features

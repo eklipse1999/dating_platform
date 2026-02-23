@@ -47,7 +47,7 @@ export default function UpgradePage() {
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Add points to user
-    addPoints(selectedPackage.points);
+    addPoints!(selectedPackage.points);
     setPaymentSuccess(true);
     
     toast.success(`Successfully purchased ${selectedPackage.points.toLocaleString()} points!`);

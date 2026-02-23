@@ -21,7 +21,6 @@ interface AppContextType {
   trialExpired: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  loginWithFaceId?: (email: string) => Promise<void>;
   signup?: (data: any) => Promise<void>;
   getUserById?: (userId: string) => Promise<User>;
   users?: User[];

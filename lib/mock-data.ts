@@ -176,6 +176,8 @@ export function generateMockUsers(count: number = 25): User[] {
     
     users.push({
       id: `user-${i + 1}`,
+      first_name: firstName,
+      last_name: lastName,
       name: `${firstName} ${lastName}`,
       email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@email.com`,
       age: getRandomNumber(22, 40),
@@ -216,6 +218,8 @@ export const MOCK_USERS = generateMockUsers(25);
 
 export const MOCK_CURRENT_USER: User = {
   id: 'current-user',
+  first_name: 'John',
+  last_name: 'Doe',
   name: 'John Doe',
   email: 'john.doe@email.com',
   age: 28,

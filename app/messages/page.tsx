@@ -46,7 +46,7 @@ interface Conversation {
 function MessagesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated, currentUser, users, canMessage, canScheduleDates, accountAgeDays, isAdmin } = useApp();
+  const { isAuthenticated, currentUser, users = [], canMessage, canScheduleDates, accountAgeDays = 0, isAdmin } = useApp();
   
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');

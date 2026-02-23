@@ -78,7 +78,7 @@ const mockFlaggedMessages: Message[] = [
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { currentUser, users, isAdmin } = useApp();
+  const { currentUser, users = [], isAdmin } = useApp();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState("overview");
   const [isRefreshing, setIsRefreshing] = useState(false);
