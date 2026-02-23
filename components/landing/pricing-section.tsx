@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { Check, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { POINTS_PACKAGES } from '@/lib/types';
+import { useEffect, useState } from 'react';
+import apiClient from '@/lib/api/client';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -25,6 +27,20 @@ const itemVariants = {
   },
 };
 
+
+type Plan = {
+  ID: string;
+  Name: string;
+  Price: number;
+  Currency: string;
+  Points: number;
+  CanMessage: boolean;
+  CanScheduleDate: boolean;
+  DailyMessageLimit: number | null;
+  CreatedAt: string;
+};
+
+
 const benefits = [
   'Send unlimited messages',
   'View full profiles',
@@ -34,11 +50,27 @@ const benefits = [
 ];
 
 export function PricingSection() {
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiClient.get('/plans') // replace with your actual API URL
+      .then(res => {
+        setPlans(res.data);
+      })
+      .catch(err => {
+        console.error('Error fetching plans:', err);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="text-center py-20">Loading plans...</div>;
+
   return (
     <section id="pricing" className="py-20 md:py-32 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <motion.div
+         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -61,57 +93,60 @@ export function PricingSection() {
           viewport={{ once: true }}
           className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4"
         >
-          {POINTS_PACKAGES.map((pkg) => (
-            <motion.div
-              key={pkg.id}
-              variants={itemVariants}
-              className={`relative p-6 rounded-2xl border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
-                pkg.isBestValue
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-card border-border hover:border-primary/30'
-              }`}
-            >
-              {pkg.isBestValue && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-xs font-semibold">
-                  <Star className="w-3 h-3" />
-                  Best Value
-                </div>
-              )}
+          {plans.map((pkg, idx) => {
+            const isBestValue = idx === 1; // just example, mark "Popular" as best value
+            return (
+              <motion.div
+                key={pkg.ID}
+                variants={itemVariants}
+                className={`relative p-6 rounded-2xl border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+                  isBestValue
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-card border-border hover:border-primary/30'
+                }`}
+              >
+                {isBestValue && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-xs font-semibold">
+                    <Star className="w-3 h-3" />
+                    Best Value
+                  </div>
+                )}
 
-              <div className="text-center mb-6">
-                <h3 className={`text-lg font-semibold mb-2 ${pkg.isBestValue ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
-                  {pkg.name}
-                </h3>
-                <div className={`text-3xl font-bold ${pkg.isBestValue ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
-                  {pkg.points.toLocaleString()}
+                <div className="text-center mb-6">
+                  <h3 className={`text-lg font-semibold mb-2 ${isBestValue ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
+                    {pkg.Name}
+                  </h3>
+                  <div className={`text-3xl font-bold ${isBestValue ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
+                    {pkg.Points.toLocaleString()}
+                  </div>
+                  <div className={`text-sm ${isBestValue ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                    points
+                  </div>
                 </div>
-                <div className={`text-sm ${pkg.isBestValue ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
-                  points
-                </div>
-              </div>
 
-              <div className={`text-center mb-6 pb-6 border-b ${pkg.isBestValue ? 'border-primary-foreground/20' : 'border-border'}`}>
-                <div className={`text-2xl font-bold ${pkg.isBestValue ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
-                  ${pkg.price}
+                <div className={`text-center mb-6 pb-6 border-b ${isBestValue ? 'border-primary-foreground/20' : 'border-border'}`}>
+                  <div className={`text-2xl font-bold ${isBestValue ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
+                    ${pkg.Price}
+                  </div>
+                  <div className={`text-xs ${isBestValue ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                    ${(pkg.Price / pkg.Points * 100).toFixed(2)} per 100 pts
+                  </div>
                 </div>
-                <div className={`text-xs ${pkg.isBestValue ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                  ${(pkg.price / pkg.points * 100).toFixed(2)} per 100 pts
-                </div>
-              </div>
 
-              <Link href="/upgrade" className="block">
-                <Button
-                  className={`w-full ${
-                    pkg.isBestValue
-                      ? 'bg-secondary hover:bg-secondary/90 text-secondary-foreground'
-                      : 'bg-primary hover:bg-primary/90 text-primary-foreground'
-                  }`}
-                >
-                  Get Started
-                </Button>
-              </Link>
-            </motion.div>
-          ))}
+                <Link href="/upgrade" className="block">
+                  <Button
+                    className={`w-full ${
+                      isBestValue
+                        ? 'bg-secondary hover:bg-secondary/90 text-secondary-foreground'
+                        : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                    }`}
+                  >
+                    Get Started
+                  </Button>
+                </Link>
+              </motion.div>
+            );
+          })}
         </motion.div>
 
         {/* Benefits */}
