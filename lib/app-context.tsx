@@ -4,7 +4,9 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserLocation } from './types';
 import { authService } from './api/services/auth.service';
 import { usersService } from './api/services/users.service';
-import { MOCK_USERS } from './mock-data'; // Temporary fallback
+// Temporary fallback
+import { useRouter } from 'next/navigation';
+import apiClient from './api/client';
 
 type LocationPermissionStatus = 'idle' | 'requesting' | 'granted' | 'denied';
 
@@ -14,7 +16,7 @@ interface AppContextType {
   userLocation: UserLocation | null;
   locationPermissionStatus: LocationPermissionStatus;
   requestLocation: () => Promise<boolean>;
-  getFilteredUsers: (filters?: any) => User[];
+  getFilteredUsers: (filters?: any) => Promise<User[]>;
   canMessage: (otherUserId: string) => boolean;
   isInTrial: boolean;
   trialDaysRemaining: number;
@@ -46,18 +48,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locationPermissionStatus, setLocationPermissionStatus] = useState<LocationPermissionStatus>('idle');
   const [isLoading, setIsLoading] = useState(true);
+  const [users , setUsers ] = useState<User[]>([])
+  const router = useRouter(); 
   
   // Track user interactions
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
   const [likedUsers, setLikedUsers] = useState<Set<string>>(new Set());
   const [savedUsers, setSavedUsers] = useState<Set<string>>(new Set());
 
+
+  const fetchUserState = async()=>{
+    try{
+      const response = await apiClient.get("/users/me")
+      return response.data
+    }catch(err){
+      console.log(err)
+    }
+  }
   // Check authentication on mount
   useEffect(() => {
-    const checkAuth = () => {
+    const checkAuth = async() => {
       const token = authService.getToken();
-      const storedUser = authService.getStoredUser();
-      
+      const storedUser = await fetchUserState()
+
       // Load location from localStorage if available
       let storedLocation: UserLocation | null = null;
       if (typeof window !== 'undefined') {
@@ -77,8 +90,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           id: storedUser?.id,
           first_name: storedUser?.first_name,
           last_name:storedUser?.last_name,
-          name: storedUser?.username,
+          name: storedUser?.user_name,
           email: storedUser.email,
+          type: storedUser.type,
           age: 25, // Default
           gender: 'male', // Default
           phone: '',
@@ -115,7 +129,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const response = await authService.login({ email, password });
-    
+    if(response.data.type == "ADMIN"){
+      router.push("/admin")
+    }
     // Fetch user profile from backend to get actual location and other data
     let userLocation: UserLocation = {
       lat: 0,
@@ -140,10 +156,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     
     // Create user from response
     const user: User = {
-      id: response.user?.id || 'current-user',
+      id: response.user?.id || '',
       first_name: response.data?.first_name,
       last_name:response.data?.last_name,
       name: response.user?.username,
+      type:response.data?.type,
       email: email,
       age: 25,
       gender: 'male',
@@ -159,8 +176,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       interests: [],
       values: [],
     };
-    
-    console.log(user);
+
     setCurrentUser(user);
     setUserLocation(userLocation);
     setIsAuthenticated(true);
@@ -231,42 +247,48 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // For now, return mock users until backend implements user discovery
   // Filter by location if user location is available
-  const getFilteredUsers = (filters?: any) => {
-    let users = MOCK_USERS.slice(0, 15); // Return first 15 for free users
-    
-    // Filter by location if user has location set
+  const getFilteredUsers = async (filters?: any): Promise<User[]> => {
+  try {
+    const response = await apiClient.get("/users/by/admin");
+    let users: User[] = response.data;
+
     if (userLocation && userLocation.lat !== 0 && userLocation.lng !== 0) {
-      // Calculate distance and filter users within the same zone (approximately 50km radius)
       const getDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
-        const R = 6371; // Earth's radius in km
+        const R = 6371;
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLng = (lng2 - lng1) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                  Math.sin(dLng/2) * Math.sin(dLng/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c;
+        const a =
+          Math.sin(dLat / 2) ** 2 +
+          Math.cos(lat1 * Math.PI / 180) *
+            Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng / 2) ** 2;
+
+        return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       };
 
-      // Filter users within 50km radius (same zone)
-      users = users.filter(user => {
+      users = users.filter((user) => {
+        if (!user.location) return false;
+
         const distance = getDistance(
           userLocation.lat,
           userLocation.lng,
           user.location.lat,
           user.location.lng
         );
-        return distance <= 50; // Within 50km
+
+        return distance <= 50;
       });
 
-      // If no users in the same zone, fall back to all users
       if (users.length === 0) {
-        users = MOCK_USERS.slice(0, 15);
+        users = response.data.slice(0, 15);
       }
     }
-    
+
     return users;
-  };
+  } catch (error) {
+    return [];
+  }
+};
 
   // Helper function to find closest city from coordinates
   const findClosestCity = (lat: number, lng: number): Pick<UserLocation, 'city' | 'country'> => {
@@ -341,7 +363,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    console.log('Closest city to', lat, lng, 'is', closestCity.city, closestCity.country, 'distance:', minDistance, 'km');
     
     // If within 2000km, return the country only (not specific city)
     if (minDistance <= 2000) {
@@ -724,17 +745,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return await usersService.getUserById(userId);
     } catch {
       // Fallback to mock data
-      const user = MOCK_USERS.find(u => u.id === userId);
+      const user = users.find(u => u.id === userId);
       if (user) return user;
       throw new Error('User not found');
     }
   };
 
   // Get users for sidebar
-  const users = MOCK_USERS.slice(0, 10);
+  users.slice(0, 10);
 
   // Helper values
-  const isAdmin = currentUser?.email?.includes('admin') || false;
+  const isAdmin = currentUser?.type?.includes("ADMIN".toUpperCase()) || false;
   const accountAgeDays = currentUser ? Math.floor((Date.now() - new Date(currentUser.accountCreatedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
   const canScheduleDates = currentUser?.points !== undefined && currentUser.points > 0;
 

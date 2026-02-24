@@ -27,12 +27,12 @@ export function TierBadge({ tier, size = 'md', showLabel = true }: TierBadgeProp
     <div
       className={`inline-flex items-center rounded-full font-medium ${sizeClasses[size]}`}
       style={{ 
-        backgroundColor: `${tierInfo.color}20`, 
-        color: tierInfo.color 
+        backgroundColor: `${tierInfo?.color}20`, 
+        color: tierInfo?.color 
       }}
-      title={`${tier}: ${tierInfo.min.toLocaleString()} - ${tierInfo.max === Infinity ? '∞' : tierInfo.max.toLocaleString()} points`}
+      title={`${tier}: ${tierInfo?.min.toLocaleString()} - ${tierInfo?.max === Infinity ? '∞' : tierInfo?.max.toLocaleString()} points`}
     >
-      <span className={iconSizes[size]}>{tierInfo.icon}</span>
+      <span className={iconSizes[size]}>{tierInfo?.icon}</span>
       {showLabel && <span>{tier}</span>}
     </div>
   );

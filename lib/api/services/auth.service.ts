@@ -66,9 +66,6 @@ export const authService = {
         type,
       };
       
-      localStorage.setItem('user', JSON.stringify(userInfo));
-      console.log('✅ User info stored');
-      
       return {
         token,
         user: userInfo,

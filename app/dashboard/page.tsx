@@ -11,12 +11,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useApp } from '@/lib/app-context';
 import Link from 'next/link';
+import { User } from '@/lib/types';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { isAuthenticated, currentUser, getFilteredUsers, canMessage, isInTrial, trialDaysRemaining, trialExpired } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
   const [filters, setFilters] = useState({
     ageMin: 18,
     ageMax: 50,
@@ -33,15 +35,25 @@ export default function DashboardPage() {
     return null;
   }
 
-  const users = getFilteredUsers({
-    ageRange: [filters.ageMin, filters.ageMax],
-    tier: filters.tier === 'all' ? undefined : filters.tier,
-  });
 
-  const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.location.country?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+
+useEffect(() => {
+  const loadUsers = async () => {
+    const result = await getFilteredUsers({
+      ageRange: [filters.ageMin, filters.ageMax],
+      tier: filters.tier === 'all' ? undefined : filters.tier,
+    });
+
+    setUsers(result);
+  };
+
+  loadUsers();
+}, [filters]);
+
+ const filteredUsers = (users || []).filter((user: User) =>
+  user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  user.location?.country?.toLowerCase().includes(searchQuery.toLowerCase())
+);
 
   const isFreeUser = currentUser.points === 0;
 

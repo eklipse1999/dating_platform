@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useApp } from "@/lib/app-context";
-import type { Message } from "@/lib/types";
+import type { Message, User } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -78,11 +78,29 @@ const mockFlaggedMessages: Message[] = [
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { currentUser, users = [], isAdmin } = useApp();
+  const { currentUser,  isAdmin , getFilteredUsers } = useApp();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState("overview");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [flaggedMessages] = useState<Message[]>(mockFlaggedMessages);
+  const [users , setUsers] = useState<User[]>([]);
+
+
+  async function loadUsersForAdmin(){
+    try{
+      const response = await getFilteredUsers();
+      console.log(response)
+      setUsers(response)
+      return response;
+    }catch(err){
+      return [];
+    }
+  }
+
+  useEffect(()=>{
+    loadUsersForAdmin()  
+    console.log(users);
+  },[])
 
   // Check if current user is admin
   if (!currentUser || !isAdmin) {
@@ -108,26 +126,26 @@ export default function AdminDashboard() {
     );
   }
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = users?.filter(
+    (user: User) =>
+      user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user?.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const stats = {
-    totalUsers: users.length,
-    verifiedUsers: users.filter((u) => u.isVerified).length,
-    diamondUsers: users.filter((u) => u.tier === "Diamond").length,
+    totalUsers: users?.length,
+    verifiedUsers: users?.filter((u: User) => u.isVerified).length,
+    diamondUsers: users?.filter((u: User) => u.tier === "Diamond").length,
     flaggedMessages: flaggedMessages.length,
-    revenue: users.reduce((acc, u) => {
+    revenue: users?.reduce((acc: number, u: User) => {
       if (u.tier === "Diamond") return acc + 49.99;
       if (u.tier === "Platinum") return acc + 29.99;
       if (u.tier === "Gold") return acc + 19.99;
       if (u.tier === "Silver") return acc + 9.99;
       return acc;
     }, 0),
-    matches: Math.floor(users.length * 2.5),
-    messages: Math.floor(users.length * 15)
+    matches: Math.floor(users?.length ?? 0 * 2.5),
+    messages: Math.floor(users?.length ?? 0 * 15)
   };
 
   const handleRefresh = () => {
@@ -193,7 +211,7 @@ export default function AdminDashboard() {
             { label: "Verified Users", value: stats.verifiedUsers, icon: Activity, color: "text-green-500" },
             { label: "Diamond Users", value: stats.diamondUsers, icon: TrendingUp, color: "text-blue-500" },
             { label: "Flagged Messages", value: stats.flaggedMessages, icon: AlertTriangle, color: "text-secondary" },
-            { label: "Monthly Revenue", value: `$${stats.revenue.toFixed(2)}`, icon: DollarSign, color: "text-green-500" }
+            { label: "Monthly Revenue", value: `$${stats.revenue?.toFixed(2)}`, icon: DollarSign, color: "text-green-500" }
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -321,11 +339,11 @@ export default function AdminDashboard() {
                   <CardContent>
                     <div className="space-y-4">
                       {[
-                        { tier: "Bronze", count: users.filter((u) => u.tier === "Bronze").length, color: "bg-amber-700" },
-                        { tier: "Silver", count: users.filter((u) => u.tier === "Silver").length, color: "bg-gray-400" },
-                        { tier: "Gold", count: users.filter((u) => u.tier === "Gold").length, color: "bg-yellow-500" },
-                        { tier: "Platinum", count: users.filter((u) => u.tier === "Platinum").length, color: "bg-gray-300" },
-                        { tier: "Diamond", count: users.filter((u) => u.tier === "Diamond").length, color: "bg-blue-400" },
+                        { tier: "Bronze", count: users?.filter((u: User) => u.tier === "Bronze").length, color: "bg-amber-700" },
+                        { tier: "Silver", count: users?.filter((u: User) => u.tier === "Silver").length, color: "bg-gray-400" },
+                        { tier: "Gold", count: users?.filter((u: User) => u.tier === "Gold").length, color: "bg-yellow-500" },
+                        { tier: "Platinum", count: users?.filter((u: User) => u.tier === "Platinum").length, color: "bg-gray-300" },
+                        { tier: "Diamond", count: users?.filter((u: User) => u.tier === "Diamond").length, color: "bg-blue-400" },
                       ].map((tier) => (
                         <div key={tier.tier}>
                           <div className="flex justify-between mb-1">
@@ -335,7 +353,7 @@ export default function AdminDashboard() {
                           <div className="w-full bg-muted rounded-full h-2">
                             <div
                               className={`${tier.color} h-2 rounded-full`}
-                              style={{ width: `${users.length > 0 ? (tier.count / users.length) * 100 : 0}%` }}
+                              style={{ width: `${users?.length ?? 0 > 0 ? (tier?.count ?? 0 / users?.length ?? undefined) ?? 0 * 100 : 0}%` }}
                             />
                           </div>
                         </div>
@@ -379,13 +397,13 @@ export default function AdminDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredUsers.map((user) => (
+                    {filteredUsers?.map((user: User) => (
                       <TableRow key={user.id} className="hover:bg-muted/50">
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                               <span className="text-primary font-semibold">
-                                {user.name.charAt(0)}
+                                {user?.user_name}
                               </span>
                             </div>
                             <div>
@@ -465,7 +483,7 @@ export default function AdminDashboard() {
                     <div className="flex gap-2">
                       <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600">
                         <Clock className="w-3 h-3 mr-1" />
-                        {users.filter(u => u.idVerification?.status === 'submitted').length} Pending
+                        {users?.filter(u => u.idVerification?.status === 'submitted').length} Pending
                       </Badge>
                     </div>
                   </div>
@@ -482,7 +500,7 @@ export default function AdminDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {users.filter(u => u.idVerification?.status === 'submitted' || u.idVerification?.status === 'pending').slice(0, 10).map((user) => (
+                      {users?.filter(u => u.idVerification?.status === 'submitted' || u.idVerification?.status === 'pending').slice(0, 10).map((user) => (
                         <TableRow key={user.id} className="hover:bg-muted/50">
                           <TableCell>
                             <div className="flex items-center gap-3">
@@ -566,10 +584,10 @@ export default function AdminDashboard() {
                 <CardContent>
                   <div className="space-y-4">
                     {[
-                      { label: 'Verified Users', count: users.filter(u => u.idVerification?.status === 'verified').length, color: 'bg-green-500', icon: CheckCircle },
-                      { label: 'Pending Review', count: users.filter(u => u.idVerification?.status === 'submitted').length, color: 'bg-yellow-500', icon: Clock },
-                      { label: 'Not Submitted', count: users.filter(u => u.idVerification?.status === 'pending').length, color: 'bg-gray-400', icon: AlertTriangle },
-                      { label: 'Rejected', count: users.filter(u => u.idVerification?.status === 'rejected').length, color: 'bg-red-500', icon: XCircle },
+                      { label: 'Verified Users', count: users?.filter(u => u.idVerification?.status === 'verified').length, color: 'bg-green-500', icon: CheckCircle },
+                      { label: 'Pending Review', count: users?.filter(u => u.idVerification?.status === 'submitted').length, color: 'bg-yellow-500', icon: Clock },
+                      { label: 'Not Submitted', count: users?.filter(u => u.idVerification?.status === 'pending').length, color: 'bg-gray-400', icon: AlertTriangle },
+                      { label: 'Rejected', count: users?.filter(u => u.idVerification?.status === 'rejected').length, color: 'bg-red-500', icon: XCircle },
                     ].map((stat) => (
                       <div key={stat.label}>
                         <div className="flex justify-between mb-1">
@@ -582,7 +600,7 @@ export default function AdminDashboard() {
                         <div className="w-full bg-muted rounded-full h-2">
                           <div
                             className={`${stat.color} h-2 rounded-full`}
-                            style={{ width: `${users.length > 0 ? (stat.count / users.length) * 100 : 0}%` }}
+                            style={{ width: `${users?.length || 0 > 0 ? (stat.count || 0 / users?.length || 0) * 100 : 0}%` }}
                           />
                         </div>
                       </div>
@@ -603,19 +621,19 @@ export default function AdminDashboard() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <span className="text-sm">Email Verified</span>
-                      <span className="font-medium">{users.filter(u => u.securityVerification?.emailVerified).length} / {users.length}</span>
+                      <span className="font-medium">{users?.filter(u => u.securityVerification?.emailVerified).length} / {users?.length}</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <span className="text-sm">Phone Verified</span>
-                      <span className="font-medium">{users.filter(u => u.securityVerification?.phoneVerified).length} / {users.length}</span>
+                      <span className="font-medium">{users?.filter(u => u.securityVerification?.phoneVerified).length} / {users?.length}</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <span className="text-sm">2FA Enabled</span>
-                      <span className="font-medium">{users.filter(u => u.securityVerification?.twoFactorEnabled).length} / {users.length}</span>
+                      <span className="font-medium">{users?.filter(u => u.securityVerification?.twoFactorEnabled).length} / {users?.length}</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <span className="text-sm">Security Questions Set</span>
-                      <span className="font-medium">{users.filter(u => u.securityVerification?.securityQuestionsSet).length} / {users.length}</span>
+                      <span className="font-medium">{users?.filter(u => u.securityVerification?.securityQuestionsSet).length} / {users?.length}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -754,8 +772,8 @@ export default function AdminDashboard() {
                     </TableHeader>
                     <TableBody>
                       {flaggedMessages.map((msg) => {
-                        const sender = users.find((u) => u.id === msg.senderId);
-                        const recipient = users.find((u) => u.id === msg.receiverId);
+                        const sender = users?.find((u) => u.id === msg.senderId);
+                        const recipient = users?.find((u) => u.id === msg.receiverId);
                         return (
                           <TableRow key={msg.id}>
                             <TableCell>

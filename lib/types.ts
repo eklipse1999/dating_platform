@@ -42,7 +42,9 @@ export interface User {
   id: string;
   first_name: string;
   last_name: string;
+  user_name?:string;
   name:string;
+  type?: "USER" | "ADMIN";
   email: string;
   age: number;
   gender: 'male' | 'female';
