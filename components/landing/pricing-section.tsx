@@ -5,8 +5,6 @@ import { motion } from 'framer-motion';
 import { Check, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { POINTS_PACKAGES } from '@/lib/types';
-import { useEffect, useState } from 'react';
-import apiClient from '@/lib/api/client';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -27,20 +25,6 @@ const itemVariants = {
   },
 };
 
-
-type Plan = {
-  ID: string;
-  Name: string;
-  Price: number;
-  Currency: string;
-  Points: number;
-  CanMessage: boolean;
-  CanScheduleDate: boolean;
-  DailyMessageLimit: number | null;
-  CreatedAt: string;
-};
-
-
 const benefits = [
   'Send unlimited messages',
   'View full profiles',
@@ -50,21 +34,8 @@ const benefits = [
 ];
 
 export function PricingSection() {
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    apiClient.get('/plans') // replace with your actual API URL
-      .then(res => {
-        setPlans(res.data);
-      })
-      .catch(err => {
-        console.error('Error fetching plans:', err);
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return <div className="text-center py-20">Loading plans...</div>;
+  // Use POINTS_PACKAGES from types.ts
+  const plans = POINTS_PACKAGES;
 
   return (
     <section id="pricing" className="py-20 md:py-32 bg-muted/30">
@@ -93,11 +64,11 @@ export function PricingSection() {
           viewport={{ once: true }}
           className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4"
         >
-          {plans.map((pkg, idx) => {
-            const isBestValue = idx === 1; // just example, mark "Popular" as best value
+          {plans.map((pkg) => {
+            const isBestValue = pkg.isBestValue === true;
             return (
               <motion.div
-                key={pkg.ID}
+                key={pkg.id}
                 variants={itemVariants}
                 className={`relative p-6 rounded-2xl border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
                   isBestValue
@@ -114,10 +85,10 @@ export function PricingSection() {
 
                 <div className="text-center mb-6">
                   <h3 className={`text-lg font-semibold mb-2 ${isBestValue ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
-                    {pkg.Name}
+                    {pkg.name}
                   </h3>
                   <div className={`text-3xl font-bold ${isBestValue ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
-                    {pkg.Points.toLocaleString()}
+                    {pkg.points.toLocaleString()}
                   </div>
                   <div className={`text-sm ${isBestValue ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                     points
@@ -126,10 +97,10 @@ export function PricingSection() {
 
                 <div className={`text-center mb-6 pb-6 border-b ${isBestValue ? 'border-primary-foreground/20' : 'border-border'}`}>
                   <div className={`text-2xl font-bold ${isBestValue ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
-                    ${pkg.Price}
+                    ${pkg.price.toFixed(2)}
                   </div>
                   <div className={`text-xs ${isBestValue ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                    ${(pkg.Price / pkg.Points * 100).toFixed(2)} per 100 pts
+                    ${(pkg.price / pkg.points * 100).toFixed(2)} per 100 pts
                   </div>
                 </div>
 

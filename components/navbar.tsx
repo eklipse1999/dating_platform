@@ -51,6 +51,11 @@ export function Navbar() {
             <Link href="/#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
               Pricing
             </Link>
+            {isAuthenticated && (
+              <Link href="/profiles" className="text-muted-foreground hover:text-foreground transition-colors">
+                Browse Profiles
+              </Link>
+            )}
           </div>
 
           {/* Desktop CTA */}
@@ -129,6 +134,15 @@ export function Navbar() {
               >
                 Pricing
               </Link>
+              {isAuthenticated && (
+                <Link
+                  href="/profiles"
+                  className="block py-2 text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Browse Profiles
+                </Link>
+              )}
               <div className="pt-4 space-y-2">
                 {isAuthenticated ? (
                   <>

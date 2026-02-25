@@ -133,19 +133,19 @@ export default function AdminDashboard() {
   );
 
   const stats = {
-    totalUsers: users?.length,
-    verifiedUsers: users?.filter((u: User) => u.isVerified).length,
-    diamondUsers: users?.filter((u: User) => u.tier === "Diamond").length,
+    totalUsers: users.length,
+    verifiedUsers: users.filter((u: User) => u.isVerified).length,
+    diamondUsers: users.filter((u: User) => u.tier === "Diamond").length,
     flaggedMessages: flaggedMessages.length,
-    revenue: users?.reduce((acc: number, u: User) => {
+    revenue: users.reduce((acc: number, u: User) => {
       if (u.tier === "Diamond") return acc + 49.99;
       if (u.tier === "Platinum") return acc + 29.99;
       if (u.tier === "Gold") return acc + 19.99;
       if (u.tier === "Silver") return acc + 9.99;
       return acc;
     }, 0),
-    matches: Math.floor(users?.length ?? 0 * 2.5),
-    messages: Math.floor(users?.length ?? 0 * 15)
+    matches: Math.floor((users.length ?? 0) * 2.5),
+    messages: Math.floor((users.length ?? 0) * 15)
   };
 
   const handleRefresh = () => {
@@ -352,9 +352,9 @@ export default function AdminDashboard() {
                           </div>
                           <div className="w-full bg-muted rounded-full h-2">
                             <div
-                              className={`${tier.color} h-2 rounded-full`}
-                              style={{ width: `${users?.length ?? 0 > 0 ? (tier?.count ?? 0 / users?.length ?? undefined) ?? 0 * 100 : 0}%` }}
-                            />
+                                className={`${tier.color} h-2 rounded-full`}
+                                style={{ width: `${users.length > 0 ? ((tier?.count ?? 0) / users.length) * 100 : 0}%` }}
+                              />
                           </div>
                         </div>
                       ))}
@@ -599,9 +599,9 @@ export default function AdminDashboard() {
                         </div>
                         <div className="w-full bg-muted rounded-full h-2">
                           <div
-                            className={`${stat.color} h-2 rounded-full`}
-                            style={{ width: `${users?.length || 0 > 0 ? (stat.count || 0 / users?.length || 0) * 100 : 0}%` }}
-                          />
+                              className={`${stat.color} h-2 rounded-full`}
+                              style={{ width: `${users.length > 0 ? ((stat.count || 0) / users.length) * 100 : 0}%` }}
+                            />
                         </div>
                       </div>
                     ))}

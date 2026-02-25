@@ -17,24 +17,47 @@ export default function MatchesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [activeTab, setActiveTab] = useState<'new' | 'online' | 'popular'>('new');
+  const [users, setUsers] = useState<any[]>([]);
 
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/login');
+    } else {
+      getFilteredUsers({
+        ageRange: [18, 50],
+        tier: undefined,
+      }).then(setUsers);
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, getFilteredUsers]);
 
   if (!isAuthenticated || !currentUser) {
     return null;
   }
 
-  const users = getFilteredUsers({
-    ageRange: [18, 50],
-    tier: undefined,
-  });
-
   // Simulate matches - users with following status
-  const matches = users.slice(0, 12).map(user => ({
+  interface Match {
+    id: string;
+    name: string;
+    age: number;
+    avatar: string;
+    bio?: string;
+    location: {
+      city?: string;
+      country?: string;
+    };
+    tier: string;
+    isFollowing: boolean;
+    isOnline: boolean;
+    matchedAt: Date;
+  }
+
+  interface UserWithMatchStatus extends Match {
+    isFollowing: boolean;
+    isOnline: boolean;
+    matchedAt: Date;
+  }
+
+  const matches: UserWithMatchStatus[] = users.slice(0, 12).map(user => ({
     ...user,
     isFollowing: true,
     isOnline: Math.random() > 0.5,
