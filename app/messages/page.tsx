@@ -67,6 +67,13 @@ function MessagesContent() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageInputRef = useRef<HTMLDivElement>(null);
 
+  // Redirect admins to admin dashboard
+  useEffect(() => {
+    if (isAdmin) {
+      router.push('/admin');
+    }
+  }, [isAdmin, router]);
+
   // Close emoji picker and media options when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

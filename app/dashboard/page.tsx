@@ -15,7 +15,7 @@ import { User } from '@/lib/types';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { isAuthenticated, currentUser, getFilteredUsers, canMessage, isInTrial, trialDaysRemaining, trialExpired } = useApp();
+  const { isAuthenticated, currentUser, getFilteredUsers, canMessage, isInTrial, trialDaysRemaining, trialExpired, isAdmin } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
@@ -24,6 +24,13 @@ export default function DashboardPage() {
     ageMax: 50,
     tier: 'all',
   });
+
+  // Redirect admins to admin dashboard
+  useEffect(() => {
+    if (isAdmin) {
+      router.push('/admin');
+    }
+  }, [isAdmin, router]);
 
   useEffect(() => {
     if (!isAuthenticated) {

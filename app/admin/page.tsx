@@ -85,6 +85,14 @@ export default function AdminDashboard() {
   const [flaggedMessages] = useState<Message[]>(mockFlaggedMessages);
   const [users , setUsers] = useState<User[]>([]);
 
+  // Redirect non-admins to login
+  useEffect(() => {
+    if (currentUser && !isAdmin) {
+      router.push('/login');
+    } else if (!currentUser) {
+      router.push('/login');
+    }
+  }, [currentUser, isAdmin, router]);
 
   async function loadUsersForAdmin(){
     try{
@@ -101,30 +109,6 @@ export default function AdminDashboard() {
     loadUsersForAdmin()  
     console.log(users);
   },[])
-
-  // Check if current user is admin
-  if (!currentUser || !isAdmin) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardContent className="pt-6 text-center">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
-              <Shield className="w-10 h-10 text-destructive" />
-            </div>
-            <h2 className="text-xl font-semibold text-foreground mb-2">
-              Access Denied
-            </h2>
-            <p className="text-muted-foreground mb-4">
-              You do not have permission to access the admin dashboard.
-            </p>
-            <Button onClick={() => router.push("/dashboard")}>
-              Go to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   const filteredUsers = users?.filter(
     (user: User) =>

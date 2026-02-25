@@ -28,9 +28,16 @@ interface SavedItem {
 
 export default function SavedPage() {
   const router = useRouter();
-  const { isAuthenticated, currentUser } = useApp();
+  const { isAuthenticated, currentUser, isAdmin } = useApp();
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | 'profiles' | 'events'>('all');
+
+  // Redirect admins to admin dashboard
+  useEffect(() => {
+    if (isAdmin) {
+      router.push('/admin');
+    }
+  }, [isAdmin, router]);
 
   useEffect(() => {
     if (!isAuthenticated) {

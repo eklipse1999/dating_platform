@@ -13,11 +13,18 @@ import Link from 'next/link';
 
 export default function MatchesPage() {
   const router = useRouter();
-  const { isAuthenticated, currentUser, getFilteredUsers } = useApp();
+  const { isAuthenticated, currentUser, getFilteredUsers, isAdmin } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [activeTab, setActiveTab] = useState<'new' | 'online' | 'popular'>('new');
   const [users, setUsers] = useState<any[]>([]);
+
+  // Redirect admins to admin dashboard
+  useEffect(() => {
+    if (isAdmin) {
+      router.push('/admin');
+    }
+  }, [isAdmin, router]);
 
   useEffect(() => {
     if (!isAuthenticated) {

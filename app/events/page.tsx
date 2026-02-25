@@ -176,13 +176,20 @@ const mockEvents: Event[] = [
 
 export default function EventsPage() {
   const router = useRouter();
-  const { isAuthenticated, currentUser } = useApp();
+  const { isAuthenticated, currentUser, isAdmin } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [savedEvents, setSavedEvents] = useState<string[]>([]);
   const [filterDate, setFilterDate] = useState('all');
   const [filterType, setFilterType] = useState('all');
+
+  // Redirect admins to admin dashboard
+  useEffect(() => {
+    if (isAdmin) {
+      router.push('/admin');
+    }
+  }, [isAdmin, router]);
 
   useEffect(() => {
     if (!isAuthenticated) {

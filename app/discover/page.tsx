@@ -45,7 +45,7 @@ const interests = [
 
 export default function DiscoverPage() {
   const router = useRouter();
-  const { isAuthenticated, currentUser } = useApp();
+  const { isAuthenticated, currentUser, isAdmin } = useApp();
   
   // State for users from API
   const [users, setUsers] = useState<User[]>([]);
@@ -62,6 +62,13 @@ export default function DiscoverPage() {
     ageMax: 50,
     tier: 'all',
   });
+
+  // Redirect admins to admin dashboard
+  useEffect(() => {
+    if (isAdmin) {
+      router.push('/admin');
+    }
+  }, [isAdmin, router]);
 
   // Check authentication
   useEffect(() => {

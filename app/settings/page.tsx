@@ -18,9 +18,16 @@ type TabType = 'account' | 'privacy' | 'notifications' | 'payments' | 'safety';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { isAuthenticated, currentUser, logout } = useApp();
+  const { isAuthenticated, currentUser, logout, isAdmin } = useApp();
   const [activeTab, setActiveTab] = useState<TabType>('account');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect admins to admin dashboard
+  useEffect(() => {
+    if (isAdmin) {
+      router.push('/admin');
+    }
+  }, [isAdmin, router]);
 
   // Form states
   const [accountData, setAccountData] = useState({

@@ -18,9 +18,16 @@ import { User, calculateAccountAgeDays } from '@/lib/types';
 export default function ProfileViewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { isAuthenticated, getUserById, toggleFollow, isFollowing, canMessage, currentUser } = useApp();
+  const { isAuthenticated, getUserById, toggleFollow, isFollowing, canMessage, currentUser, isAdmin } = useApp();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Redirect admins to admin dashboard
+  useEffect(() => {
+    if (isAdmin) {
+      router.push('/admin');
+    }
+  }, [isAdmin, router]);
 
   useEffect(() => {
     if (!isAuthenticated) {

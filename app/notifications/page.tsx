@@ -27,10 +27,17 @@ interface Notification {
 
 export default function NotificationsPage() {
   const router = useRouter();
-  const { isAuthenticated, currentUser } = useApp();
+  const { isAuthenticated, currentUser, isAdmin } = useApp();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Redirect admins to admin dashboard
+  useEffect(() => {
+    if (isAdmin) {
+      router.push('/admin');
+    }
+  }, [isAdmin, router]);
 
   useEffect(() => {
     if (!isAuthenticated) {

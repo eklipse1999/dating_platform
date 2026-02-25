@@ -15,10 +15,17 @@ import { POINTS_PACKAGES, getPaymentGateway, PointsPackage } from '@/lib/types';
 
 export default function UpgradePage() {
   const router = useRouter();
-  const { isAuthenticated, currentUser, userLocation, addPoints, isInTrial, trialDaysRemaining } = useApp();
+  const { isAuthenticated, currentUser, userLocation, addPoints, isInTrial, trialDaysRemaining, isAdmin } = useApp();
   const [selectedPackage, setSelectedPackage] = useState<PointsPackage | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+
+  // Redirect admins to admin dashboard
+  useEffect(() => {
+    if (isAdmin) {
+      router.push('/admin');
+    }
+  }, [isAdmin, router]);
 
   const paymentGateway = userLocation?.country 
     ? getPaymentGateway(userLocation.country) 

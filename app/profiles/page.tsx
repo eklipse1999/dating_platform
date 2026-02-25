@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, SlidersHorizontal, Grid3X3, List, X, 
@@ -34,6 +35,7 @@ import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/ui
 import { ProfileCard } from '@/components/dashboard/profile-card';
 import { MOCK_USERS, MOCK_CURRENT_USER } from '@/lib/mock-data';
 import { User, Tier } from '@/lib/types';
+import { useApp } from '@/lib/app-context';
 
 // Filter options
 const AGE_OPTIONS = [
@@ -84,6 +86,9 @@ type FilterState = {
 };
 
 export default function ProfilesPage() {
+  const router = useRouter();
+  const { isAdmin } = useApp();
+  
   // State
   const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -100,6 +105,13 @@ export default function ProfilesPage() {
     showVerified: false,
     showOnline: false,
   });
+
+  // Redirect admins to admin dashboard
+  useEffect(() => {
+    if (isAdmin) {
+      router.push('/admin');
+    }
+  }, [isAdmin, router]);
 
   // Simulate loading
   const handleRefresh = () => {

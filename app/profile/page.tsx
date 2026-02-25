@@ -22,10 +22,17 @@ import { Badge } from '@/components/ui/badge';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { isAuthenticated, currentUser } = useApp();
+  const { isAuthenticated, currentUser, isAdmin } = useApp();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
+  // Redirect admins to admin dashboard
+  useEffect(() => {
+    if (isAdmin) {
+      router.push('/admin');
+    }
+  }, [isAdmin, router]);
   
   // Profile data state
   const [profileData, setProfileData] = useState({
@@ -71,13 +78,18 @@ export default function ProfilePage() {
 
   // Check authentication
   useEffect(() => {
+    if (isAdmin) {
+      router.push('/admin');
+      return;
+    }
+    
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
     
     loadProfileData();
-  }, [isAuthenticated, router]);
+  }, [isAdmin, isAuthenticated, router]);
 
   const loadProfileData = async () => {
     try {
