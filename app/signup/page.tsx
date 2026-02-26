@@ -117,6 +117,7 @@ export default function SignupPage() {
         parseInt(formData.dobDay)
       );
 
+      // Include church information in the signup data
       await signup!({
         name: formData.name,
         email: formData.email,
@@ -124,12 +125,15 @@ export default function SignupPage() {
         phone: formData.phone,
         gender: formData.gender as 'male' | 'female',
         dob,
+        churchName: formData.churchName,
+        churchBranch: formData.churchBranch,
       });
 
       toast.success('Account created successfully!');
-      router.push('/login');
-    } catch {
-      toast.error('Something went wrong. Please try again.');
+      // Redirect to dashboard instead of login since user is already authenticated
+      router.push('/dashboard');
+    } catch (error: any) {
+      toast.error(error.message || 'Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }

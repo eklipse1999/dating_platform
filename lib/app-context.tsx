@@ -191,7 +191,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSavedUsers(new Set());
   };
 
-  const signup = async (data: { name: string; email: string; password: string; phone?: string; gender?: string; dob?: Date }) => {
+  const signup = async (data: { name: string; email: string; password: string; phone?: string; gender?: string; dob?: Date; churchName?: string; churchBranch?: string }) => {
     // Calculate age from date of birth if provided
     let age = 25; // default age
     if (data.dob) {
@@ -205,23 +205,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
     
     const genderValue = (data.gender === 'male' || data.gender === 'female') ? data.gender : 'male';
+    
+    // Prepare church info if provided
+    const churchInfo = data.churchName ? {
+      name: data.churchName,
+      branch: data.churchBranch,
+    } : undefined;
+    
     const response = await authService.register({ 
       name: data.name,
       email: data.email, 
       password: data.password,
       phone: data.phone || '',
       gender: genderValue,
-      age: age
+      age: age,
+      denomination: data.churchName, // Send church name as denomination
     });
     
     // Create user from response
     const user: User = {
-      id: response.user?.id || 'new-user',
+      id: response.user?.id || response.data?.id || 'new-user',
       first_name: data.name.split(' ')[0],
       last_name: data.name.split(' ').slice(1).join(' ') || '',
       name: data.name,
       email: data.email,
-      age: 25,
+      age: age,
       gender: (data.gender as 'male' | 'female') || 'male',
       phone: data.phone || '',
       bio: '',
@@ -239,6 +247,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       photos: [],
       interests: [],
       values: [],
+      church: churchInfo,
     };
     
     setCurrentUser(user);
