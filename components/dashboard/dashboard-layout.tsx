@@ -2,6 +2,7 @@
 
 import { ReactNode, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { LeftSidebar } from './left-sidebar';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Menu, X, Search, User, Settings, LogOut, Crown } from 'lucide-react';
@@ -93,6 +94,7 @@ export function DashboardLayout({ children, showRightSidebar = true, showLeftSid
 
 // User Profile Dropdown Component - Desktop Only
 function UserProfileDropdown() {
+  const router = useRouter();
   const { currentUser, logout, isAdmin } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -194,9 +196,10 @@ function UserProfileDropdown() {
               {/* Bottom Actions */}
               <div className="p-2 border-t border-border">
                 <button
-                  onClick={() => {
-                    logout();
+                  onClick={async () => {
+                    await logout();
                     setIsOpen(false);
+                    router.push('/');
                   }}
                   className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                 >

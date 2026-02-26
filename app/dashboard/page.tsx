@@ -38,24 +38,24 @@ export default function DashboardPage() {
     }
   }, [isAuthenticated, router]);
 
+  useEffect(() => {
+    const loadUsers = async () => {
+      const result = await getFilteredUsers({
+        ageRange: [filters.ageMin, filters.ageMax],
+        tier: filters.tier === 'all' ? undefined : filters.tier,
+      });
+
+      setUsers(result);
+    };
+
+    if (isAuthenticated && currentUser) {
+      loadUsers();
+    }
+  }, [filters, isAuthenticated, currentUser]);
+
   if (!isAuthenticated || !currentUser) {
     return null;
   }
-
-
-
-useEffect(() => {
-  const loadUsers = async () => {
-    const result = await getFilteredUsers({
-      ageRange: [filters.ageMin, filters.ageMax],
-      tier: filters.tier === 'all' ? undefined : filters.tier,
-    });
-
-    setUsers(result);
-  };
-
-  loadUsers();
-}, [filters]);
 
  const filteredUsers = (users || []).filter((user: User) =>
   user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||

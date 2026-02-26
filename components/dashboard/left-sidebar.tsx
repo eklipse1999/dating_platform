@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
   Home, MessageCircle, User, Settings, Heart, 
@@ -45,7 +46,13 @@ const bottomNavItems = [
 
 export function LeftSidebar({ mobileMode = 'desktop', onClose }: LeftSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { currentUser, logout, isAdmin, isInTrial } = useApp();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('./login');
+  };
 
   if (!currentUser) return null;
 
@@ -158,7 +165,7 @@ export function LeftSidebar({ mobileMode = 'desktop', onClose }: LeftSidebarProp
             </Link>
           )}
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="flex items-center gap-3 w-full px-4 py-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors"
           >
             <LogOut className="w-5 h-5" />
@@ -328,7 +335,7 @@ export function LeftSidebar({ mobileMode = 'desktop', onClose }: LeftSidebarProp
           </Link>
         )}
         <button
-          onClick={logout}
+          onClick={handleLogout}
           className="flex items-center gap-3 w-full px-4 py-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors"
         >
           <LogOut className="w-5 h-5" />

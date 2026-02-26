@@ -8,10 +8,17 @@ import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/lib/app-context';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { useRouter } from 'next/navigation';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
   const { isAuthenticated, logout } = useApp();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/');
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
@@ -68,7 +75,7 @@ export function Navbar() {
                     Dashboard
                   </Button>
                 </Link>
-                <Button variant="outline" onClick={logout}>
+                <Button variant="outline" onClick={handleLogout}>
                   Log Out
                 </Button>
               </>
@@ -151,7 +158,7 @@ export function Navbar() {
                         Dashboard
                       </Button>
                     </Link>
-                    <Button variant="ghost" className="w-full" onClick={() => { logout(); setIsOpen(false); }}>
+                    <Button variant="ghost" className="w-full" onClick={() => { handleLogout(); setIsOpen(false); }}>
                       Log Out
                     </Button>
                   </>

@@ -21,7 +21,7 @@ interface AppContextType {
   isInTrial: boolean;
   trialDaysRemaining: number;
   trialExpired: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ type: string }>;
   logout: () => Promise<void>;
   signup?: (data: any) => Promise<void>;
   getUserById?: (userId: string) => Promise<User>;
@@ -119,6 +119,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setLocationPermissionStatus('granted');
         }
         setIsAuthenticated(true);
+
+        if (storedUser.type === 'ADMIN') {
+          router.push('/admin');
+        }
       }
       
       setIsLoading(false);
@@ -127,10 +131,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<{ type: string }> => {
     const response = await authService.login({ email, password });
     if(response.data.type == "ADMIN"){
-      router.push("/admin")
+      setIsAuthenticated(true);
+      router.push("/admin");
+      return { type: 'ADMIN' };
     }
     // Fetch user profile from backend to get actual location and other data
     let userLocation: UserLocation = {
@@ -180,6 +186,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setCurrentUser(user);
     setUserLocation(userLocation);
     setIsAuthenticated(true);
+    return { type: user.type || 'USER' };
   };
 
   const logout = async () => {

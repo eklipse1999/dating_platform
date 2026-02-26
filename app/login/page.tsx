@@ -67,11 +67,13 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   try {
     // Use the login function from app context to set user state
-    await login(formData.email, formData.password);
+    const result = await login(formData.email, formData.password);
     toast.success('Login successful!');
-    // Show location permission modal before redirecting to dashboard
-    setShowLocationModal(true);
-    console.log('🔄 Requesting location before dashboard...');
+    // Skip location modal for admins — they're redirected directly
+    if (result.type !== 'ADMIN') {
+      setShowLocationModal(true);
+      console.log('🔄 Requesting location before dashboard...');
+    }
   } catch (error: any) {
     toast.error(error.message || 'Login failed');
   } finally {
@@ -227,3 +229,4 @@ const handleSubmit = async (e: React.FormEvent) => {
     </>
   );
 }
+
