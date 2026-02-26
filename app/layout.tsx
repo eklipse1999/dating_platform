@@ -14,7 +14,11 @@ export const metadata: Metadata = {
   title: 'Committed - Faith-Based Dating',
   description: 'Where Christian singles connect with purpose. Find love built on faith.',
   keywords: ['Christian dating', 'faith-based dating', 'Christian singles', 'meaningful relationships'],
-    generator: 'eklipse'
+  generator: 'eklipse',
+  icons: {
+    icon: '/fav.ico',
+    apple: '/fav.ico',
+  },
 }
 
 export const viewport: Viewport = {

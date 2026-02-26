@@ -6,6 +6,7 @@ export const API_CONFIG = {
       LOGIN: '/users/login',
       REGISTER: '/users/register',
       LOGOUT: '/users/logout',
+      REFRESH: '/auth/refresh',
     },
     
     // User Profile & Data
