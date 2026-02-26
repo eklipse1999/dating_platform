@@ -17,27 +17,17 @@ export interface DiscoverFilters {
 }
 
 export interface UpdateProfileData {
-  name?: string;
+  age?: number;
   bio?: string;
   career?: string;
-  age?: number;
-  phone?: string;
-  location?: {
-    city: string;
-    country: string;
-    lat?: number;
-    lng?: number;
-  };
+  church_branch?: string;
+  church_name?: string;
   denomination?: string;
+  gender?: string;
   interests?: string[];
-  faithJourney?: string;
-  values?: string[];
-  church?: {
-    name: string;
-    branch?: string;
-    city?: string;
-    country?: string;
-  };
+  key?: string;
+  looking_for?: string;
+  profile_image?: string;
 }
 
 export const usersService = {

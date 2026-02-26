@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Camera, Edit, Save, X, MapPin, Briefcase, Heart, 
+  Camera, Edit, Save, X, MapPin, 
   Church, BookOpen, Award, Shield, Loader2, Upload,
   CheckCircle, XCircle, Clock, AlertCircle, Key, Lock,
-  Smartphone, Mail, RefreshCw
+  Smartphone, Mail, RefreshCw, User
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Button } from '@/components/ui/button';
@@ -25,15 +25,14 @@ export default function ProfilePage() {
   const { isAuthenticated, currentUser, isAdmin } = useApp();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
-  // Redirect admins to admin dashboard
+  // Redirect admins
   useEffect(() => {
-    if (isAdmin) {
-      router.push('/admin');
-    }
+    if (isAdmin) router.push('/admin');
   }, [isAdmin, router]);
-  
+
   // Profile data state
   const [profileData, setProfileData] = useState({
     first_name: '',
@@ -46,6 +45,7 @@ export default function ProfilePage() {
     bio: '',
     career: '',
     denomination: '',
+    city: '',
     country: '',
     interests: [] as string[],
     values: [] as string[],
@@ -54,9 +54,10 @@ export default function ProfilePage() {
     churchBranch: '',
   });
 
-  // Photo upload state
+  // Photo state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [existingPhotoUrl, setExistingPhotoUrl] = useState<string>('');
 
   // ID Verification state
   const [idVerification, setIdVerification] = useState({
@@ -76,29 +77,18 @@ export default function ProfilePage() {
     lastPasswordChange: null as Date | null,
   });
 
-  // Check authentication
+  // Auth + load
   useEffect(() => {
-    if (isAdmin) {
-      router.push('/admin');
-      return;
-    }
-    
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-    
+    if (isAdmin) { router.push('/admin'); return; }
+    if (!isAuthenticated) { router.push('/login'); return; }
     loadProfileData();
   }, [isAdmin, isAuthenticated, router]);
 
   const loadProfileData = async () => {
     try {
       setIsLoadingProfile(true);
-      
-      // Try to fetch full profile from backend
       const userProfile = await usersService.getCurrentUser();
-      
-      // Update profile data with backend data
+
       setProfileData({
         first_name: userProfile.first_name || currentUser?.first_name || '',
         last_name: userProfile.last_name || currentUser?.last_name || '',
@@ -110,6 +100,7 @@ export default function ProfilePage() {
         bio: userProfile.bio || currentUser?.bio || '',
         career: userProfile.career || currentUser?.career || '',
         denomination: userProfile.denomination || currentUser?.denomination || '',
+        city: userProfile.location?.city || currentUser?.location?.city || '',
         country: userProfile.location?.country || currentUser?.location?.country || '',
         interests: userProfile.interests || currentUser?.interests || [],
         values: userProfile.values || currentUser?.values || [],
@@ -118,7 +109,10 @@ export default function ProfilePage() {
         churchBranch: userProfile.church?.branch || '',
       });
 
-      // Load ID verification status
+      // Capture existing photo URL from backend
+      const photo = (userProfile as any).profile_image || (userProfile as any).profileImage || (userProfile as any).avatar_url || '';
+      if (photo && !photo.startsWith('👤')) setExistingPhotoUrl(photo);
+
       if (userProfile.idVerification) {
         setIdVerification({
           status: userProfile.idVerification.status || 'pending',
@@ -129,7 +123,6 @@ export default function ProfilePage() {
         });
       }
 
-      // Load security verification
       if (userProfile.securityVerification) {
         setSecuritySettings({
           emailVerified: userProfile.securityVerification.emailVerified || false,
@@ -138,12 +131,9 @@ export default function ProfilePage() {
           lastPasswordChange: userProfile.securityVerification.lastPasswordChange || null,
         });
       }
-      
     } catch (error) {
       console.error('Failed to load profile:', error);
-      toast.error('Using cached profile data. Some features may not work until backend CORS is fixed.');
-      
-      // Fallback to current user data
+      // Silent fallback — use cached context data, no annoying CORS toast
       if (currentUser) {
         setProfileData({
           first_name: currentUser.first_name || '',
@@ -156,6 +146,7 @@ export default function ProfilePage() {
           bio: currentUser.bio || '',
           career: currentUser.career || '',
           denomination: currentUser.denomination || '',
+          city: currentUser.location?.city || '',
           country: currentUser.location?.country || '',
           interests: currentUser.interests || [],
           values: currentUser.values || [],
@@ -173,16 +164,19 @@ export default function ProfilePage() {
     setProfileData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Show preview immediately on file select
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be under 5MB');
+      return;
     }
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setPreviewUrl(reader.result as string);
+    reader.readAsDataURL(file);
+    toast.info('Photo selected — will upload when you save');
   };
 
   const handleIdDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -194,83 +188,82 @@ export default function ProfilePage() {
   };
 
   const handleSubmitIdVerification = async () => {
-    if (!idDocument) {
-      toast.error('Please select a document first');
-      return;
-    }
-
-    try {
-      toast.info('ID verification feature will be available once backend CORS is fixed');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to submit document');
-    }
+    if (!idDocument) { toast.error('Please select a document first'); return; }
+    if (!idVerification.documentType) { toast.error('Please select a document type'); return; }
+    toast.info('ID verification submission is coming soon.');
   };
 
   const handleSave = async () => {
     setIsSaving(true);
-
     try {
-      console.log('💾 Attempting to save profile...');
-      console.log('Data to save:', profileData);
+      let newPhotoUrl = existingPhotoUrl;
 
-      // Show CORS warning
-      toast.info('Note: Backend CORS needs to be configured to allow requests from localhost:3000');
+      // 1. Upload photo first if one was selected
+      if (selectedFile) {
+        setIsUploadingPhoto(true);
+        try {
+          const uploadedUrl = await usersService.uploadPhoto(selectedFile);
+          if (uploadedUrl) {
+            newPhotoUrl = uploadedUrl;
+            setExistingPhotoUrl(uploadedUrl);
+            setPreviewUrl('');
+            setSelectedFile(null);
+            toast.success('Photo uploaded!');
+          }
+        } catch (photoError: any) {
+          toast.error(photoError.message || 'Photo upload failed — profile info will still save');
+        } finally {
+          setIsUploadingPhoto(false);
+        }
+      }
 
-      // Prepare update data - match exact backend format
-  const updateData = {
-      age: profileData.age || 25,
-      bio: profileData.bio || "",
-      career: profileData.career || "",
-      church_branch: profileData.churchBranch || "",
-      church_name: profileData.churchName || "",
-      denomination: profileData.denomination || "",
-      gender: profileData.gender || "male",
-      interests: profileData.interests || [],
-      key: "",
-      looking_for: "",
-      profile_image: ""
-    };
+      // 2. Send flat snake_case payload — exactly what the backend /update/user expects
+      const updateData = {
+        age: profileData.age,
+        bio: profileData.bio,
+        career: profileData.career,
+        church_branch: profileData.churchBranch,
+        church_name: profileData.churchName,
+        denomination: profileData.denomination,
+        gender: profileData.gender,
+        interests: profileData.interests,
+        key: '',
+        looking_for: '',
+        profile_image: newPhotoUrl || '',
+      };
 
-      console.log('Sending update:', updateData);
-
-      // Try to update profile
       await usersService.updateProfile(updateData);
-      
       toast.success('Profile updated successfully!');
       setIsEditing(false);
-      
-      // Reload profile data
       await loadProfileData();
-      
     } catch (error: any) {
-      console.error('❌ Save error:', error);
-      
-      if (error.message?.includes('CORS') || error.message?.includes('Network Error')) {
-        toast.error('CORS Error: Ask your backend developer to add "http://localhost:3000" to allowed origins');
-      } else {
-        toast.error(error.message || 'Failed to update profile');
-      }
+      const msg = error.response?.data?.message || error.message || 'Failed to update profile';
+      toast.error(msg);
     } finally {
       setIsSaving(false);
     }
   };
 
+  const handleCancel = () => {
+    setIsEditing(false);
+    setSelectedFile(null);
+    setPreviewUrl('');
+    loadProfileData();
+  };
+
   const getVerificationStatusBadge = (status: string) => {
     switch (status) {
-      case 'verified':
-        return <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Verified</Badge>;
-      case 'submitted':
-        return <Badge className="bg-blue-500"><Clock className="w-3 h-3 mr-1" />Under Review</Badge>;
-      case 'rejected':
-        return <Badge className="bg-red-500"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
-      default:
-        return <Badge variant="outline"><AlertCircle className="w-3 h-3 mr-1" />Pending</Badge>;
+      case 'verified':  return <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Verified</Badge>;
+      case 'submitted': return <Badge className="bg-blue-500"><Clock className="w-3 h-3 mr-1" />Under Review</Badge>;
+      case 'rejected':  return <Badge className="bg-red-500"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
+      default:          return <Badge variant="outline"><AlertCircle className="w-3 h-3 mr-1" />Pending</Badge>;
     }
   };
 
-  if (!isAuthenticated || !currentUser) {
-    return null;
-  }
+  // What to actually display as the avatar
+  const displayImage = previewUrl || existingPhotoUrl;
+
+  if (!isAuthenticated || !currentUser) return null;
 
   if (isLoadingProfile) {
     return (
@@ -300,18 +293,15 @@ export default function ProfilePage() {
             </Button>
           ) : (
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => {
-                setIsEditing(false);
-                loadProfileData();
-              }}>
+              <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
                 <X className="w-4 h-4 mr-2" />
                 Cancel
               </Button>
-              <Button onClick={handleSave} disabled={isSaving}>
+              <Button onClick={handleSave} disabled={isSaving || isUploadingPhoto}>
                 {isSaving ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
+                    {isUploadingPhoto ? 'Uploading photo...' : 'Saving...'}
                   </>
                 ) : (
                   <>
@@ -333,26 +323,44 @@ export default function ProfilePage() {
           <h2 className="text-xl font-semibold text-muted-foreground mb-4">Profile Picture</h2>
           
           <div className="flex items-center gap-6">
-            <div className="relative">
-              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-6xl">
-                {previewUrl ? (
-                  <img src={previewUrl} alt="Preview" className="w-32 h-32 rounded-full object-cover" />
+            {/* Avatar with hover overlay in edit mode */}
+            <div className="relative group flex-shrink-0">
+              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-6xl overflow-hidden border-4 border-border">
+                {displayImage ? (
+                  <img src={displayImage} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
-                  currentUser.avatar || '👤'
+                  <span>{currentUser.avatar || '👤'}</span>
                 )}
               </div>
-              
+
+              {/* Hover overlay */}
               {isEditing && (
-                <label className="absolute bottom-0 right-0 w-10 h-10 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors">
-                  <Camera className="w-5 h-5 text-primary-foreground" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoSelect}
-                    className="hidden"
-                  />
+                <label
+                  htmlFor="photo-upload"
+                  className="absolute inset-0 rounded-full bg-black/50 flex flex-col items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                >
+                  <Camera className="w-6 h-6 text-white mb-1" />
+                  <span className="text-white text-xs font-medium">Change</span>
                 </label>
               )}
+
+              {/* Persistent camera badge */}
+              {isEditing && (
+                <label
+                  htmlFor="photo-upload"
+                  className="absolute -bottom-1 -right-1 w-9 h-9 bg-secondary rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-secondary/90 transition-colors border-2 border-background"
+                >
+                  <Camera className="w-4 h-4 text-secondary-foreground" />
+                </label>
+              )}
+
+              <input
+                id="photo-upload"
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoSelect}
+                className="hidden"
+              />
             </div>
             
             <div>
@@ -360,15 +368,31 @@ export default function ProfilePage() {
                 {profileData.first_name} {profileData.last_name}
               </h3>
               <p className="text-muted-foreground">@{profileData.username}</p>
-              {(profileData.country || currentUser?.location?.country) && (
+              {(profileData.city || profileData.country) && (
                 <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                   <MapPin className="w-3 h-3" />
-                  {profileData.country || currentUser?.location?.country}
+                  {[profileData.city, profileData.country].filter(Boolean).join(', ')}
                 </p>
               )}
               <div className="mt-2">
                 <TierBadge tier={currentUser.tier} />
               </div>
+
+              {/* Photo hint */}
+              <AnimatePresence>
+                {isEditing && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="text-xs text-muted-foreground mt-2"
+                  >
+                    {selectedFile
+                      ? `✓ "${selectedFile.name}" ready — saves with profile`
+                      : 'Hover avatar or click camera to change photo (max 5MB)'}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </motion.div>
@@ -388,80 +412,43 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>First Name</Label>
-              <Input
-                value={profileData.first_name}
-                onChange={(e) => handleInputChange('first_name', e.target.value)}
-                disabled={!isEditing}
-              />
+              <Input value={profileData.first_name} onChange={(e) => handleInputChange('first_name', e.target.value)} disabled={!isEditing} />
             </div>
-
             <div>
               <Label>Last Name</Label>
-              <Input
-                value={profileData.last_name}
-                onChange={(e) => handleInputChange('last_name', e.target.value)}
-                disabled={!isEditing}
-              />
+              <Input value={profileData.last_name} onChange={(e) => handleInputChange('last_name', e.target.value)} disabled={!isEditing} />
             </div>
-
             <div>
               <Label>Username</Label>
-              <Input
-                value={profileData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
-                disabled={!isEditing}
-              />
+              <Input value={profileData.username} onChange={(e) => handleInputChange('username', e.target.value)} disabled={!isEditing} />
             </div>
-
             <div>
-              <Label>Email</Label>
-              <Input
-                value={profileData.email}
-                disabled
-                className="bg-muted"
-              />
+              <Label>Email <span className="text-xs text-muted-foreground font-normal">(cannot be changed)</span></Label>
+              <Input value={profileData.email} disabled className="bg-muted" />
             </div>
-
             <div>
               <Label>Age</Label>
-              <Input
-                type="number"
-                value={profileData.age}
-                onChange={(e) => handleInputChange('age', parseInt(e.target.value))}
-                disabled={!isEditing}
-              />
+              <Input type="number" min={18} max={120} value={profileData.age} onChange={(e) => handleInputChange('age', parseInt(e.target.value) || 18)} disabled={!isEditing} />
             </div>
-
             <div>
               <Label>Gender</Label>
               <select
                 value={profileData.gender}
                 onChange={(e) => handleInputChange('gender', e.target.value)}
                 disabled={!isEditing}
-                className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="male">Male</option>
                 <option value="female">Female</option>
               </select>
             </div>
-
             <div>
               <Label>Phone</Label>
-              <Input
-                value={profileData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                disabled={!isEditing}
-              />
+              <Input value={profileData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} disabled={!isEditing} placeholder="+1 234 567 8900" />
             </div>
-
             <div>
               <Label>Career</Label>
-              <Input
-                value={profileData.career}
-                onChange={(e) => handleInputChange('career', e.target.value)}
-                disabled={!isEditing}
-                placeholder="e.g., Software Engineer"
-              />
+              <Input value={profileData.career} onChange={(e) => handleInputChange('career', e.target.value)} disabled={!isEditing} placeholder="e.g., Software Engineer" />
             </div>
           </div>
         </motion.div>
@@ -477,16 +464,14 @@ export default function ProfilePage() {
             <MapPin className="w-5 h-5" />
             Location
           </h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
+              <Label>City</Label>
+              <Input value={profileData.city} onChange={(e) => handleInputChange('city', e.target.value)} disabled={!isEditing} placeholder="e.g., New York" />
+            </div>
+            <div>
               <Label>Country</Label>
-              <Input
-                value={profileData.country}
-                onChange={(e) => handleInputChange('country', e.target.value)}
-                disabled={!isEditing}
-                placeholder="e.g., USA"
-              />
+              <Input value={profileData.country} onChange={(e) => handleInputChange('country', e.target.value)} disabled={!isEditing} placeholder="e.g., USA" />
             </div>
           </div>
         </motion.div>
@@ -502,16 +487,9 @@ export default function ProfilePage() {
             <BookOpen className="w-5 h-5" />
             About Me
           </h2>
-
           <div>
             <Label>Bio</Label>
-            <Textarea
-              value={profileData.bio}
-              onChange={(e) => handleInputChange('bio', e.target.value)}
-              disabled={!isEditing}
-              placeholder="Tell us about yourself..."
-              rows={4}
-            />
+            <Textarea value={profileData.bio} onChange={(e) => handleInputChange('bio', e.target.value)} disabled={!isEditing} placeholder="Tell us about yourself..." rows={4} />
           </div>
         </motion.div>
 
@@ -526,49 +504,24 @@ export default function ProfilePage() {
             <Church className="w-5 h-5" />
             Faith & Church
           </h2>
-
           <div className="space-y-4">
             <div>
               <Label>Denomination</Label>
-              <Input
-                value={profileData.denomination}
-                onChange={(e) => handleInputChange('denomination', e.target.value)}
-                disabled={!isEditing}
-                placeholder="e.g., Baptist, Catholic, Non-denominational"
-              />
+              <Input value={profileData.denomination} onChange={(e) => handleInputChange('denomination', e.target.value)} disabled={!isEditing} placeholder="e.g., Baptist, Catholic, Non-denominational" />
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Church Name</Label>
-                <Input
-                  value={profileData.churchName}
-                  onChange={(e) => handleInputChange('churchName', e.target.value)}
-                  disabled={!isEditing}
-                  placeholder="e.g., Hillsong Church"
-                />
+                <Input value={profileData.churchName} onChange={(e) => handleInputChange('churchName', e.target.value)} disabled={!isEditing} placeholder="e.g., Hillsong Church" />
               </div>
-
               <div>
                 <Label>Church Branch</Label>
-                <Input
-                  value={profileData.churchBranch}
-                  onChange={(e) => handleInputChange('churchBranch', e.target.value)}
-                  disabled={!isEditing}
-                  placeholder="e.g., NYC Campus"
-                />
+                <Input value={profileData.churchBranch} onChange={(e) => handleInputChange('churchBranch', e.target.value)} disabled={!isEditing} placeholder="e.g., NYC Campus" />
               </div>
             </div>
-
             <div>
               <Label>Faith Journey</Label>
-              <Textarea
-                value={profileData.faithJourney}
-                onChange={(e) => handleInputChange('faithJourney', e.target.value)}
-                disabled={!isEditing}
-                placeholder="Share your faith journey..."
-                rows={4}
-              />
+              <Textarea value={profileData.faithJourney} onChange={(e) => handleInputChange('faithJourney', e.target.value)} disabled={!isEditing} placeholder="Share your faith journey..." rows={4} />
             </div>
           </div>
         </motion.div>
@@ -587,12 +540,10 @@ export default function ProfilePage() {
             </h2>
             {getVerificationStatusBadge(idVerification.status)}
           </div>
-
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
               Verify your identity to increase trust and unlock premium features
             </p>
-
             {idVerification.status === 'rejected' && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-sm text-red-800">
@@ -600,7 +551,6 @@ export default function ProfilePage() {
                 </p>
               </div>
             )}
-
             {idVerification.status !== 'verified' && (
               <>
                 <div>
@@ -608,7 +558,7 @@ export default function ProfilePage() {
                   <select
                     value={idVerification.documentType}
                     onChange={(e) => setIdVerification(prev => ({ ...prev, documentType: e.target.value }))}
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background mt-1"
                   >
                     <option value="">Select document type</option>
                     <option value="passport">Passport</option>
@@ -616,41 +566,27 @@ export default function ProfilePage() {
                     <option value="national_id">National ID Card</option>
                   </select>
                 </div>
-
                 <div>
                   <Label>Upload Document</Label>
                   <div className="mt-2">
-                    <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors">
+                    <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-all duration-200">
                       <div className="text-center">
                         <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                         <p className="text-sm text-muted-foreground">
-                          {idDocument ? idDocument.name : 'Click to upload ID document'}
+                          {idDocument ? `✓ ${idDocument.name}` : 'Click to upload ID document'}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          JPG, PNG or PDF (max 10MB)
-                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">JPG, PNG or PDF (max 10MB)</p>
                       </div>
-                      <input
-                        type="file"
-                        accept="image/*,.pdf"
-                        onChange={handleIdDocumentSelect}
-                        className="hidden"
-                      />
+                      <input type="file" accept="image/*,.pdf" onChange={handleIdDocumentSelect} className="hidden" />
                     </label>
                   </div>
                 </div>
-
-                <Button 
-                  onClick={handleSubmitIdVerification}
-                  disabled={!idDocument || !idVerification.documentType}
-                  className="w-full"
-                >
+                <Button onClick={handleSubmitIdVerification} disabled={!idDocument || !idVerification.documentType} className="w-full">
                   <Upload className="w-4 h-4 mr-2" />
                   Submit for Verification
                 </Button>
               </>
             )}
-
             {idVerification.status === 'verified' && (
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center gap-2">
@@ -678,9 +614,7 @@ export default function ProfilePage() {
             <Shield className="w-5 h-5" />
             Security & Verification
           </h2>
-
           <div className="space-y-3">
-            {/* Email Verification */}
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-muted-foreground" />
@@ -695,44 +629,32 @@ export default function ProfilePage() {
                 <Button variant="outline" size="sm">Verify Email</Button>
               )}
             </div>
-
-            {/* Phone Verification */}
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-3">
                 <Smartphone className="w-5 h-5 text-muted-foreground" />
                 <div>
                   <p className="font-medium">Phone Verification</p>
-                  <p className="text-sm text-muted-foreground">
-                    {profileData.phone || 'No phone number added'}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{profileData.phone || 'No phone number added'}</p>
                 </div>
               </div>
               {securitySettings.phoneVerified ? (
                 <CheckCircle className="w-5 h-5 text-green-500" />
               ) : (
-                <Button variant="outline" size="sm" disabled={!profileData.phone}>
-                  Verify Phone
-                </Button>
+                <Button variant="outline" size="sm" disabled={!profileData.phone}>Verify Phone</Button>
               )}
             </div>
-
-            {/* Two-Factor Authentication */}
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-3">
                 <Key className="w-5 h-5 text-muted-foreground" />
                 <div>
                   <p className="font-medium">Two-Factor Authentication</p>
-                  <p className="text-sm text-muted-foreground">
-                    {securitySettings.twoFactorEnabled ? 'Enabled' : 'Disabled'}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{securitySettings.twoFactorEnabled ? 'Enabled' : 'Disabled'}</p>
                 </div>
               </div>
               <Button variant="outline" size="sm">
                 {securitySettings.twoFactorEnabled ? 'Manage' : 'Enable 2FA'}
               </Button>
             </div>
-
-            {/* Password Change */}
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-3">
                 <Lock className="w-5 h-5 text-muted-foreground" />
@@ -752,6 +674,7 @@ export default function ProfilePage() {
             </div>
           </div>
         </motion.div>
+
       </div>
     </DashboardLayout>
   );
