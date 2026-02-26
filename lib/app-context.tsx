@@ -62,14 +62,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const response = await apiClient.get("/users/me")
       return response.data
     }catch(err){
-      console.log(err)
+      // Silently fail — user is simply not logged in
     }
   }
   // Check authentication on mount
   useEffect(() => {
     const checkAuth = async() => {
       const token = authService.getToken();
-      const storedUser = await fetchUserState()
+      // Only call the API if a token exists — avoids a 401 on the homepage for guests
+      const storedUser = token ? await fetchUserState() : null;
 
       // Load location from localStorage if available
       let storedLocation: UserLocation | null = null;
@@ -223,21 +224,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       name: data.name,
       email: data.email, 
       password: data.password,
+      confirmPassword: data.password,
       phone: data.phone || '',
       gender: genderValue,
       age: age,
-      denomination: data.churchName, // Send church name as denomination
+      denomination: data.churchName,
     });
+
+    // Store token so the user is immediately authenticated
+    if (response.token) {
+      localStorage.setItem('auth_token', response.token);
+    }
     
     // Create user from response
     const user: User = {
-      id: response.user?.id || response.data?.id || 'new-user',
-      first_name: data.name.split(' ')[0],
-      last_name: data.name.split(' ').slice(1).join(' ') || '',
-      name: data.name,
+      id: response.user?.id || response.data?.id || '',
+      first_name: response.data?.first_name || data.name.split(' ')[0],
+      last_name: response.data?.last_name || data.name.split(' ').slice(1).join(' ') || '',
+      name: response.data?.user_name || data.name,
+      type: response.data?.type,
       email: data.email,
       age: age,
-      gender: (data.gender as 'male' | 'female') || 'male',
+      gender: genderValue,
       phone: data.phone || '',
       bio: '',
       location: {
@@ -247,7 +255,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         country: 'Unknown',
       },
       points: 50,
-      tier: 'Silver',
+      tier: 'Bronze',
       accountCreatedAt: new Date(),
       isVerified: false,
       avatar: '👤',
@@ -788,6 +796,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     trialExpired,
     login,
     logout,
+    signup,
     getUserById,
     users,
     isAdmin,
