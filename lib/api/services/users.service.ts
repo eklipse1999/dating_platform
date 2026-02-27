@@ -69,7 +69,7 @@ export const usersService = {
   async uploadPhoto(file: File): Promise<string> {
     try {
       const formData = new FormData();
-      formData.append('image', file); // Backend might expect 'image' instead of 'photo'
+      formData.append('file', file); // Backend might expect 'image' instead of 'photo'
       
       const response = await apiClient.post(
         API_CONFIG.ENDPOINTS.PROFILE.UPLOAD_IMAGE,

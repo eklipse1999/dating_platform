@@ -127,7 +127,7 @@ export default function ProfilesPage() {
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       result = result.filter(user =>
-        user.name.toLowerCase().includes(searchLower) ||
+        user?.user_name?.toLowerCase().includes(searchLower) ||
         user.bio?.toLowerCase().includes(searchLower) ||
         user.career?.toLowerCase().includes(searchLower) ||
         user.denomination?.toLowerCase().includes(searchLower) ||
@@ -177,7 +177,7 @@ export default function ProfilesPage() {
         });
         break;
       case 'name':
-        result.sort((a, b) => a.name.localeCompare(b.name));
+        result.sort((a, b) => a?.first_name.localeCompare(b?.first_name));
         break;
       case 'recent':
       default:

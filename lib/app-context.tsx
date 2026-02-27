@@ -60,7 +60,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const fetchUserState = async()=>{
     try{
       const response = await apiClient.get("/users/me")
-      console.log(response.data)
       return response.data
     }catch(err){
       // Silently fail — user is simply not logged in
@@ -73,19 +72,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // Only call the API if a token exists — avoids a 401 on the homepage for guests
       const storedUser = token ? await fetchUserState() : null;
 
-      // Load location from localStorage if available
-      let storedLocation: UserLocation | null = null;
-      if (typeof window !== 'undefined') {
-        const savedLocation = localStorage.getItem('userLocation');
-        if (savedLocation) {
-          try {
-            storedLocation = JSON.parse(savedLocation);
-          } catch (e) {
-            console.error('Failed to parse stored location:', e);
-          }
-        }
-      }
-      
+      //Load location from localStorage if available
+      let storedLocation = storedUser.locations[0]      
       if (token && storedUser) {
         // Create a basic user object from stored data
         const user: User = {
@@ -99,11 +87,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           gender: 'male', // Default
           phone: '',
           bio: '',
-          location: storedLocation || {
-            lat: 0,
-            lng: 0,
-            city: 'Unknown',
-            country: 'Unknown',
+          location: {
+            lat: storedLocation["latitude"],
+            lng: storedLocation["longitude"],
+            city: storedLocation["city"],
+            country: storedLocation["country"],
           },
           points: 50, // Default trial points
           tier: 'Bronze',
