@@ -80,7 +80,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           id: storedUser?.id,
           first_name: storedUser?.first_name,
           last_name:storedUser?.last_name,
-          name: storedUser?.user_name,
+          user_name: storedUser?.user_name,
           email: storedUser.email,
           type: storedUser.type,
           age: 25, // Default
