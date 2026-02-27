@@ -199,7 +199,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSavedUsers(new Set());
   };
 
-  const signup = async (data: { name: string; email: string; password: string; phone?: string; gender?: string; dob?: Date; churchName?: string; churchBranch?: string }) => {
+  const signup = async (data: { user_name: string; first_name:string ; last_name:string; email: string; password: string;phone?: string; gender?: string; dob?: Date; churchName?: string; churchBranch?: string }) => {
     // Calculate age from date of birth if provided
     let age = 25; // default age
     if (data.dob) {
@@ -221,7 +221,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } : undefined;
     
     const response = await authService.register({ 
-      name: data.name,
+      user_name: data.user_name,
+      first_name: data.first_name.trim(),
+      last_name: data.last_name.trim(),
       email: data.email, 
       password: data.password,
       confirmPassword: data.password,
@@ -231,42 +233,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       denomination: data.churchName,
     });
 
-    // Store token so the user is immediately authenticated
-    if (response.token) {
-      localStorage.setItem('auth_token', response.token);
-    }
     
     // Create user from response
-    const user: User = {
-      id: response.user?.id || response.data?.id || '',
-      first_name: response.data?.first_name || data.name.split(' ')[0],
-      last_name: response.data?.last_name || data.name.split(' ').slice(1).join(' ') || '',
-      name: response.data?.user_name || data.name,
-      type: response.data?.type,
-      email: data.email,
-      age: age,
-      gender: genderValue,
-      phone: data.phone || '',
-      bio: '',
-      location: {
-        lat: 0,
-        lng: 0,
-        city: 'Unknown',
-        country: 'Unknown',
-      },
-      points: 50,
-      tier: 'Bronze',
-      accountCreatedAt: new Date(),
-      isVerified: false,
-      avatar: '👤',
-      photos: [],
-      interests: [],
-      values: [],
-      church: churchInfo,
-    };
-    
-    setCurrentUser(user);
-    setIsAuthenticated(true);
+    // const user: User = {
+    //   id: response.user?.id || response.data?.id || 'new-user',
+    //   first_name: data.first_name,
+    //   last_name: data.last_name|| '',
+    //   user_name: data.user_name,
+    //   email: data.email,
+    //   age: age,
+    //   gender: (data.gender as 'male' | 'female') || 'male',
+    //   phone: data.phone || '',
+    //   bio: '',
+    //   location: {
+    //     lat: 0,
+    //     lng: 0,
+    //     city: 'Unknown',
+    //     country: 'Unknown',
+    //   },
+    //   points: 50,
+    //   tier: 'Silver',
+    //   accountCreatedAt: new Date(),
+    //   isVerified: false,
+    //   avatar: '👤',
+    //   photos: [],
+    //   interests: [],
+    //   values: [],
+    //   church: churchInfo,
+    // };
+
+    setIsAuthenticated(false);
   };
 
   // For now, return mock users until backend implements user discovery
@@ -807,7 +803,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     likeUser,
     isLiked,
     saveUser,
-    isSaved,
+    isSaved
   };
 
   if (isLoading) {

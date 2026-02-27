@@ -1,5 +1,7 @@
+import { toast } from 'sonner';
 import apiClient from '../client';
 import { API_CONFIG } from '../config';
+import { AxiosResponse } from 'axios';
 
 export interface LoginCredentials {
   email: string;
@@ -7,7 +9,9 @@ export interface LoginCredentials {
 }
 
 export interface RegisterData {
-  name: string;
+  user_name: string;
+  first_name:string;
+  last_name:string;
   email: string;
   password: string;
   confirmPassword?: string;
@@ -93,7 +97,7 @@ export const authService = {
   /**
    * Register new user
    */
-  async register(data: RegisterData): Promise<AuthResponse> {
+  async register(data: RegisterData): Promise<AxiosResponse> {
     try {
       console.log('📝 Attempting registration...');
       
@@ -102,37 +106,14 @@ export const authService = {
         data
       );
       
-      console.log('✅ Registration successful!');
-      console.log('Response:', response.data);
+   
       
       // Extract token and user
-      const { token, username, id, type } = response.data;
-      
-      // Store token
-      if (token) {
-        localStorage.setItem('auth_token', token);
-      }
-      
-      // Store user info
-      const userInfo = {
-        id,
-        username,
-        email: data.email,
-        type,
-      };
-      
-      localStorage.setItem('user', JSON.stringify(userInfo));
-      
-      return {
-        token,
-        user: userInfo,
-        data: response.data
-      };
-      
+      return response.data
     } catch (error: any) {
       console.error('❌ Registration failed');
       console.error('Error:', error.response?.data || error.message);
-      
+      toast.error(error?.response?.data)
       const errorMessage = error.response?.data?.message 
         || error.response?.data?.error 
         || error.message 

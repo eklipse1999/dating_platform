@@ -69,10 +69,20 @@ export default function SignupPage() {
   const { signup } = useApp();
 
   const [formData, setFormData] = useState({
-    name: '', email: '', password: '', confirmPassword: '',
-    phone: '', gender: '' as 'male' | 'female' | '',
-    dobDay: '', dobMonth: '', dobYear: '',
-    churchName: '', churchBranch: '', ageConfirmed: false,
+    first_name: "",
+    last_name:"",
+    user_name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    phone: '',
+    gender: '' as 'male' | 'female' | '',
+    dobDay: '',
+    dobMonth: '',
+    dobYear: '',
+    churchName: '',
+    churchBranch: '',
+    ageConfirmed: false,
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -87,28 +97,72 @@ export default function SignupPage() {
     setFormData(prev => ({ ...prev, [key]: e.target.value }));
 
   const validateForm = () => {
-    const e: Record<string, string> = {};
-    if (!formData.name.trim()) e.name = 'Full name is required';
-    if (!formData.email.trim()) e.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) e.email = 'Please enter a valid email';
-    if (!formData.password) e.password = 'Password is required';
-    else if (formData.password.length < 8) e.password = 'Password must be at least 8 characters';
-    if (formData.password !== formData.confirmPassword) e.confirmPassword = 'Passwords do not match';
-    if (!formData.phone.trim()) e.phone = 'Phone number is required';
-    if (!formData.gender) e.gender = 'Please select your gender';
-    if (!formData.dobDay || !formData.dobMonth || !formData.dobYear) e.dob = 'Date of birth is required';
-    else {
-      const dob = new Date(parseInt(formData.dobYear), parseInt(formData.dobMonth) - 1, parseInt(formData.dobDay));
-      if (!isOver18(dob)) e.dob = 'You must be 18 years or older to join';
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.first_name.trim()) {
+      newErrors.name = 'First name is required';
     }
-    if (!formData.ageConfirmed) e.ageConfirmed = 'You must confirm you are 18 or older';
-    if (!isHuman) { setCaptchaError('Please verify that you are not a robot'); e.captcha = 'required'; }
-    else setCaptchaError('');
-    setErrors(e);
-    return Object.keys(e).length === 0;
+    if (!formData.last_name.trim()) {
+      newErrors.name = 'Last name is required';
+    }
+    if (!formData.user_name.trim()) {
+      newErrors.name = 'User name is required';
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email';
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    }
+
+    if (!formData.gender) {
+      newErrors.gender = 'Please select your gender';
+    }
+
+    if (!formData.dobDay || !formData.dobMonth || !formData.dobYear) {
+      newErrors.dob = 'Date of birth is required';
+    } else {
+      const dob = new Date(
+        parseInt(formData.dobYear),
+        parseInt(formData.dobMonth) - 1,
+        parseInt(formData.dobDay)
+      );
+      
+      if (!isOver18(dob)) {
+        newErrors.dob = 'You must be 18 years or older to join Committed';
+      }
+    }
+
+    if (!formData.ageConfirmed) {
+      newErrors.ageConfirmed = 'You must confirm you are 18 years or older';
+    }
+
+    if (!isHuman) {
+      setCaptchaError('Please verify that you are not a robot');
+      newErrors.captcha = 'required';
+    } else {
+      setCaptchaError('');
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     if (!validateForm()) { toast.error('Please fix the errors in the form'); return; }
     setIsLoading(true);
@@ -120,17 +174,23 @@ export default function SignupPage() {
       if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
 
       await signup!({
-        name: formData.name, email: formData.email, password: formData.password,
-        phone: formData.phone, gender: formData.gender as 'male' | 'female',
-        dob, churchName: formData.churchName, churchBranch: formData.churchBranch,
+        user_name: formData.user_name,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone,
+        gender: formData.gender as 'male' | 'female',
+        dob,
+        churchName: formData.churchName,
+        churchBranch: formData.churchBranch,
       });
 
-      setIsSuccess(true);
-      toast.success('Account created! Welcome to Committed 🎉');
-      setTimeout(() => router.push('/dashboard'), 1400);
+      toast.success('Account created successfully!');
+      // Redirect to dashboard instead of login since user is already authenticated
+      // router.push('/dashboard');
     } catch (error: any) {
-      const msg = error.response?.data?.message || error.response?.data?.error || error.message || 'Something went wrong.';
-      toast.error(msg);
+      console.log(error.message)
     } finally {
       setIsLoading(false);
     }
@@ -144,89 +204,64 @@ export default function SignupPage() {
   const selectClass = `h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary transition-colors w-full`;
 
   return (
-    <div className="min-h-screen flex overflow-hidden">
+    <div className="min-h-screen flex">
+      {/* Left side - Form */}
+      <div className="flex-1 flex items-center justify-center p-8 bg-background">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md"
+        >
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 mb-8">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-secondary text-secondary-foreground">
+              <Heart className="w-5 h-5" />
+            </div>
+            <span className="text-xl font-bold text-muted-foreground font-serif">Committed</span>
+          </Link>
 
-      {/* ── Left: Form ── */}
-      <div className="flex-1 flex items-start justify-center p-8 py-12 bg-background relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/3 via-background to-secondary/3 pointer-events-none" />
+          <h1 className="text-3xl font-bold text-muted-foreground mb-2 font-serif">Create Account</h1>
+          <p className="text-muted-foreground mb-8">Join our faith-based community today</p>
 
-        <AnimatePresence mode="wait">
-          {isSuccess ? (
-            <motion.div
-              key="success"
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center justify-center min-h-[60vh] text-center"
-            >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
-                className="w-24 h-24 rounded-full bg-secondary/10 flex items-center justify-center mx-auto mb-6"
-              >
-                <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ duration: 1, repeat: 3 }}>
-                  <Heart className="w-12 h-12 text-secondary fill-secondary" />
-                </motion.div>
-              </motion.div>
-              <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="text-2xl font-bold text-foreground font-serif mb-2">
-                You're in!
-              </motion.h2>
-              <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="text-muted-foreground">
-                Taking you to your dashboard…
-              </motion.p>
-              <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 1.2, delay: 0.4, ease: 'easeInOut' }}
-                className="mt-6 h-1 w-48 bg-secondary rounded-full origin-left"
+          <form className="space-y-5">
+            {/* Full Name */}
+            <div>``
+              <Label htmlFor="name">First Name</Label>
+              <Input
+                id="name"
+                type="text"
+                value={formData.first_name}
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                placeholder="Enter your first name"
+                className={errors.name ? 'border-destructive' : ''}
               />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="form"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.45 }}
-              className="relative z-10 w-full max-w-md"
-            >
-              {/* Logo */}
-              <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45 }}>
-                <Link href="/" className="inline-flex items-center gap-2 mb-7 group">
-                  <motion.div whileHover={{ scale: 1.1, rotate: 10 }}
-                    className="flex items-center justify-center w-10 h-10 rounded-xl bg-secondary text-secondary-foreground shadow-md shadow-secondary/20"
-                  >
-                    <Heart className="w-5 h-5" />
-                  </motion.div>
-                  <span className="text-xl font-bold text-foreground font-serif">Committed</span>
-                </Link>
-              </motion.div>
-
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <h1 className="text-3xl font-bold text-foreground mb-1 font-serif">Create Account</h1>
-                <p className="text-muted-foreground mb-7">Join our faith-based community today</p>
-              </motion.div>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-
-                {/* ── Personal Info section ── */}
-                <AnimatedField delay={0.14}>
-                  <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                    <User className="w-3.5 h-3.5" />
-                    Personal Info
-                  </div>
-                </AnimatedField>
-
-                {/* Name */}
-                <AnimatedField delay={0.18}>
-                  <Label htmlFor="name" className="text-sm font-medium">Full Name</Label>
-                  <div className="relative mt-1">
-                    <Input id="name" type="text" value={formData.name} onChange={update('name')}
-                      onFocus={() => setFocusedField('name')} onBlur={() => setFocusedField(null)}
-                      placeholder="Enter your full name"
-                      className={`transition-all duration-200 ${errors.name ? 'border-destructive' : focusedField === 'name' ? 'border-secondary ring-1 ring-secondary/30' : ''}`}
-                    />
-                    <FocusLine show={focusedField === 'name'} />
-                  </div>
-                  <AnimatePresence>{errors.name && <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-sm text-destructive mt-1">{errors.name}</motion.p>}</AnimatePresence>
-                </AnimatedField>
+              {errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
+            </div>
+            <div>``
+              <Label htmlFor="last_name">Last Name</Label>
+              <Input
+                id="last_name"
+                type="text"
+                value={formData.last_name}
+                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                placeholder="Enter your last name"
+                className={errors.name ? 'border-destructive' : ''}
+              />
+              {errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
+            </div>
+            <div>``
+              <Label htmlFor="user_name">Username</Label>
+              <Input
+                id="user_name"
+                type="text"
+                value={formData.user_name}
+                onChange={(e) => setFormData({ ...formData, user_name: e.target.value })}
+                placeholder="Enter your username"
+                className={errors.name ? 'border-destructive' : ''}
+              />
+              {errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
+            </div>
 
                 {/* Email */}
                 <AnimatedField delay={0.22}>
@@ -446,30 +481,21 @@ export default function SignupPage() {
                   <AnimatePresence>{captchaError && <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-sm text-destructive mt-1">{captchaError}</motion.p>}</AnimatePresence>
                 </AnimatedField>
 
-                {/* Submit */}
-                <AnimatedField delay={0.60}>
-                  <motion.div whileHover={{ scale: isLoading ? 1 : 1.01 }} whileTap={{ scale: isLoading ? 1 : 0.98 }}>
-                    <Button
-                      type="submit"
-                      className="w-full relative bg-secondary hover:bg-secondary/90 text-secondary-foreground h-12 text-base font-medium rounded-xl overflow-hidden shadow-lg shadow-secondary/20"
-                      disabled={isLoading || !isHuman}
-                    >
-                      <motion.span className="absolute inset-0 bg-white/10" initial={{ x: '-100%' }} whileHover={{ x: '100%' }} transition={{ duration: 0.4 }} />
-                      <span className="relative flex items-center justify-center gap-2">
-                        {isLoading ? (
-                          <><Loader2 className="w-4 h-4 animate-spin" /> Creating Account...</>
-                        ) : (
-                          <>
-                            Create Account
-                            <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
-                              <ArrowRight className="w-4 h-4" />
-                            </motion.span>
-                          </>
-                        )}
-                      </span>
-                    </Button>
-                  </motion.div>
-                </AnimatedField>
+            {/* Submit */}
+            <Button
+              className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground h-12"
+              disabled={isLoading || !isHuman}
+              onClick={handleSubmit}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                'Create Account'
+              )}
+            </Button>
 
                 <AnimatedField delay={0.64}>
                   <p className="text-center text-sm text-muted-foreground pb-4">
@@ -479,8 +505,7 @@ export default function SignupPage() {
                 </AnimatedField>
               </form>
             </motion.div>
-          )}
-        </AnimatePresence>
+          
       </div>
 
       {/* ── Right decorative panel ── */}
