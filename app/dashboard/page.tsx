@@ -74,7 +74,7 @@ export default function DashboardPage() {
           className="mb-8"
         >
           <h1 className="text-2xl font-bold text-muted-foreground font-serif mb-2">
-            Welcome back, {currentUser.name.split(' ')[0]}! 👋
+            Welcome back, {currentUser.user_name}! 👋
           </h1>
           <p className="text-muted-foreground">
             Discover meaningful connections with people who share your faith.

@@ -60,6 +60,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const fetchUserState = async()=>{
     try{
       const response = await apiClient.get("/users/me")
+      console.log(response.data)
       return response.data
     }catch(err){
       // Silently fail — user is simply not logged in

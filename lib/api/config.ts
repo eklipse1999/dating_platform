@@ -54,7 +54,7 @@ export const API_CONFIG = {
     // Profile
     PROFILE: {
       GET_BY_ID: '/profile',               // Get profile by ID
-      UPLOAD_IMAGE: '/profile/upload/image', // Upload profile image
+      UPLOAD_IMAGE: '/profile/update/image', // Upload profile image
     },
 
     // Messages
