@@ -73,7 +73,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedUser = token ? await fetchUserState() : null;
 
       //Load location from localStorage if available
-      let storedLocation = storedUser.locations[0]      
+      let storedLocation = storedUser?.locations[0]      
       if (token && storedUser) {
         // Create a basic user object from stored data
         const user: User = {
