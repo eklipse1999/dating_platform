@@ -440,7 +440,7 @@ export default function AdminDashboard() {
                               variant="ghost"
                               size="icon"
                               className="text-secondary"
-                              onClick={() => handleBanUser(user.name)}
+                              onClick={() => handleBanUser(user.name ?? 'Unknown User')}
                             >
                               <Ban className="h-4 w-4" />
                             </Button>
@@ -537,7 +537,7 @@ export default function AdminDashboard() {
                                     variant="ghost"
                                     size="icon"
                                     className="text-green-600"
-                                    onClick={() => toast.success(`ID verified for ${user.name}`)}
+                                    onClick={() => toast.success(`ID verified for ${user.name || 'Unknown User'}`)}
                                   >
                                     <FileCheck className="h-4 w-4" />
                                   </Button>
@@ -545,7 +545,7 @@ export default function AdminDashboard() {
                                     variant="ghost"
                                     size="icon"
                                     className="text-red-600"
-                                    onClick={() => toast.error(`ID rejected for ${user.name}`)}
+                                    onClick={() => toast.error(`ID rejected for ${user.name || 'Unknown User'}`)}
                                   >
                                     <XCircle className="h-4 w-4" />
                                   </Button>
