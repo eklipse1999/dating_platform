@@ -73,7 +73,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedUser = token ? await fetchUserState() : null;
 
       //Load location from localStorage if available
-      let storedLocation = storedUser?.locations[0]      
+      let storedLocation = storedUser?.locations?.[0] || null;      
       if (token && storedUser) {
         // Create a basic user object from stored data
         const user: User = {
@@ -88,10 +88,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           phone: '',
           bio: '',
           location: {
-            lat: storedLocation["latitude"],
-            lng: storedLocation["longitude"],
-            city: storedLocation["city"],
-            country: storedLocation["country"],
+            lat: storedLocation?.latitude || 0,
+            lng: storedLocation?.longitude || 0,
+            city: storedLocation?.city || 'Unknown',
+            country: storedLocation?.country || 'Unknown',
           },
           points: 50, // Default trial points
           tier: 'Bronze',
@@ -123,7 +123,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string): Promise<{ type: string }> => {
     const response = await authService.login({ email, password });
-    if(response.data.type == "ADMIN"){
+    const userType = response.data.type?.toUpperCase();
+    
+    if(userType === 'ADMIN'){
+      // Set current user for admin
+      const adminUser: User = {
+        id: response.data.id,
+        first_name: response.data.first_name || 'Admin',
+        last_name: response.data.last_name || '',
+        user_name: response.data.username || 'admin',
+        email: email,
+        type: 'ADMIN',
+        age: 0,
+        gender: 'male',
+        phone: '',
+        bio: '',
+        location: { lat: 0, lng: 0, city: 'Admin', country: 'System' },
+        points: 0,
+        tier: 'Bronze',
+        accountCreatedAt: new Date(),
+        isVerified: true,
+        avatar: '👑',
+        photos: [],
+        interests: [],
+        values: [],
+      };
+      setCurrentUser(adminUser);
       setIsAuthenticated(true);
       router.push("/admin");
       return { type: 'ADMIN' };

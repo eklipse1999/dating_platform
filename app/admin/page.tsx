@@ -78,7 +78,7 @@ const mockFlaggedMessages: Message[] = [
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { currentUser,  isAdmin , getFilteredUsers } = useApp();
+  const { currentUser,  isAdmin , getFilteredUsers, logout } = useApp();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState("overview");
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -163,7 +163,10 @@ export default function AdminDashboard() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => router.push("/dashboard")}
+                onClick={async () => {
+                  await logout();
+                  router.push("/login");
+                }}
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>

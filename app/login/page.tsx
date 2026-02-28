@@ -109,8 +109,15 @@ export default function LoginPage() {
       const result = await login(formData.email, formData.password);
       setIsSuccess(true);
       toast.success('Welcome back! 👋');
+      
+      // If admin, redirect to admin page immediately
+      if (result.type?.toUpperCase() === 'ADMIN') {
+        router.push('/admin');
+        return;
+      }
+      
       setTimeout(() => {
-        if (result.type !== 'ADMIN') setShowLocationModal(true);
+        setShowLocationModal(true);
       }, 600);
     } catch (error: any) {
       toast.error(error.message || 'Login failed');
