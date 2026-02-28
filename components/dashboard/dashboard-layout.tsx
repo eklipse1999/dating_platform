@@ -2,8 +2,8 @@
 
 import { ReactNode, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { LeftSidebar } from './left-sidebar';
+import { RightSidebar } from './right-sidebar';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Menu, X, Search, User, Settings, LogOut, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ export function DashboardLayout({ children, showRightSidebar = true, showLeftSid
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-40 flex items-center justify-between px-4">
         <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -48,7 +48,7 @@ export function DashboardLayout({ children, showRightSidebar = true, showLeftSid
       </div>
 
       {/* Main Layout Container */}
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen w-full overflow-x-hidden">
         {/* Desktop Left Sidebar */}
         {showLeftSidebar && (
           <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-screen w-20 xl:w-64 bg-card border-r border-border z-30">
@@ -57,9 +57,9 @@ export function DashboardLayout({ children, showRightSidebar = true, showLeftSid
         )}
 
         {/* Main Content Area */}
-        <main className={`flex-1 min-h-screen ${showLeftSidebar ? 'lg:ml-20 xl:ml-64' : ''} ${showRightSidebar ? 'xl:mr-80' : ''}`}>
+        <main className={`flex-1 min-w-0 min-h-screen ${showLeftSidebar ? 'lg:ml-20 xl:ml-64' : ''} ${showRightSidebar ? 'xl:mr-80' : ''}`}>
           {/* Desktop Header */}
-          <header className="hidden lg:flex sticky top-0 z-20 h-16 bg-background/80 backdrop-blur-lg border-b border-border items-center justify-between px-13">
+          <header className="hidden lg:flex sticky top-0 z-20 h-16 bg-background/80 backdrop-blur-lg border-b border-border items-center justify-between px-6">
             <div className="flex-1 max-w-xl">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -77,12 +77,17 @@ export function DashboardLayout({ children, showRightSidebar = true, showLeftSid
             </div>
           </header>
 
-          {/* Page Content */}
-          <div className="p-4 lg:p-6 pt-16 lg:pt-6 pb-20 lg:pb-6">
+          {/* Page Content — pt-20 clears mobile fixed header, pb-20 clears mobile bottom nav */}
+          <div className="w-full min-w-0 p-3 sm:p-4 lg:p-6 pt-20 lg:pt-6 pb-20 lg:pb-6">
             {children}
           </div>
         </main>
       </div>
+
+      {/* Desktop Right Sidebar */}
+      {showRightSidebar && (
+        <RightSidebar />
+      )}
 
       {/* Mobile Bottom Navigation */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border z-40 pb-safe">
@@ -94,7 +99,6 @@ export function DashboardLayout({ children, showRightSidebar = true, showLeftSid
 
 // User Profile Dropdown Component - Desktop Only
 function UserProfileDropdown() {
-  const router = useRouter();
   const { currentUser, logout, isAdmin } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -130,7 +134,7 @@ function UserProfileDropdown() {
           <span className="text-lg">{currentUser.avatar}</span>
         </div>
         <div className="hidden xl:flex flex-col items-start">
-          <span className="text-sm font-medium text-foreground">{currentUser.name}</span>
+          <span className="text-sm font-medium text-foreground">{currentUser.name || currentUser.first_name || currentUser.user_name || "User"}</span>
           <span className="text-xs text-muted-foreground">{currentUser.points.toLocaleString()} pts</span>
         </div>
       </button>
@@ -153,7 +157,7 @@ function UserProfileDropdown() {
                       <span className="text-2xl">{currentUser.avatar}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-muted-foreground truncate">{currentUser.name}</h3>
+                      <h3 className="font-semibold text-muted-foreground truncate">{currentUser.name || currentUser.first_name || currentUser.user_name || "User"}</h3>
                       <div className="flex items-center gap-1">
                         <span className="text-sm">{tierInfo.icon}</span>
                         <span className="text-sm text-muted-foreground">{currentUser.tier}</span>
@@ -196,10 +200,9 @@ function UserProfileDropdown() {
               {/* Bottom Actions */}
               <div className="p-2 border-t border-border">
                 <button
-                  onClick={async () => {
-                    await logout();
+                  onClick={() => {
+                    logout();
                     setIsOpen(false);
-                    router.push('/');
                   }}
                   className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                 >

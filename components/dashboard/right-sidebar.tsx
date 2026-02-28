@@ -96,7 +96,7 @@ export function RightSidebar() {
   ];
 
   return (
-    <aside className="fixed right-0 top-0 h-screen w-80 bg-card border-l border-border overflow-y-auto z-40">
+    <aside className="hidden xl:block fixed right-0 top-0 h-screen w-80 bg-card border-l border-border overflow-y-auto z-40">
       <div className="p-4 space-y-6">
         {/* Suggested Connections */}
         <div className="bg-muted/30 rounded-2xl p-4">
