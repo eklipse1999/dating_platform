@@ -70,8 +70,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuth = async() => {
       const token = authService.getToken();
-      // Only call the API if a token exists — avoids a 401 on the homepage for guests
-      const storedUser = token ? await fetchUserState() : null;
+      
+      // First try to get user from localStorage directly
+      let storedUser = authService.getStoredUser();
+      
+      // If no stored user, try to fetch from API
+      if (!storedUser && token) {
+        storedUser = await fetchUserState();
+      }
 
       //Load location from localStorage if available
       let storedLocation = storedUser?.locations?.[0] || null;      

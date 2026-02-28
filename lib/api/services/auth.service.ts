@@ -62,13 +62,16 @@ export const authService = {
         console.log('✅ Token stored');
       }
       
-      // Store user info
+      // Store user info in localStorage
       const userInfo = {
         id,
         username,
         email: credentials.email,
         type,
       };
+      
+      localStorage.setItem('user', JSON.stringify(userInfo));
+      console.log('✅ User stored');
       
       return {
         token,

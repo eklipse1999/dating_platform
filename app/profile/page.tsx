@@ -224,6 +224,8 @@ export default function ProfilePage() {
         career: profileData.career,
         church_branch: profileData.churchBranch,
         church_name: profileData.churchName,
+        city: profileData.city,
+        country: profileData.country,
         denomination: profileData.denomination,
         gender: profileData.gender,
         interests: profileData.interests,
