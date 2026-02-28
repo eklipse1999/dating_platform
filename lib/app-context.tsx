@@ -15,6 +15,7 @@ interface AppContextType {
   currentUser: User | null;
   userLocation: UserLocation | null;
   locationPermissionStatus: LocationPermissionStatus;
+  isLoading: boolean;
   requestLocation: () => Promise<boolean>;
   getFilteredUsers: (filters?: any) => Promise<User[]>;
   canMessage: (otherUserId: string) => boolean;
@@ -798,6 +799,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     currentUser,
     userLocation,
     locationPermissionStatus,
+    isLoading,
     requestLocation,
     getFilteredUsers,
     canMessage,

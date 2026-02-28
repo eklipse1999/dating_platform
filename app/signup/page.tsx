@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Eye, EyeOff, Heart, Loader2, AlertCircle, CheckCircle,
-  Church, ArrowRight, Shield, Sparkles, User, Lock, Phone, AtSign, Mail
+  ArrowRight, Shield, Sparkles, User, Lock, Phone, AtSign, Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -123,7 +123,6 @@ export default function SignupPage() {
     email: '', password: '', confirmPassword: '',
     phone: '', gender: '' as 'male' | 'female' | '',
     dobDay: '', dobMonth: '', dobYear: '',
-    churchName: '', churchBranch: '',
     ageConfirmed: false,
   });
 
@@ -184,8 +183,6 @@ export default function SignupPage() {
         phone: formData.phone,
         gender: formData.gender as 'male' | 'female',
         dob,
-        churchName: formData.churchName,
-        churchBranch: formData.churchBranch,
       });
       setIsSuccess(true);
       toast.success('Account created! Welcome to Committed 🎉');
@@ -497,29 +494,6 @@ export default function SignupPage() {
                       </motion.p>
                     )}
                   </AnimatePresence>
-                </div>
-              </Field>
-
-              {/* ── CHURCH INFO ── */}
-              <SectionHeader icon={Church} label="Church Info · Optional" delay={0.41} />
-
-              <Field delay={0.44}>
-                <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className={`relative rounded-lg overflow-hidden transition-all duration-300 ${focused === 'church' ? 'ring-2 ring-primary/30' : 'ring-1 ring-border/60'}`}>
-                      <input value={formData.churchName} onChange={set('churchName')}
-                        onFocus={fo('church')} onBlur={bl} placeholder="Church name"
-                        className={inputBase} />
-                    </div>
-                    <div className={`relative rounded-lg overflow-hidden transition-all duration-300 ${focused === 'branch' ? 'ring-2 ring-primary/30' : 'ring-1 ring-border/60'}`}>
-                      <input value={formData.churchBranch} onChange={set('churchBranch')}
-                        onFocus={fo('branch')} onBlur={bl} placeholder="Branch / location"
-                        className={inputBase} />
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground/50 leading-relaxed">
-                    Helps us connect you with members from your local faith community.
-                  </p>
                 </div>
               </Field>
 

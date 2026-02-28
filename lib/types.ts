@@ -104,6 +104,10 @@ export interface PointsPackage {
   price: number;
   currency: string;
   isBestValue?: boolean;
+  tierID?: string;
+  canMessage?: boolean;
+  canScheduleDate?: boolean;
+  dailyMessageLimit?: number;
 }
 
 export const POINTS_PACKAGES: PointsPackage[] = [

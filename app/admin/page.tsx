@@ -78,7 +78,7 @@ const mockFlaggedMessages: Message[] = [
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { currentUser,  isAdmin , getFilteredUsers, logout } = useApp();
+  const { currentUser,  isAdmin , getFilteredUsers, logout, isLoading } = useApp();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState("overview");
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -87,12 +87,15 @@ export default function AdminDashboard() {
 
   // Redirect non-admins to login
   useEffect(() => {
+    // Don't redirect while still loading authentication state
+    if (isLoading) return;
+    
     if (currentUser && !isAdmin) {
       router.push('/login');
     } else if (!currentUser) {
       router.push('/login');
     }
-  }, [currentUser, isAdmin, router]);
+  }, [currentUser, isAdmin, router, isLoading]);
 
   async function loadUsersForAdmin(){
     try{

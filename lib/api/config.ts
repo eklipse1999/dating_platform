@@ -63,6 +63,12 @@ export const API_CONFIG = {
       SEND: '/messages/send',              // Send message
       CONVERSATIONS: '/messages/conversations', // Get conversations
     },
+
+    // Plans
+    PLANS: {
+      LIST: '/plans',                      // Get all plans
+      GET_BY_ID: '/plans',                 // Get plan by ID
+    },
   }
 };
 

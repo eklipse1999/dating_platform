@@ -247,7 +247,7 @@ function MessagesContent() {
       if (filterType === 'archived') return c.isArchived;
       return !c.isArchived;
     })
-    .filter(c => c.user.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter(c => (c.user.name || '').toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => {
       if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
       return (b.lastMessage?.timestamp?.getTime() || 0) - (a.lastMessage?.timestamp?.getTime() || 0);
