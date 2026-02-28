@@ -27,7 +27,7 @@ function PricingCard({ pkg, index }: { pkg: any; index: number }) {
   const isBestValue = pkg.isBestValue === true;
   const cardRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
+  const mouseY = useMotionValue(0);//hover
   const rotateX = useSpring(useTransform(mouseY, [-120, 120], [5, -5]), { stiffness: 300, damping: 30 });
   const rotateY = useSpring(useTransform(mouseX, [-120, 120], [-5, 5]), { stiffness: 300, damping: 30 });
   const [hovered, setHovered] = useState(false);
