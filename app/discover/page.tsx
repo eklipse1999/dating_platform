@@ -147,7 +147,7 @@ export default function DiscoverPage() {
   
   return (
     <DashboardLayout showRightSidebar={false}>
-      <div className="w-screen max-w-5xl mx-auto px-1 sm:px-1 lg:px-4 py-6">
+      <div className="w-full px-1 sm:px-1 lg:px-4 py-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

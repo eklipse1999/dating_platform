@@ -129,7 +129,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
         setIsAuthenticated(true);
 
-        if (storedUser.type === 'ADMIN') {
+        if (storedUser.type === 'ADMIN' && typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin')) {
           router.push('/admin');
         }
       }
@@ -143,9 +143,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string): Promise<{ type: string }> => {
     const response = await authService.login({ email, password });
     if(response.data.type == "ADMIN"){
+      const adminUser: User = {
+        id: response.data?.id || response.user?.id || "",
+        first_name: response.data?.first_name || "",
+        last_name: response.data?.last_name || "",
+        name: response.data?.user_name || response.user?.username || "",
+        email: email,
+        type: "ADMIN",
+        age: response.data?.age || 25,
+        gender: (response.data?.gender as "male" | "female") || "male",
+        phone: response.data?.phone || "",
+        bio: response.data?.bio || "",
+        location: { lat: 0, lng: 0, city: "Unknown", country: "Unknown" },
+        points: response.data?.points || 0,
+        tier: response.data?.tier || "Bronze",
+        accountCreatedAt: new Date(response.data?.created_at || Date.now()),
+        isVerified: response.data?.isVerified || false,
+        avatar: response.data?.avatar || "👤",
+        photos: [],
+        interests: [],
+        values: [],
+      };
+      setCurrentUser(adminUser);
       setIsAuthenticated(true);
       router.push("/admin");
-      return { type: 'ADMIN' };
+      return { type: "ADMIN" };
     }
     // Fetch user profile from backend to get actual location and other data
     let userLocation: UserLocation = {
@@ -672,14 +694,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     saveUser,
     isSaved
   };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

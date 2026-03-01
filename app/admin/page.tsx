@@ -90,11 +90,12 @@ export default function AdminDashboard() {
     // Don't redirect while still loading authentication state
     if (isLoading) return;
     
-    if (currentUser && !isAdmin) {
+    if (!currentUser) {
       router.push('/login');
-    } else if (!currentUser) {
+    } else if (currentUser && !isAdmin) {
       router.push('/login');
     }
+    // If currentUser exists AND isAdmin, stay on this page
   }, [currentUser, isAdmin, router, isLoading]);
 
   async function loadUsersForAdmin(){

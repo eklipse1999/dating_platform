@@ -294,7 +294,7 @@ export default function ProfilePage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="w-full px-4 py-8">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">

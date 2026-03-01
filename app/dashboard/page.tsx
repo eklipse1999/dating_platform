@@ -117,7 +117,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout showRightSidebar={false} onSearch={setSearchQuery} searchQuery={searchQuery}>
-      <div className="max-w-5xl mx-auto w-full">
+      <div className="w-full">
 
         {/* Welcome */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
