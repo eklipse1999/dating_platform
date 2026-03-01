@@ -70,6 +70,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuth = async() => {
       const token = authService.getToken();
+
+      // Fast-path: restore cached user type from localStorage immediately
+      // This prevents the isLoading=false + currentUser=null race on refresh
+      const cachedUserType = typeof window !== 'undefined' ? localStorage.getItem('user_type') : null;
+      if (token && cachedUserType === 'ADMIN') {
+        const cachedUser = typeof window !== 'undefined' ? localStorage.getItem('cached_user') : null;
+        if (cachedUser) {
+          try {
+            const parsed = JSON.parse(cachedUser);
+            parsed.accountCreatedAt = new Date(parsed.accountCreatedAt);
+            if (parsed.trialStartDate) parsed.trialStartDate = new Date(parsed.trialStartDate);
+            if (parsed.trialEndDate) parsed.trialEndDate = new Date(parsed.trialEndDate);
+            setCurrentUser(parsed);
+            setIsAuthenticated(true);
+          } catch {}
+        }
+      }
+
       // Only call the API if a token exists — avoids a 401 on the homepage for guests
       const storedUser = token ? await fetchUserState() : null;
 
@@ -133,8 +151,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
         setIsAuthenticated(true);
 
+        // Cache user type and full user so refresh doesn't cause a flicker/redirect
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('user_type', user.type || 'USER');
+          localStorage.setItem('cached_user', JSON.stringify(user));
+        }
+
         if (storedUser.type === 'ADMIN' && typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin')) {
           router.push('/admin');
+        }
+      } else {
+        // No valid token/user — clear cache
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('user_type');
+          localStorage.removeItem('cached_user');
         }
       }
       
@@ -170,6 +200,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       };
       setCurrentUser(adminUser);
       setIsAuthenticated(true);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('user_type', 'ADMIN');
+        localStorage.setItem('cached_user', JSON.stringify(adminUser));
+      }
       router.push("/admin");
       return { type: "ADMIN" };
     }
@@ -231,6 +265,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setFollowedUsers(new Set());
     setLikedUsers(new Set());
     setSavedUsers(new Set());
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('user_type');
+      localStorage.removeItem('cached_user');
+    }
   };
 
   const signup = async (data: { user_name: string; first_name: string; last_name: string; email: string; password: string; phone?: string; gender?: string; dob?: Date; churchName?: string; churchBranch?: string }) => {
