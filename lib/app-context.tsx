@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, UserLocation, getTierFromPoints } from './types';
+import { User, UserLocation, getTierFromPoints, getTrialStatus } from './types';
 import { authService } from './api/services/auth.service';
 import { usersService } from './api/services/users.service';
 // Temporary fallback
@@ -109,13 +109,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             country: pick('country', 'Country') || s.location?.country || 'Unknown',
           },
           points:           pick('points',        'Points')           || 50,
-          tier:            (pick('tier',          'Tier')             || 'Bronze') as any,
+          tier:            (pick('tier',          'Tier') ? pick('tier', 'Tier') : getTierFromPoints(pick('points', 'Points') || 50)) as any,
           accountCreatedAt: pick('created_at', 'CreatedAt', 'accountCreatedAt') ? new Date(pick('created_at', 'CreatedAt', 'accountCreatedAt')) : new Date(),
           isVerified:       pick('isVerified', 'IsVerified', 'is_verified') || false,
           avatar:           pick('avatar',     'Avatar',    'profile_image', 'ProfileImage') || '👤',
           photos:           pick('photos',     'Photos')   || [],
           interests:        pick('interests',  'Interests')|| [],
           values:           pick('values',     'Values')   || [],
+          trialStartDate:   pick('trialStartDate', 'trial_start_date') ? new Date(pick('trialStartDate', 'trial_start_date')) : (pick('created_at', 'CreatedAt') ? new Date(pick('created_at', 'CreatedAt')) : undefined),
+          trialEndDate:     pick('trialEndDate', 'trial_end_date') ? new Date(pick('trialEndDate', 'trial_end_date')) : (pick('created_at', 'CreatedAt') ? (() => { const d = new Date(pick('created_at', 'CreatedAt')); d.setDate(d.getDate() + 14); return d; })() : undefined),
+          trialUsed:        pick('trialUsed', 'trial_used') || false,
+          hasActiveTrial:   pick('hasActiveTrial', 'has_active_trial') || false,
           church: {
             name:   pick('church_name',  'ChurchName')  || s.church?.name   || '',
             branch: pick('church_branch','ChurchBranch')|| s.church?.branch || '',
@@ -204,8 +208,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       phone: '',
       bio: '',
       location: userLocation,
-      points: 50,
-      tier: 'Silver',
+      points: response.data?.points || 50,
+      tier: getTierFromPoints(response.data?.points || 50),
       accountCreatedAt: new Date(),
       isVerified: false,
       avatar: '👤',
@@ -269,6 +273,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     // Build local user from response
     const resData = response.data || response.user || {};
+    const now = new Date();
+    const trialEnd = new Date(now);
+    trialEnd.setDate(trialEnd.getDate() + 14);
+
     const user: User = {
       id: resData.id || resData.user_id || '',
       first_name: resData.first_name || data.first_name,
@@ -281,8 +289,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       bio: '',
       location: { lat: 0, lng: 0, city: 'Unknown', country: 'Unknown' },
       points: 50,
-      tier: 'Bronze',
-      accountCreatedAt: new Date(),
+      tier: 'Free',
+      accountCreatedAt: now,
+      trialStartDate: now,
+      trialEndDate: trialEnd,
+      hasActiveTrial: true,
+      trialUsed: false,
       isVerified: false,
       avatar: '👤',
       photos: [],
@@ -601,9 +613,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // await matchesService.saveUser(userId);
   };
 
-  const isInTrial = currentUser ? currentUser.points > 0 && currentUser.points <= 500 : false;
-  const trialDaysRemaining = 14; // Default
-  const trialExpired = false;
+  const trialStatus = currentUser ? getTrialStatus(currentUser) : { isInTrial: false, daysRemaining: 0, isExpired: false };
+  const isInTrial = trialStatus.isInTrial;
+  const trialDaysRemaining = trialStatus.daysRemaining;
+  const trialExpired = trialStatus.isExpired;
 
   // Get user by ID — maps ProfileResponse → User shape
   const getUserById = async (userId: string): Promise<User> => {

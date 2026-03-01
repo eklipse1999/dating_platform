@@ -1,4 +1,4 @@
-export type Tier = 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
+export type Tier = 'Free' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
 
 export const TRIAL_DAYS = 14;
 export const TRIAL_POINTS = 500; // Points granted during trial
@@ -120,18 +120,20 @@ export const POINTS_PACKAGES: PointsPackage[] = [
 ];
 
 export const TIER_RANGES: Record<Tier, { min: number; max: number; icon: string; color: string }> = {
-  Bronze: { min: 0, max: 500, icon: '🥉', color: '#CD7F32' },
-  Silver: { min: 501, max: 1500, icon: '🥈', color: '#C0C0C0' },
-  Gold: { min: 1501, max: 3000, icon: '🥇', color: '#FFD700' },
-  Platinum: { min: 3001, max: 5000, icon: '💎', color: '#E5E4E2' },
-  Diamond: { min: 5001, max: Infinity, icon: '💠', color: '#B9F2FF' },
+  Free: { min: 0, max: 499, icon: '🆓', color: '#94A3B8' },
+  Bronze: { min: 500, max: 1500, icon: '🥉', color: '#CD7F32' },
+  Silver: { min: 1501, max: 3000, icon: '🥈', color: '#C0C0C0' },
+  Gold: { min: 3001, max: 5000, icon: '🥇', color: '#FFD700' },
+  Platinum: { min: 5001, max: 10000, icon: '💎', color: '#E5E4E2' },
+  Diamond: { min: 10001, max: Infinity, icon: '💠', color: '#B9F2FF' },
 };
 
 export function getTierFromPoints(points: number): Tier {
-  if (points <= 500) return 'Bronze';
-  if (points <= 1500) return 'Silver';
-  if (points <= 3000) return 'Gold';
-  if (points <= 5000) return 'Platinum';
+  if (points < 500) return 'Free';
+  if (points < 1500) return 'Bronze';
+  if (points < 3000) return 'Silver';
+  if (points < 5000) return 'Gold';
+  if (points < 10000) return 'Platinum';
   return 'Diamond';
 }
 
