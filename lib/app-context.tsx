@@ -30,7 +30,6 @@ interface AppContextType {
   addPoints?: (points: number) => void;
   canScheduleDates?: boolean;
   accountAgeDays?: number;
-  isLoading?: boolean;
   
   // Additional functions that ProfileCard needs
   isFollowing: (userId: string) => boolean;
@@ -438,7 +437,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
     // Update backend — body: { location: string } per Swagger
     try {
-      await usersService.updateLocation(loc.lat, loc.lng, loc.city, loc.country);
+      const locString = [loc.city, loc.country].filter(Boolean).join(', ');
+      await usersService.updateLocation(locString);
     } catch {
       // Non-blocking — location update failure doesn't affect UX
     }
@@ -448,24 +448,44 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const requestLocation = async (): Promise<boolean> => {
     setLocationPermissionStatus('requesting');
 
-    // Run IP lookup and GPS simultaneously — whoever finishes first wins for UX
-    // GPS result (if granted) upgrades the coordinates silently afterward
-    const [ipLoc, gpsCoords] = await Promise.all([
-      getLocationFromIP(),
-      getLocationFromGPS(),
-    ]);
+    // Step 1: IP geolocation first — instant, gives correct city/country/coords
+    const ipLoc = await getLocationFromIP();
+
+    // Step 2: GPS runs ONLY to get more precise coordinates, NOT to override country/city
+    // This prevents VPNs, cached GPS, or stale coords from corrupting the country name
+    const gpsCoords = await getLocationFromGPS();
 
     // Build best available location
     let finalLoc: UserLocation;
 
     if (ipLoc) {
-      // IP gave us city + country — use GPS coords if available (more precise)
-      finalLoc = {
-        city:    ipLoc.city,
-        country: ipLoc.country,
-        lat:     gpsCoords?.latitude  ?? ipLoc.lat,
-        lng:     gpsCoords?.longitude ?? ipLoc.lng,
-      };
+      // IP is the source of truth for city + country + approximate coords.
+      // GPS coords are only used if they are geographically consistent with the IP country
+      // (i.e. within ~2000km) — prevents VPN/cached GPS from showing wrong coordinates.
+      let lat = ipLoc.lat;
+      let lng = ipLoc.lng;
+
+      if (gpsCoords) {
+        // Haversine distance check: only accept GPS if within 2000km of IP location
+        const R = 6371;
+        const dLat = (gpsCoords.latitude  - ipLoc.lat) * Math.PI / 180;
+        const dLng = (gpsCoords.longitude - ipLoc.lng) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) ** 2 +
+          Math.cos(ipLoc.lat * Math.PI / 180) *
+          Math.cos(gpsCoords.latitude * Math.PI / 180) *
+          Math.sin(dLng / 2) ** 2;
+        const distKm = 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        if (distKm <= 2000) {
+          // GPS is geographically consistent with IP country — use precise GPS coords
+          lat = gpsCoords.latitude;
+          lng = gpsCoords.longitude;
+        }
+        // If distKm > 2000, GPS coords are from a different region (VPN, cached, mock)
+        // — silently ignore them and keep the accurate IP coordinates
+      }
+
+      finalLoc = { city: ipLoc.city, country: ipLoc.country, lat, lng };
     } else if (gpsCoords) {
       // GPS only — reverse geocode with Nominatim for city/country
       let city = '';
@@ -616,7 +636,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     addPoints,
     canScheduleDates,
     accountAgeDays,
-    isLoading,
     isFollowing,
     toggleFollow,
     likeUser,

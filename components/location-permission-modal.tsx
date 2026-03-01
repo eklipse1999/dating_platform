@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Loader2, AlertTriangle, CheckCircle, X } from 'lucide-react';
+import { MapPin, Loader2, CheckCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/lib/app-context';
 
@@ -11,24 +11,25 @@ interface LocationPermissionModalProps {
   onComplete: () => void;
 }
 
+// Format coordinates correctly with N/S and E/W — e.g. 52.13°N, 5.29°E
+const formatCoords = (lat: number, lng: number): string => {
+  if (lat === 0 && lng === 0) return 'Coordinates unavailable';
+  const latDir = lat >= 0 ? 'N' : 'S';
+  const lngDir = lng >= 0 ? 'E' : 'W';
+  return `${Math.abs(lat).toFixed(2)}°${latDir}, ${Math.abs(lng).toFixed(2)}°${lngDir}`;
+};
+
 export function LocationPermissionModal({ isOpen, onComplete }: LocationPermissionModalProps) {
-  const { requestLocation, locationPermissionStatus, userLocation } = useApp();
-  const [status, setStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle');
+  const { requestLocation, userLocation } = useApp();
+  const [status, setStatus] = useState<'idle' | 'requesting' | 'granted'>('idle');
 
   const handleRequestLocation = async () => {
     setStatus('requesting');
-    const granted = await requestLocation();
-    setStatus(granted ? 'granted' : 'denied');
-    
-    if (granted) {
-      setTimeout(() => {
-        onComplete();
-      }, 1500);
-    }
-  };
-
-  const handleSkip = () => {
-    onComplete();
+    // requestLocation() always succeeds now (IP → GPS → timezone fallback)
+    // It never returns false, so there is no "denied" state to handle
+    await requestLocation();
+    setStatus('granted');
+    setTimeout(() => onComplete(), 1500);
   };
 
   return (
@@ -46,9 +47,9 @@ export function LocationPermissionModal({ isOpen, onComplete }: LocationPermissi
             exit={{ opacity: 0, scale: 0.95 }}
             className="relative w-full max-w-md bg-card rounded-2xl shadow-xl overflow-hidden"
           >
-            {/* Close button */}
+            {/* Close button — always lets user proceed */}
             <button
-              onClick={handleSkip}
+              onClick={() => onComplete()}
               className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors"
               aria-label="Close"
             >
@@ -58,25 +59,23 @@ export function LocationPermissionModal({ isOpen, onComplete }: LocationPermissi
             <div className="p-8">
               {/* Icon */}
               <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
-                {status === 'requesting' || locationPermissionStatus === 'requesting' ? (
+                {status === 'requesting' ? (
                   <Loader2 className="w-10 h-10 text-primary animate-spin" />
                 ) : status === 'granted' ? (
                   <CheckCircle className="w-10 h-10 text-green-500" />
-                ) : status === 'denied' ? (
-                  <AlertTriangle className="w-10 h-10 text-destructive" />
                 ) : (
                   <MapPin className="w-10 h-10 text-primary" />
                 )}
               </div>
 
-              {/* Content */}
+              {/* Idle — prompt user */}
               {status === 'idle' && (
                 <>
                   <h2 className="text-2xl font-bold text-muted-foreground text-center mb-3 font-serif">
                     Enable Location
                   </h2>
                   <p className="text-muted-foreground text-center mb-6 leading-relaxed">
-                    Committed needs your location to show nearby matches and help you connect with people in your area.
+                    Committed uses your location to show nearby matches and connect you with people in your area.
                   </p>
                   <div className="space-y-3">
                     <Button
@@ -84,11 +83,11 @@ export function LocationPermissionModal({ isOpen, onComplete }: LocationPermissi
                       className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground h-12"
                     >
                       <MapPin className="w-4 h-4 mr-2" />
-                      Allow Location Access
+                      Detect My Location
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={handleSkip}
+                      onClick={() => onComplete()}
                       className="w-full h-12 bg-transparent"
                     >
                       Maybe Later
@@ -97,18 +96,20 @@ export function LocationPermissionModal({ isOpen, onComplete }: LocationPermissi
                 </>
               )}
 
-              {(status === 'requesting' || locationPermissionStatus === 'requesting') && (
+              {/* Requesting — show spinner */}
+              {status === 'requesting' && (
                 <>
                   <h2 className="text-2xl font-bold text-muted-foreground text-center mb-3 font-serif">
-                    Getting Your Location
+                    Detecting Location
                   </h2>
-                  <p className="text-muted-foreground text-center mb-6 leading-relaxed">
-                    Please allow location access when prompted by your browser...
+                  <p className="text-muted-foreground text-center leading-relaxed">
+                    Finding your location — this only takes a moment...
                   </p>
                 </>
               )}
 
-              {status === 'granted' && userLocation && (
+              {/* Granted — show result */}
+              {status === 'granted' && (
                 <>
                   <h2 className="text-2xl font-bold text-muted-foreground text-center mb-3 font-serif">
                     Location Enabled!
@@ -118,43 +119,21 @@ export function LocationPermissionModal({ isOpen, onComplete }: LocationPermissi
                   </p>
                   <div className="bg-muted/50 rounded-xl p-4 text-center mb-6">
                     <div className="text-2xl font-bold text-primary">
-                      {userLocation.country && userLocation.country !== 'Unknown' 
-                        ? userLocation.country 
+                      {userLocation?.city && userLocation.city !== ''
+                        ? `${userLocation.city}, ${userLocation.country}`
+                        : userLocation?.country && userLocation.country !== 'Unknown'
+                        ? userLocation.country
                         : 'Location Set'}
                     </div>
-                    <div className="text-sm text-muted-foreground mt-2">
-                      {userLocation.lat.toFixed(2)}°N, {userLocation.lng.toFixed(2)}°W
-                    </div>
+                    {userLocation && (userLocation.lat !== 0 || userLocation.lng !== 0) && (
+                      <div className="text-sm text-muted-foreground mt-2">
+                        {formatCoords(userLocation.lat, userLocation.lng)}
+                      </div>
+                    )}
                   </div>
                   <p className="text-sm text-muted-foreground text-center">
                     Redirecting to dashboard...
                   </p>
-                </>
-              )}
-
-              {status === 'denied' && (
-                <>
-                  <h2 className="text-2xl font-bold text-muted-foreground text-center mb-3 font-serif">
-                    Location Access Required
-                  </h2>
-                  <p className="text-muted-foreground text-center mb-6 leading-relaxed">
-                    We need your location to show nearby matches. Please enable location access in your browser settings and try again.
-                  </p>
-                  <div className="space-y-3">
-                    <Button
-                      onClick={() => setStatus('idle')}
-                      className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground h-12"
-                    >
-                      Try Again
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleSkip}
-                      className="w-full h-12 bg-transparent"
-                    >
-                      Continue Without Location
-                    </Button>
-                  </div>
                 </>
               )}
             </div>
