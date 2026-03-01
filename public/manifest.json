@@ -1,8 +1,8 @@
 {
-  "name": "Committed - Faith-Based Dating",
+  "name": "Committed - Faith-Based Dating platform",
   "short_name": "Committed",
   "description": "Where Christian singles connect with purpose. Find love built on faith.",
-  "start_url": "/",
+  "start_url": "/login",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#2B4C7E",
