@@ -109,7 +109,7 @@ export default function DashboardPage() {
     filters
   );
 
-  const isFreeUser      = currentUser.tier === 'Free';
+  const isFreeUser      = currentUser.points === 0;
   const hasActiveSearch = debouncedQuery.trim().length > 0;
   const filtersActive   = JSON.stringify(filters) !== JSON.stringify(DEFAULT_FILTERS);
 
@@ -117,7 +117,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout showRightSidebar={false} onSearch={setSearchQuery} searchQuery={searchQuery}>
-      <div className="max-w-5xl mx-auto w-full">
+      <div className="w-full">
 
         {/* Welcome */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
@@ -128,7 +128,7 @@ export default function DashboardPage() {
         </motion.div>
 
         {/* Trial Banner */}
-        {(isInTrial || isFreeUser) && (
+        {isInTrial && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
             className="mb-5 p-4 bg-gradient-to-r from-secondary/20 to-primary/20 rounded-2xl border border-secondary/30">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -137,7 +137,7 @@ export default function DashboardPage() {
                 <div>
                   <h3 className="font-semibold text-secondary">Free Trial Active!</h3>
                   <p className="text-sm text-muted-foreground">
-                    <strong>{trialDaysRemaining > 0 ? trialDaysRemaining : 14} days</strong> remaining. Enjoy unlimited messaging!
+                    <strong>{trialDaysRemaining} days</strong> remaining. Enjoy unlimited messaging!
                   </p>
                 </div>
               </div>

@@ -61,7 +61,7 @@ export function DashboardLayout({ children, showRightSidebar = true, showLeftSid
         <main className={`flex-1 min-w-0 min-h-screen ${showLeftSidebar ? 'lg:ml-20 xl:ml-64' : ''} ${showRightSidebar ? 'xl:mr-80' : ''}`}>
           {/* Desktop Header */}
           <header className="hidden lg:flex sticky top-0 z-20 h-16 bg-background/80 backdrop-blur-lg border-b border-border items-center px-6 gap-4">
-            {/* Search bar — left-aligned in content area */}
+            {/* Search bar — truly centered, wired to page search state when onSearch is provided */}
             <div className="flex-1 max-w-md">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

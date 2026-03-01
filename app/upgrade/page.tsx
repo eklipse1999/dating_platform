@@ -305,7 +305,7 @@ export default function UpgradePage() {
     <div className="min-h-screen bg-background">
       <DashboardHeader />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <Link href="/dashboard" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors text-sm">
           <ArrowLeft className="w-4 h-4" /> Back to Dashboard
         </Link>

@@ -45,7 +45,7 @@ export default function ReportIssuePage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <main className="w-full px-4 sm:px-6 lg:px-8 py-16">
         <Link href="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-8 transition-colors">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Home
