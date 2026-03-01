@@ -9,122 +9,131 @@ export interface Match {
   user?: any;
 }
 
+// Exact response shape from GET /like and POST /like
+export interface LikeRecord {
+  id: string;
+  liked_id: string;
+  liker_id: string;
+  created_at: string;
+}
+
 export interface LikeResponse {
-  matched: boolean;
-  matchId?: string;
+  id?: string;
+  liked_id?: string;
+  liker_id?: string;
+  created_at?: string;
+  matched?: boolean;
   message?: string;
 }
 
+const silent = (status?: number) => [401, 404, 405].includes(status ?? 0);
+
 export const matchesService = {
-  /**
-   * Get all matches (mutual matches)
-   */
-  async getMatches(): Promise<Match[]> {
+
+  // ─── Likes ───────────────────────────────────────────────
+
+  // GET /like  — no params, returns array of likes received by authenticated user
+  // Response: [{ created_at, id, liked_id, liker_id }]
+  async getLikes(): Promise<LikeRecord[]> {
     try {
-      const response = await apiClient.get(API_CONFIG.ENDPOINTS.MATCHES.LIST);
-      return response.data.matches || response.data || [];
+      const response = await apiClient.get(API_CONFIG.ENDPOINTS.LIKES.LIKE);
+      // Backend may return array directly or wrapped in { likes: [] }
+      return Array.isArray(response.data) ? response.data : (response.data.likes || []);
     } catch (error: any) {
-      console.error('Get matches error:', error.response?.data || error.message);
+      if (!silent(error.response?.status)) console.error('Get likes error:', error.response?.data || error.message);
       return [];
     }
   },
 
-  /**
-   * Get liked users who liked you back
-   */
-  async getLikeMatches(): Promise<any[]> {
+  // GET /like/matches  — returns mutual matches for authenticated user (uses Bearer token, no body needed)
+  async getMatches(currentUserId?: string): Promise<Match[]> {
     try {
       const response = await apiClient.get(API_CONFIG.ENDPOINTS.LIKES.MATCHES);
       return response.data.matches || response.data || [];
     } catch (error: any) {
-      console.error('Get like matches error:', error.response?.data || error.message);
+      if (!silent(error.response?.status)) console.error('Get matches error:', error.response?.data || error.message);
       return [];
     }
   },
 
-  /**
-   * Like a user
-   */
-  async likeUser(userId: string): Promise<LikeResponse> {
+  // Alias used by matches page
+  async getLikeMatches(currentUserId?: string): Promise<any[]> {
+    return matchesService.getMatches(currentUserId);
+  },
+
+  // POST /like  — body: { liked_id: uuid }  → 201 { created_at, id, liked_id, liker_id }
+  async likeUser(likedId: string): Promise<LikeResponse> {
     try {
       const response = await apiClient.post(API_CONFIG.ENDPOINTS.LIKES.LIKE, {
-        userId,
+        liked_id: likedId,
       });
       return response.data;
     } catch (error: any) {
-      console.error('Like user error:', error.response?.data || error.message);
+      if (!silent(error.response?.status)) console.error('Like user error:', error.response?.data || error.message);
       throw new Error(error.response?.data?.message || 'Failed to like user');
     }
   },
 
-  /**
-   * Unlike a user
-   */
-  async unlikeUser(userId: string): Promise<void> {
+  // DELETE /like  — body: { liked_id: uuid } (same field name as POST /like)
+  async unlikeUser(likedId: string): Promise<void> {
     try {
-      await apiClient.delete(API_CONFIG.ENDPOINTS.LIKES.UNLIKE, {
-        data: { userId },
-      });
+      await apiClient.delete(API_CONFIG.ENDPOINTS.LIKES.UNLIKE, { data: { liked_id: likedId } });
     } catch (error: any) {
-      console.error('Unlike user error:', error.response?.data || error.message);
+      if (!silent(error.response?.status)) console.error('Unlike user error:', error.response?.data || error.message);
       throw new Error(error.response?.data?.message || 'Failed to unlike user');
     }
   },
 
-  /**
-   * Block a user
-   */
-  async blockUser(userId: string, reason?: string): Promise<void> {
+  // ─── Blocks ──────────────────────────────────────────────
+
+  // POST /block/create  — body: { blocker_id, blocked_id }
+  async blockUser(currentUserId: string, blockedUserId: string): Promise<void> {
     try {
       await apiClient.post(API_CONFIG.ENDPOINTS.BLOCKS.CREATE, {
-        blockedUserId: userId,
-        reason,
+        blocker_id: currentUserId,
+        blocked_id: blockedUserId,
       });
     } catch (error: any) {
-      console.error('Block user error:', error.response?.data || error.message);
+      if (!silent(error.response?.status)) console.error('Block user error:', error.response?.data || error.message);
       throw new Error(error.response?.data?.message || 'Failed to block user');
     }
   },
 
-  /**
-   * Unblock a user
-   */
-  async unblockUser(userId: string): Promise<void> {
+  // POST /block/remove  — body: { blocker_id, blocked_id }  (POST not DELETE!)
+  async unblockUser(currentUserId: string, blockedUserId: string): Promise<void> {
     try {
-      await apiClient.delete(API_CONFIG.ENDPOINTS.BLOCKS.REMOVE, {
-        data: { blockedUserId: userId },
+      await apiClient.post(API_CONFIG.ENDPOINTS.BLOCKS.REMOVE, {
+        blocker_id: currentUserId,
+        blocked_id: blockedUserId,
       });
     } catch (error: any) {
-      console.error('Unblock user error:', error.response?.data || error.message);
+      if (!silent(error.response?.status)) console.error('Unblock user error:', error.response?.data || error.message);
       throw new Error(error.response?.data?.message || 'Failed to unblock user');
     }
   },
 
-  /**
-   * Get blocked users list
-   */
+  // GET /block/list/{user_id}  — get all users blocked by user_id
   async getBlockedUsers(userId: string): Promise<any[]> {
     try {
       const response = await apiClient.get(`${API_CONFIG.ENDPOINTS.BLOCKS.LIST}/${userId}`);
       return response.data.blockedUsers || response.data || [];
     } catch (error: any) {
-      console.error('Get blocked users error:', error.response?.data || error.message);
+      if (!silent(error.response?.status)) console.error('Get blocked users error:', error.response?.data || error.message);
       return [];
     }
   },
 
-  /**
-   * Check if two users can interact (not blocked)
-   */
-  async canInteract(userId: string, otherUserId: string): Promise<boolean> {
+  // GET /block/can-interact/{user_a}/{user_b}  — returns false if either blocked the other
+  async canInteract(userA: string, userB: string): Promise<boolean> {
     try {
       const response = await apiClient.get(
-        `${API_CONFIG.ENDPOINTS.BLOCKS.CAN_INTERACT}/${userId}/${otherUserId}`
+        `${API_CONFIG.ENDPOINTS.BLOCKS.CAN_INTERACT}/${userA}/${userB}`
       );
-      return response.data.canInteract || false;
+      // Response shape: { additionalProp1: {} } — check for canInteract or just truthy
+      return response.data?.canInteract ?? response.data?.result ?? true;
     } catch (error: any) {
-      console.error('Can interact error:', error.response?.data || error.message);
-      return false;
+      if (!silent(error.response?.status)) console.error('Can interact error:', error.response?.data || error.message);
+      return true; // Default to allowing interaction if check fails
     }
   },
 };

@@ -1,32 +1,24 @@
-import { toast } from 'sonner';
 import apiClient from '../client';
 import { API_CONFIG } from '../config';
-import { AxiosResponse } from 'axios';
 
 export interface LoginCredentials {
   email: string;
   password: string;
 }
 
+// POST /users/register — field names as expected by backend
 export interface RegisterData {
   user_name: string;
-  first_name:string;
-  last_name:string;
+  first_name: string;
+  last_name: string;
   email: string;
   password: string;
-  confirmPassword?: string;
+  confirmPassword?: string;  // optional — not sent to backend, used for UI validation only
   age: number;
   gender: 'male' | 'female';
   phone: string;
   denomination?: string;
   bio?: string;
-  career?: string;
-  location?: {
-    city: string;
-    country: string;
-    lat?: number;
-    lng?: number;
-  };
 }
 
 export interface AuthResponse {
@@ -37,148 +29,132 @@ export interface AuthResponse {
 }
 
 export const authService = {
-  /**
-   * Login user - SIMPLIFIED VERSION
-   */
+
+  // POST /users/login
+  // Errors: 400 invalid payload, 401 invalid password, 404 user not found
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      console.log('🔐 Attempting login...');
-      console.log('Email:', credentials.email);
-      
-      const response = await apiClient.post(
-        API_CONFIG.ENDPOINTS.AUTH.LOGIN, 
-        credentials
-      );
-      
-      console.log('✅ Login successful!');
-      console.log('Response:', response.data);
-      
-      // Extract token and user from response
-      const { token, username, id, type, refresh_token } = response.data;
-      
-      // Store token
-      if (token) {
-        localStorage.setItem('auth_token', token);
-        console.log('✅ Token stored');
-      }
-      
-      // Store refresh token if provided
-      if (refresh_token) {
-        localStorage.setItem('refresh_token', refresh_token);
-        console.log('✅ Refresh token stored');
-      }
-      
-      // Store user info in localStorage
-      const userInfo = {
-        id,
-        username,
+      const response = await apiClient.post(API_CONFIG.ENDPOINTS.AUTH.LOGIN, {
         email: credentials.email,
-        type,
-      };
-      
-      localStorage.setItem('user', JSON.stringify(userInfo));
-      console.log('✅ User stored');
-      
-      return {
-        token,
-        user: userInfo,
-        data: response.data
-      };
-      
-    } catch (error: any) {
-      console.error('❌ Login failed');
-      console.error('Error:', error.message);
-      
-      if (error.response) {
-        console.error('Status:', error.response.status);
-        console.error('Data:', error.response.data);
+        password: credentials.password,
+      });
+
+      const data = response.data;
+      const token = data.token || data.accessToken || data.jwt;
+      const user = data.user || data;
+
+      if (token && typeof window !== 'undefined') {
+        localStorage.setItem('auth_token', token);
       }
-      
-      const errorMessage = error.response?.data?.message 
-        || error.response?.data
-        || error.message 
-        || 'Login failed';
-      
-      throw new Error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
-    }
-  },
+      if (user && typeof window !== 'undefined') {
+        localStorage.setItem('user', JSON.stringify(user));
+      }
 
-  /**
-   * Register new user
-   */
-  async register(data: RegisterData): Promise<AxiosResponse> {
-    try {
-      console.log('📝 Attempting registration...');
-      
-      const response = await apiClient.post(
-        API_CONFIG.ENDPOINTS.AUTH.REGISTER, 
-        data
-      );
-      
-   
-      
-      // Extract token and user
-      return response.data
+      return { token, user, data };
+
     } catch (error: any) {
-      console.error('❌ Registration failed');
-      console.error('Error:', error.response?.data || error.message);
-      toast.error(error?.response?.data)
-      const errorMessage = error.response?.data?.message 
-        || error.response?.data?.error 
-        || error.message 
-        || 'Registration failed';
-      
-      throw new Error(errorMessage);
+      const status = error.response?.status;
+      const msg = error.response?.data?.message || error.response?.data || error.message || 'Login failed';
+      if (status === 401) throw new Error('Incorrect password. Please try again.');
+      if (status === 404) throw new Error('No account found with that email address.');
+      if (status === 400) throw new Error('Please enter a valid email and password.');
+      throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
     }
   },
 
-  /**
-   * Logout user
-   */
-  async logout(): Promise<void> {
+  // POST /users/register → 201 Created
+  // Errors: 400 invalid payload, 409 user already exists
+  async register(data: RegisterData): Promise<AuthResponse> {
     try {
-      // Don't call logout endpoint if it doesn't exist
-      // await apiClient.post(API_CONFIG.ENDPOINTS.AUTH.LOGOUT);
-      console.log('🚪 Logging out...');
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      // Always clear storage
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user');
-      console.log('✅ Logged out');
+      // Build explicit payload with exact field names the backend expects
+      const payload: Record<string, any> = {
+        user_name: data.user_name,
+        username: data.user_name,   // send both variants as safety net
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email,
+        password: data.password,
+        phone: data.phone || '',
+        gender: data.gender,
+        age: data.age,
+      };
+      if (data.denomination) payload.denomination = data.denomination;
+
+      console.log('📋 Register payload:', JSON.stringify(payload));
+
+      // Try JSON first
+      let response;
+      try {
+        response = await apiClient.post(API_CONFIG.ENDPOINTS.AUTH.REGISTER, payload, {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } catch (jsonError: any) {
+        if (jsonError.response?.status === 400) {
+          // Fallback: try form-urlencoded
+          console.log('📋 JSON failed, retrying as form-urlencoded...');
+          const formData = new URLSearchParams();
+          Object.entries(payload).forEach(([k, v]) => formData.append(k, String(v)));
+          response = await apiClient.post(API_CONFIG.ENDPOINTS.AUTH.REGISTER, formData, {
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          });
+        } else {
+          throw jsonError;
+        }
+      }
+
+      const resData = response.data;
+      const token = resData.token || resData.accessToken || resData.jwt;
+      const user = resData.user || resData;
+
+      if (token && typeof window !== 'undefined') {
+        localStorage.setItem('auth_token', token);
+      }
+      if (user && typeof window !== 'undefined') {
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+
+      return { token, user, data: resData };
+
+    } catch (error: any) {
+      const status = error.response?.status;
+      const raw = error.response?.data;
+      const msg = (typeof raw === 'string' ? raw : null)
+        || raw?.message
+        || raw?.error
+        || raw?.detail
+        || error.message
+        || 'Registration failed';
+      console.error('Register error response:', JSON.stringify(error.response?.data));
+      if (status === 409) throw new Error('An account with this email already exists.');
+      throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
     }
   },
 
-  /**
-   * Check if user is authenticated
-   */
+  // NOTE: There is no POST /logout or /auth/refresh in the Swagger spec.
+  // Logout is handled entirely client-side by clearing localStorage.
+  async logout(): Promise<void> {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+    }
+  },
+
   isAuthenticated(): boolean {
     if (typeof window === 'undefined') return false;
-    const token = localStorage.getItem('auth_token');
-    return !!token;
+    return !!localStorage.getItem('auth_token');
   },
 
-  /**
-   * Get current auth token
-   */
   getToken(): string | null {
     if (typeof window === 'undefined') return null;
     return localStorage.getItem('auth_token');
   },
-  
-  /**
-   * Get stored user info
-   */
+
   getStoredUser(): any | null {
     if (typeof window === 'undefined') return null;
-    const userStr = localStorage.getItem('user');
-    if (!userStr) return null;
-    try {
-      return JSON.parse(userStr);
-    } catch {
-      return null;
-    }
+    const str = localStorage.getItem('user');
+    if (!str) return null;
+    try { return JSON.parse(str); } catch { return null; }
   },
 };
 

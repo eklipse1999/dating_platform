@@ -69,56 +69,20 @@ apiClient.interceptors.response.use(
     }
 
     // Handle 401 Unauthorized
+    // NOTE: /auth/refresh does NOT exist in the Swagger spec — no token refresh available.
+    // On 401, clear all tokens and redirect to login.
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        const refreshToken = localStorage.getItem('refresh_token');
-        
-        // Attempt to refresh token if refresh token exists
-        if (refreshToken) {
-          try {
-            const refreshResponse = await axios.post(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.REFRESH}`, {
-              refresh_token: refreshToken
-            }, { timeout: 30000 });
-            
-            if (refreshResponse.data?.access_token) {
-              localStorage.setItem('auth_token', refreshResponse.data.access_token);
-              if (refreshResponse.data?.refresh_token) {
-                localStorage.setItem('refresh_token', refreshResponse.data.refresh_token);
-              }
-              
-              // Retry the original request (only once to prevent infinite loops)
-              if (error.config && !(error.config as any)._retry) {
-                (error.config as any)._retry = true;
-                error.config.headers.Authorization = `Bearer ${refreshResponse.data.access_token}`;
-                return apiClient(error.config);
-              }
-            }
-          } catch (refreshError) {
-            // Refresh failed, clear tokens and redirect
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('user');
-            
-            const currentPath = window.location.pathname;
-            const isAuthPage = currentPath.includes('/login') || currentPath.includes('/signup');
-            const isHomePage = currentPath === '/';
-            
-            if (!isAuthPage && !isHomePage) {
-              window.location.href = '/login';
-            }
-          }
-        } else {
-          // No refresh token, clear tokens and redirect
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('user');
-          
-          const currentPath = window.location.pathname;
-          const isAuthPage = currentPath.includes('/login') || currentPath.includes('/signup');
-          const isHomePage = currentPath === '/';
-          
-          if (!isAuthPage && !isHomePage) {
-            window.location.href = '/login';
-          }
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
+
+        const currentPath = window.location.pathname;
+        const isAuthPage = currentPath.includes('/login') || currentPath.includes('/signup');
+        const isHomePage = currentPath === '/';
+
+        if (!isAuthPage && !isHomePage) {
+          window.location.href = '/login';
         }
       }
     }

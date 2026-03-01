@@ -3,25 +3,25 @@ export const API_CONFIG = {
   ENDPOINTS: {
     // Authentication & User Management
     AUTH: {
-      LOGIN: '/users/login',
-      REGISTER: '/users/register',
-      LOGOUT: '/users/logout',
-      REFRESH: '/auth/refresh',
+      LOGIN: '/users/login',       // POST /users/login    — body: { email, password }
+      REGISTER: '/users/register', // POST /users/register — body: models.User
+      // NOTE: /users/logout and /auth/refresh are NOT in the Swagger spec — handled client-side
     },
     
     // User Profile & Data
     USERS: {
-      ME: '/users/me',                    // Get current user
-      UPDATE: '/update/user',              // Update user profile
-      BY_ADMIN: '/users/by/Admin',         // Get all users (discover)
-      UPDATE_LOCATION: '/users/location',  // Update location
+      ME: '/users/me',                    // GET    /users/me         — get current user profile (BearerAuth)
+      BY_ADMIN: '/users/by/admin',        // GET    /users/by/admin   — all users except self (BearerAuth)
+      UPDATE_LOCATION: '/users/location', // PUT    /users/location   — body: { location: string }
+      DELETE: '/delete/user',             // DELETE /delete/user      — delete authenticated user
     },
     
     // Likes & Matching
+    // Likes — GET /like, POST /like, DELETE /like, GET /like/matches
     LIKES: {
-      LIKE: '/like',                       // Like a user
-      UNLIKE: '/like/unlike',              // Unlike a user
-      MATCHES: '/like/matches',            // Get matches
+      LIKE: '/like',                       // GET/POST /like
+      UNLIKE: '/like',                     // DELETE   /like  — same path, different method
+      MATCHES: '/like/matches',            // GET      /like/matches
     },
 
     // Matches (mutual)
@@ -30,44 +30,48 @@ export const API_CONFIG = {
     },
 
     // Blocking
+    // Blocks — exact paths from Swagger
     BLOCKS: {
-      CREATE: '/blocks/create',            // Block a user
-      LIST: '/blocks/list/user',           // Get blocked users
-      REMOVE: '/blocks/remove',           // Unblock a user
-      CAN_INTERACT: '/block/can-interact', // Check if can interact
+      CREATE: '/block/create',             // POST /block/create        — body: { blocker_id, blocked_id }
+      LIST: '/block/list',                 // GET  /block/list/{user_id} — path param
+      REMOVE: '/block/remove',             // POST /block/remove        — body: { blocker_id, blocked_id }
+      CAN_INTERACT: '/block/can-interact', // GET  /block/can-interact/{user_a}/{user_b} — path params
     },
 
-    // Events
+    // Events — Swagger: POST /events, GET /events/{id}, PUT /events/{id}, DELETE /events/{id}
+    // NOTE: There is NO GET /events list endpoint in the spec
     EVENTS: {
-      LIST: '/events',                     // Get all events
-      CREATE: '/events/create',            // Create event
-      GET_BY_ID: '/events',                // Get event by ID
-      UPDATE: '/events',                   // Update event
-      DELETE: '/events',                   // Delete event
+      BASE: '/events',     // POST /events              — create (body: models.Event) → 201
+                           // GET  /events/{id}         — get by id
+                           // PUT  /events/{id}         — update → 200
+                           // DELETE /events/{id}       — delete → 204
     },
 
     // Payments
+    // Payments — POST /payments: body { amount, plan_id, type }
     PAYMENTS: {
-      PROCESS: '/payments',                // Process payment
+      PROCESS: '/payments',                // POST /payments
     },
 
-    // Profile
-    PROFILE: {
-      GET_BY_ID: '/profile',               // Get profile by ID
-      UPLOAD_IMAGE: '/profile/update/image', // Upload profile image
-    },
-
-    // Messages
-    MESSAGES: {
-      LIST: '/messages',                   // Get messages
-      SEND: '/messages/send',              // Send message
-      CONVERSATIONS: '/messages/conversations', // Get conversations
-    },
-
-    // Plans
+    // Plans — GET /plans, GET /plans/{id}
     PLANS: {
-      LIST: '/plans',                      // Get all plans
-      GET_BY_ID: '/plans',                 // Get plan by ID
+      LIST: '/plans',                      // GET /plans        — get all plans
+      GET_BY_ID: '/plans',                 // GET /plans/{id}   — get plan by ID
+    },
+
+    // Profile — confirmed from Swagger screenshots
+    PROFILE: {
+      GET_BY_ID:    '/profile',               // GET  /profile/{id}          — id = UUID path param
+      UPLOAD_IMAGE: '/profile/upload/image',  // POST /profile/upload/image  — formData field: 'file'
+      UPDATE:       '/update/user',           // PUT  /update/user           — body: age,bio,career,church_branch,church_name,denomination,gender,interests[],key,looking_for,profile_image
+    },
+
+    // Messages — NOT in Swagger spec, these are best-guess endpoints
+    // If they 404/405, the backend may not have implemented them yet
+    MESSAGES: {
+      LIST: '/messages',                        // GET  /messages (unconfirmed)
+      SEND: '/messages/send',                   // POST /messages/send (unconfirmed)
+      CONVERSATIONS: '/messages/conversations', // GET  /messages/conversations (unconfirmed)
     },
   }
 };
