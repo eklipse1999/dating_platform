@@ -54,12 +54,18 @@ export const authService = {
       console.log('Response:', response.data);
       
       // Extract token and user from response
-      const { token, username, id, type } = response.data;
+      const { token, username, id, type, refresh_token } = response.data;
       
       // Store token
       if (token) {
         localStorage.setItem('auth_token', token);
         console.log('✅ Token stored');
+      }
+      
+      // Store refresh token if provided
+      if (refresh_token) {
+        localStorage.setItem('refresh_token', refresh_token);
+        console.log('✅ Refresh token stored');
       }
       
       // Store user info in localStorage
