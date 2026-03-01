@@ -49,7 +49,7 @@ export const usersService = {
    */
   async updateProfile(data: UpdateProfileData): Promise<User> {
     try {
-      const response = await apiClient.put(API_CONFIG.ENDPOINTS.USERS.UPDATE, data);
+      const response = await apiClient.put(API_CONFIG.ENDPOINTS.PROFILE.UPDATE, data);
       
       // Update local storage
       if (response.data) {
