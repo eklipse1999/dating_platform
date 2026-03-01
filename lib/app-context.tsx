@@ -582,12 +582,39 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const trialDaysRemaining = 14; // Default
   const trialExpired = false;
 
-  // Get user by ID
+  // Get user by ID — maps ProfileResponse → User shape
   const getUserById = async (userId: string): Promise<User> => {
     try {
-      return await usersService.getUserById(userId);
+      const p = await usersService.getUserById(userId);
+      // ProfileResponse is missing User fields — map with safe defaults
+      const mapped: User = {
+        id:               p.user_id || p.id || userId,
+        first_name:       (p as any).first_name  || '',
+        last_name:        (p as any).last_name   || '',
+        name:             (p as any).user_name   || '',
+        email:            (p as any).email       || '',
+        age:              p.age                  || 25,
+        gender:           (p.gender as 'male' | 'female') || 'male',
+        phone:            (p as any).phone       || '',
+        bio:              p.bio                  || '',
+        career:           p.career               || '',
+        denomination:     p.denomination         || '',
+        interests:        p.interests            || [],
+        values:           [],
+        location:         { lat: 0, lng: 0, city: '', country: '' },
+        points:           0,
+        tier:             'Bronze',
+        accountCreatedAt: new Date(p.created_at  || Date.now()),
+        isVerified:       false,
+        avatar:           '👤',
+        photos:           p.profile_image ? [p.profile_image] : [],
+        church: {
+          name:   p.church_name   || '',
+          branch: p.church_branch || '',
+        },
+      };
+      return mapped;
     } catch {
-      // Fallback to mock data
       const user = users.find(u => u.id === userId);
       if (user) return user;
       throw new Error('User not found');

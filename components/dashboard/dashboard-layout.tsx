@@ -3,7 +3,6 @@
 import { ReactNode, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { LeftSidebar } from './left-sidebar';
-import { RightSidebar } from './right-sidebar';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Menu, X, Search, User, Settings, LogOut, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -59,8 +58,9 @@ export function DashboardLayout({ children, showRightSidebar = true, showLeftSid
         {/* Main Content Area */}
         <main className={`flex-1 min-w-0 min-h-screen ${showLeftSidebar ? 'lg:ml-20 xl:ml-64' : ''} ${showRightSidebar ? 'xl:mr-80' : ''}`}>
           {/* Desktop Header */}
-          <header className="hidden lg:flex sticky top-0 z-20 h-16 bg-background/80 backdrop-blur-lg border-b border-border items-center justify-between px-6">
-            <div className="flex-1 max-w-xl">
+          <header className="hidden lg:flex sticky top-0 z-20 h-16 bg-background/80 backdrop-blur-lg border-b border-border items-center px-6">
+            {/* Search bar — truly centered via absolute positioning */}
+            <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-md px-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
@@ -70,24 +70,19 @@ export function DashboardLayout({ children, showRightSidebar = true, showLeftSid
                 />
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            {/* Right actions pinned to the right */}
+            <div className="ml-auto flex items-center gap-3">
               <ThemeToggle />
-              {/* User Profile Dropdown - Desktop Only */}
               <UserProfileDropdown />
             </div>
           </header>
 
           {/* Page Content — pt-20 clears mobile fixed header, pb-20 clears mobile bottom nav */}
-          <div className="w-full min-w-0 p-3 sm:p-4 lg:p-6 pt-20 lg:pt-6 pb-20 lg:pb-6">
+          <div className="w-full min-w-0 px-4 sm:px-6 lg:px-8 py-4 pt-20 lg:pt-6 pb-20 lg:pb-8">
             {children}
           </div>
         </main>
       </div>
-
-      {/* Desktop Right Sidebar */}
-      {showRightSidebar && (
-        <RightSidebar />
-      )}
 
       {/* Mobile Bottom Navigation */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border z-40 pb-safe">

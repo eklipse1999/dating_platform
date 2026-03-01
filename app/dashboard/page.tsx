@@ -66,7 +66,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout showRightSidebar={false}>
-      <div className="max-w-6xl mx-auto px-1 sm:px-1 lg:px-8 py-2">
+      <div className="max-w-5xl mx-auto w-full">
         {/* Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -141,7 +141,7 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-3 gap-4 mb-8"
+          className="grid grid-cols-3 gap-3 sm:gap-4 mb-8"
         >
           <div className="p-4 bg-card rounded-2xl border border-border text-center">
             <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl mx-auto mb-2">
@@ -171,7 +171,7 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-6"
+          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6"
         >
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />

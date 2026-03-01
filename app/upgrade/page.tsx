@@ -35,6 +35,25 @@ const fmtExpiry = (v: string) => { const d = v.replace(/\D/g, ''); return d.leng
 
 const PLAN_ICONS = [Zap, Sparkles, Crown, Star, Gift];
 
+// Tier display — maps plan name/points to a human label + emoji badge
+// (tierID from backend is a UUID, so we derive tier from plan name + points)
+const TIER_DISPLAY: Record<string, { label: string; emoji: string; color: string }> = {
+  bronze:   { label: 'Bronze',   emoji: '🥉', color: 'text-amber-600'  },
+  silver:   { label: 'Silver',   emoji: '🥈', color: 'text-slate-400'  },
+  gold:     { label: 'Gold',     emoji: '🥇', color: 'text-yellow-500' },
+  diamond:  { label: 'Diamond',  emoji: '💎', color: 'text-cyan-400'   },
+  platinum: { label: 'Platinum', emoji: '👑', color: 'text-purple-400' },
+};
+
+const getTierInfo = (name: string, points: number) => {
+  const n = name.toLowerCase();
+  if (n.includes('platinum') || points >= 8000) return TIER_DISPLAY.platinum;
+  if (n.includes('diamond')  || points >= 5000) return TIER_DISPLAY.diamond;
+  if (n.includes('gold')     || points >= 3000) return TIER_DISPLAY.gold;
+  if (n.includes('silver')   || points >= 1000) return TIER_DISPLAY.silver;
+  return TIER_DISPLAY.bronze;
+};
+
 // ─── Plan card ───────────────────────────────────────────────────────────────
 function PlanCard({ pkg, index, isSelected, onClick }: {
   pkg: PointsPackage; index: number; isSelected: boolean; onClick: () => void;
@@ -77,7 +96,11 @@ function PlanCard({ pkg, index, isSelected, onClick }: {
         </div>
         <div>
           <h3 className="font-semibold text-foreground leading-none">{pkg.name}</h3>
-          {pkg.tierID && <p className="text-[10px] text-muted-foreground mt-0.5 uppercase tracking-wide">{pkg.tierID} Tier</p>}
+          {(() => { const t = getTierInfo(pkg.name, pkg.points); return (
+            <p className={`text-[11px] font-medium mt-0.5 flex items-center gap-1 ${t.color}`}>
+              <span>{t.emoji}</span><span>{t.label} Tier</span>
+            </p>
+          );})()}
         </div>
       </div>
 
@@ -198,7 +221,8 @@ export default function UpgradePage() {
   // Exact Swagger body: { amount: number, plan_id: string, type: string }
   const handlePayment = async () => {
     if (!selectedPkg) { toast.error('Please select a plan'); return; }
-    if (!validateCard()) { toast.error('Please fix the card details'); return; }
+    // Card validation only needed for Stripe — Paystack handles its own checkout
+    if (gateway === 'Stripe' && !validateCard()) { toast.error('Please fix the card details'); return; }
 
     setIsProcessing(true);
     setPaymentError('');
@@ -392,64 +416,90 @@ export default function UpgradePage() {
                       <span className="text-muted-foreground">Points</span>
                       <span className="font-medium">{selectedPkg.points.toLocaleString()} pts</span>
                     </div>
-                    {selectedPkg.tierID && (
+                    {selectedPkg.tierID && (() => { const t = getTierInfo(selectedPkg.name, selectedPkg.points); return (
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Tier</span>
-                        <span className="font-medium">{selectedPkg.tierID}</span>
+                        <span className={`font-medium flex items-center gap-1 ${t.color}`}>
+                          <span>{t.emoji}</span><span>{t.label}</span>
+                        </span>
                       </div>
-                    )}
+                    );})()}
                     <div className="flex justify-between pt-2 border-t border-border">
                       <span className="font-semibold text-sm">Total</span>
                       <span className="text-lg font-bold text-foreground">{fmtPrice(selectedPkg.price, selectedPkg.currency)}</span>
                     </div>
                   </div>
 
-                  {/* Card inputs */}
-                  <div className="space-y-3">
-                    <div>
-                      <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">Name on Card</Label>
-                      <Input value={cardName}
-                        onChange={e => { setCardName(e.target.value); setCardErrors(p => ({...p, cardName:''})); }}
-                        placeholder="Grace Walker" className={`mt-1 ${cardErrors.cardName ? 'border-destructive' : ''}`} />
-                      {cardErrors.cardName && <p className="text-[11px] text-destructive mt-0.5">{cardErrors.cardName}</p>}
-                    </div>
-
-                    <div>
-                      <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">Card Number</Label>
-                      <div className="relative mt-1">
-                        <Input value={cardNumber}
-                          onChange={e => { setCardNumber(fmtCard(e.target.value)); setCardErrors(p => ({...p, cardNumber:''})); }}
-                          placeholder="1234 5678 9012 3456" className={`font-mono pr-10 ${cardErrors.cardNumber ? 'border-destructive' : ''}`}
-                          maxLength={19} inputMode="numeric" />
-                        <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
-                      </div>
-                      {cardErrors.cardNumber && <p className="text-[11px] text-destructive mt-0.5">{cardErrors.cardNumber}</p>}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
+                  {/* Card form — only for Stripe; Paystack handles payment on their own page */}
+                  {gateway === 'Stripe' ? (
+                    <div className="space-y-3">
                       <div>
-                        <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">Expiry</Label>
-                        <Input value={expiry}
-                          onChange={e => { setExpiry(fmtExpiry(e.target.value)); setCardErrors(p => ({...p, expiry:''})); }}
-                          placeholder="MM/YY" className={`mt-1 ${cardErrors.expiry ? 'border-destructive' : ''}`}
-                          maxLength={5} inputMode="numeric" />
-                        {cardErrors.expiry && <p className="text-[11px] text-destructive mt-0.5">{cardErrors.expiry}</p>}
+                        <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">Name on Card</Label>
+                        <Input value={cardName}
+                          onChange={e => { setCardName(e.target.value); setCardErrors(p => ({...p, cardName:''})); }}
+                          placeholder="Grace Walker" className={`mt-1 ${cardErrors.cardName ? 'border-destructive' : ''}`} />
+                        {cardErrors.cardName && <p className="text-[11px] text-destructive mt-0.5">{cardErrors.cardName}</p>}
                       </div>
                       <div>
-                        <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">CVC</Label>
-                        <Input value={cvc}
-                          onChange={e => { setCvc(e.target.value.replace(/\D/g,'').slice(0,4)); setCardErrors(p => ({...p, cvc:''})); }}
-                          placeholder="123" className={`mt-1 ${cardErrors.cvc ? 'border-destructive' : ''}`}
-                          type="password" maxLength={4} inputMode="numeric" />
-                        {cardErrors.cvc && <p className="text-[11px] text-destructive mt-0.5">{cardErrors.cvc}</p>}
+                        <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">Card Number</Label>
+                        <div className="relative mt-1">
+                          <Input value={cardNumber}
+                            onChange={e => { setCardNumber(fmtCard(e.target.value)); setCardErrors(p => ({...p, cardNumber:''})); }}
+                            placeholder="1234 5678 9012 3456" className={`font-mono pr-10 ${cardErrors.cardNumber ? 'border-destructive' : ''}`}
+                            maxLength={19} inputMode="numeric" />
+                          <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
+                        </div>
+                        {cardErrors.cardNumber && <p className="text-[11px] text-destructive mt-0.5">{cardErrors.cardNumber}</p>}
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">Expiry</Label>
+                          <Input value={expiry}
+                            onChange={e => { setExpiry(fmtExpiry(e.target.value)); setCardErrors(p => ({...p, expiry:''})); }}
+                            placeholder="MM/YY" className={`mt-1 ${cardErrors.expiry ? 'border-destructive' : ''}`}
+                            maxLength={5} inputMode="numeric" />
+                          {cardErrors.expiry && <p className="text-[11px] text-destructive mt-0.5">{cardErrors.expiry}</p>}
+                        </div>
+                        <div>
+                          <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">CVC</Label>
+                          <Input value={cvc}
+                            onChange={e => { setCvc(e.target.value.replace(/\D/g,'').slice(0,4)); setCardErrors(p => ({...p, cvc:''})); }}
+                            placeholder="123" className={`mt-1 ${cardErrors.cvc ? 'border-destructive' : ''}`}
+                            type="password" maxLength={4} inputMode="numeric" />
+                          {cardErrors.cvc && <p className="text-[11px] text-destructive mt-0.5">{cardErrors.cvc}</p>}
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2 text-xs text-muted-foreground/60 bg-muted/30 rounded-lg p-2.5">
+                        <Lock className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                        <span>256-bit encrypted. Processed by <strong className="text-foreground">Stripe</strong>. We never store card details.</span>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="flex items-start gap-2 text-xs text-muted-foreground/60 bg-muted/30 rounded-lg p-2.5">
-                    <Lock className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                    <span>256-bit encrypted. Processed by <strong className="text-foreground">{gateway}</strong>. We never store card details.</span>
-                  </div>
+                  ) : (
+                    /* Paystack — no card inputs needed, payment happens on Paystack's secure page */
+                    <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                          <Shield className="w-5 h-5 text-green-500" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">Pay securely with Paystack</p>
+                          <p className="text-xs text-muted-foreground">You'll be redirected to Paystack's secure checkout</p>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5 text-xs text-muted-foreground">
+                        {['Card (Visa, Mastercard, Verve)', 'Bank Transfer', 'USSD', 'Mobile Money'].map(method => (
+                          <div key={method} className="flex items-center gap-2">
+                            <Check className="w-3 h-3 text-green-500 shrink-0" />
+                            <span>{method}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground/60 pt-1 border-t border-border">
+                        <Lock className="w-3 h-3 shrink-0" />
+                        <span>256-bit SSL encrypted. Your card details go directly to Paystack.</span>
+                      </div>
+                    </div>
+                  )}
 
                   <AnimatePresence>
                     {paymentError && (
