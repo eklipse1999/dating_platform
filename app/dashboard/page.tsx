@@ -109,7 +109,7 @@ export default function DashboardPage() {
     filters
   );
 
-  const isFreeUser      = currentUser.points === 0;
+  const isFreeUser      = currentUser.tier === 'Free' || currentUser.points < 500;
   const hasActiveSearch = debouncedQuery.trim().length > 0;
   const filtersActive   = JSON.stringify(filters) !== JSON.stringify(DEFAULT_FILTERS);
 
@@ -127,49 +127,65 @@ export default function DashboardPage() {
           <p className="text-muted-foreground text-sm">Discover meaningful connections with people who share your faith.</p>
         </motion.div>
 
-        {/* Trial Banner */}
-        {isInTrial && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-            className="mb-5 p-4 bg-gradient-to-r from-secondary/20 to-primary/20 rounded-2xl border border-secondary/30">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-secondary/20 rounded-xl"><Sparkles className="w-5 h-5 text-secondary" /></div>
-                <div>
-                  <h3 className="font-semibold text-secondary">Free Trial Active!</h3>
-                  <p className="text-sm text-muted-foreground">
-                    <strong>{trialDaysRemaining} days</strong> remaining. Enjoy unlimited messaging!
-                  </p>
-                </div>
-              </div>
-              <Link href="/upgrade">
-                <Button variant="outline" className="border-secondary text-secondary hover:bg-secondary/10 shrink-0">
-                  Upgrade Now
-                </Button>
-              </Link>
-            </div>
-          </motion.div>
-        )}
+        {/* Trial / Upgrade Banner — always show for Free tier users */}
+        {(() => {
+          // Compute days remaining from accountCreatedAt as reliable fallback
+          const createdAt = currentUser.accountCreatedAt ? new Date(currentUser.accountCreatedAt) : new Date();
+          const msElapsed = Date.now() - createdAt.getTime();
+          const daysElapsed = Math.floor(msElapsed / (1000 * 60 * 60 * 24));
+          const daysLeft = Math.max(0, 14 - daysElapsed);
+          const trialActive = isFreeUser && daysLeft > 0;
+          const trialExpiredFree = isFreeUser && daysLeft === 0;
 
-        {/* Free User Banner */}
-        {!isInTrial && isFreeUser && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-            className="mb-5 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl border border-primary/20">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-xl"><Lock className="w-5 h-5 text-primary" /></div>
-                <div>
-                  <h3 className="font-semibold text-foreground">Upgrade to unlock messaging</h3>
-                  <p className="text-sm text-muted-foreground">Viewing local profiles. Upgrade to see more and start messaging!</p>
+          if (trialActive || isInTrial) {
+            const days = trialDaysRemaining > 0 ? trialDaysRemaining : daysLeft;
+            return (
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                className="mb-5 p-4 bg-gradient-to-r from-secondary/20 to-primary/20 rounded-2xl border border-secondary/30">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-secondary/20 rounded-xl"><Sparkles className="w-5 h-5 text-secondary" /></div>
+                    <div>
+                      <h3 className="font-semibold text-secondary">Free Trial Active!</h3>
+                      <p className="text-sm text-muted-foreground">
+                        <strong>{days} day{days !== 1 ? 's' : ''}</strong> remaining. Enjoy unlimited messaging!
+                      </p>
+                    </div>
+                  </div>
+                  <Link href="/upgrade">
+                    <Button variant="outline" className="border-secondary text-secondary hover:bg-secondary/10 shrink-0">
+                      Upgrade Now
+                    </Button>
+                  </Link>
                 </div>
-              </div>
-              <Link href="/upgrade">
-                <Button className="bg-secondary hover:bg-secondary/90 text-secondary-foreground shrink-0">
-                  <Coins className="w-4 h-4 mr-2" /> Get Points
-                </Button>
-              </Link>
-            </div>
-          </motion.div>
-        )}
+              </motion.div>
+            );
+          }
+
+          if (trialExpiredFree) {
+            return (
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                className="mb-5 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl border border-primary/20">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-xl"><Lock className="w-5 h-5 text-primary" /></div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">Your free trial has ended</h3>
+                      <p className="text-sm text-muted-foreground">Upgrade to keep messaging and discover more profiles!</p>
+                    </div>
+                  </div>
+                  <Link href="/upgrade">
+                    <Button className="bg-secondary hover:bg-secondary/90 text-secondary-foreground shrink-0">
+                      <Coins className="w-4 h-4 mr-2" /> Upgrade Now
+                    </Button>
+                  </Link>
+                </div>
+              </motion.div>
+            );
+          }
+
+          return null;
+        })()}
 
         {/* Quick Stats */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
