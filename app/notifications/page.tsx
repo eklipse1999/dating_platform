@@ -51,13 +51,13 @@ type FilterType = 'all' | 'unread' | 'likes' | 'messages' | 'matches';
 
 export default function NotificationsPage() {
   const router = useRouter();
-  const { isAuthenticated, currentUser, isAdmin } = useApp();
+  const { isAuthenticated, isLoading, currentUser, isAdmin } = useApp();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<FilterType>('all');
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   useEffect(() => { if (isAdmin) router.push('/admin'); }, [isAdmin, router]);
-  useEffect(() => { if (!isAuthenticated) router.push('/login'); }, [isAuthenticated, router]);
+  useEffect(() => { if (!isLoading && !isAuthenticated) router.push('/login'); }, [isAuthenticated, isLoading, router]);
   useEffect(() => { setNotifications(MOCK); }, []);
 
   if (!isAuthenticated || !currentUser) return null;

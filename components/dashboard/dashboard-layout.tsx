@@ -14,9 +14,11 @@ interface DashboardLayoutProps {
   children: ReactNode;
   showRightSidebar?: boolean;
   showLeftSidebar?: boolean;
+  onSearch?: (query: string) => void;
+  searchQuery?: string;
 }
 
-export function DashboardLayout({ children, showRightSidebar = true, showLeftSidebar = true }: DashboardLayoutProps) {
+export function DashboardLayout({ children, showRightSidebar = true, showLeftSidebar = true, onSearch, searchQuery = '' }: DashboardLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -59,15 +61,23 @@ export function DashboardLayout({ children, showRightSidebar = true, showLeftSid
         <main className={`flex-1 min-w-0 min-h-screen ${showLeftSidebar ? 'lg:ml-20 xl:ml-64' : ''} ${showRightSidebar ? 'xl:mr-80' : ''}`}>
           {/* Desktop Header */}
           <header className="hidden lg:flex sticky top-0 z-20 h-16 bg-background/80 backdrop-blur-lg border-b border-border items-center px-6">
-            {/* Search bar — truly centered via absolute positioning */}
+            {/* Search bar — truly centered, wired to page search state when onSearch is provided */}
             <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-md px-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="Search for people, posts, jobs..."
+                  placeholder="Search by name, denomination, location..."
+                  value={onSearch ? searchQuery : undefined}
+                  onChange={onSearch ? (e) => onSearch(e.target.value) : undefined}
                   className="w-full pl-10 pr-4 py-2 rounded-full bg-muted/50 border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                 />
+                {onSearch && searchQuery && (
+                  <button onClick={() => onSearch('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </div>
             {/* Right actions pinned to the right */}

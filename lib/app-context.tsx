@@ -12,6 +12,7 @@ type LocationPermissionStatus = 'idle' | 'requesting' | 'granted' | 'denied';
 
 interface AppContextType {
   isAuthenticated: boolean;
+  isLoading?: boolean;
   currentUser: User | null;
   userLocation: UserLocation | null;
   locationPermissionStatus: LocationPermissionStatus;
@@ -645,6 +646,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const value: AppContextType = {
     isAuthenticated,
+    isLoading,
     currentUser,
     userLocation,
     locationPermissionStatus,

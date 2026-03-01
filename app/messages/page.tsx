@@ -124,7 +124,7 @@ function ConversationItem({ conversation, isSelected, onClick, onPin, onMute, on
 function MessagesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated, currentUser, users = [], canMessage, canScheduleDates, accountAgeDays = 0, isAdmin } = useApp();
+  const { isAuthenticated, currentUser, users = [], canMessage, canScheduleDates, accountAgeDays = 0, isAdmin, isLoading } = useApp();
 
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
@@ -147,7 +147,7 @@ function MessagesContent() {
   const inputAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { if (isAdmin) router.push('/admin'); }, [isAdmin, router]);
-  useEffect(() => { if (!isAuthenticated) router.push('/login'); }, [isAuthenticated, router]);
+  useEffect(() => { if (!isLoading && !isAuthenticated) router.push('/login'); }, [isAuthenticated, isLoading, router]);
 
   // Click outside to close pickers
   useEffect(() => {
@@ -247,7 +247,7 @@ function MessagesContent() {
       if (filterType === 'archived') return c.isArchived;
       return !c.isArchived;
     })
-    .filter(c => (c.user.name || '').toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter(c => c.user.name?.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => {
       if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
       return (b.lastMessage?.timestamp?.getTime() || 0) - (a.lastMessage?.timestamp?.getTime() || 0);

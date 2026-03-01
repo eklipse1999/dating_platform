@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Camera, Edit, Save, X, MapPin, 
+import {
+  Camera, Edit, Save, X, MapPin, Briefcase, Heart,
   Church, BookOpen, Award, Shield, Loader2, Upload,
   CheckCircle, XCircle, Clock, AlertCircle, Key, Lock,
   Smartphone, Mail, RefreshCw, User
@@ -22,18 +22,13 @@ import { Badge } from '@/components/ui/badge';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { isAuthenticated, currentUser, isAdmin } = useApp();
+  const { isAuthenticated, currentUser, isAdmin, isLoading: authLoading } = useApp();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Redirect admins
-  useEffect(() => {
-    if (isAdmin) router.push('/admin');
-  }, [isAdmin, router]);
-
-  // Profile data state
   const [profileData, setProfileData] = useState({
     first_name: '',
     last_name: '',
@@ -45,21 +40,20 @@ export default function ProfilePage() {
     bio: '',
     career: '',
     denomination: '',
-    city: '',
     country: '',
+    city: '',
     interests: [] as string[],
     values: [] as string[],
     faithJourney: '',
     churchName: '',
     churchBranch: '',
+    lookingFor: '',   // maps to 'looking_for' in API
   });
 
-  // Photo state
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [profileImageUrl, setProfileImageUrl] = useState<string>('');
   const [previewUrl, setPreviewUrl] = useState<string>('');
-  const [existingPhotoUrl, setExistingPhotoUrl] = useState<string>('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // ID Verification state
   const [idVerification, setIdVerification] = useState({
     status: 'pending' as 'pending' | 'submitted' | 'verified' | 'rejected',
     documentType: '',
@@ -69,7 +63,6 @@ export default function ProfilePage() {
   });
   const [idDocument, setIdDocument] = useState<File | null>(null);
 
-  // Security state
   const [securitySettings, setSecuritySettings] = useState({
     emailVerified: false,
     phoneVerified: false,
@@ -77,9 +70,9 @@ export default function ProfilePage() {
     lastPasswordChange: null as Date | null,
   });
 
-  // Auth + load
   useEffect(() => {
     if (isAdmin) { router.push('/admin'); return; }
+    if (authLoading) return;
     if (!isAuthenticated) { router.push('/login'); return; }
     loadProfileData();
   }, [isAdmin, isAuthenticated, router]);
@@ -89,29 +82,37 @@ export default function ProfilePage() {
       setIsLoadingProfile(true);
       const userProfile = await usersService.getCurrentUser();
 
+      // Normalise — backend may return PascalCase (FirstName) or snake_case (first_name)
+      const p = userProfile as any;
+      const pick = (...keys: string[]) => {
+        for (const k of keys) { if (p[k] !== undefined && p[k] !== null && p[k] !== '') return p[k]; }
+        return undefined;
+      };
       setProfileData({
-        first_name: userProfile.first_name || currentUser?.first_name || '',
-        last_name: userProfile.last_name || currentUser?.last_name || '',
-        username: userProfile.name || currentUser?.name || '',
-        email: userProfile.email || currentUser?.email || '',
-        age: userProfile.age || currentUser?.age || 25,
-        gender: (userProfile.gender || currentUser?.gender || 'male') as 'male' | 'female',
-        phone: userProfile.phone || currentUser?.phone || '',
-        bio: userProfile.bio || currentUser?.bio || '',
-        career: userProfile.career || currentUser?.career || '',
-        denomination: userProfile.denomination || currentUser?.denomination || '',
-        city: userProfile.location?.city || currentUser?.location?.city || '',
-        country: userProfile.location?.country || currentUser?.location?.country || '',
-        interests: userProfile.interests || currentUser?.interests || [],
-        values: userProfile.values || currentUser?.values || [],
-        faithJourney: userProfile.faithJourney || currentUser?.faithJourney || '',
-        churchName: userProfile.church?.name || '',
-        churchBranch: userProfile.church?.branch || '',
+        first_name:   pick('first_name',   'FirstName',   'firstName')    || currentUser?.first_name || '',
+        last_name:    pick('last_name',    'LastName',    'lastName')     || currentUser?.last_name  || '',
+        username:     pick('user_name',    'UserName',    'username',  'Username', 'name', 'Name') || currentUser?.name || '',
+        email:        pick('email',        'Email')                       || currentUser?.email || '',
+        age:          pick('age',          'Age')                         || currentUser?.age   || 25,
+        gender:      (pick('gender',       'Gender')                      || currentUser?.gender || 'male') as 'male' | 'female',
+        phone:        pick('phone',        'Phone')                       || currentUser?.phone || '',
+        bio:          pick('bio',          'Bio')                         || '',
+        career:       pick('career',       'Career')                      || '',
+        denomination: pick('denomination', 'Denomination')                || '',
+        country:      pick('country',      'Country')    || p.location?.country || currentUser?.location?.country || '',
+        city:         pick('city',         'City')       || p.location?.city    || currentUser?.location?.city    || '',
+        interests:    pick('interests',    'Interests')                   || [],
+        values:       pick('values',       'Values')                      || [],
+        faithJourney: pick('faithJourney', 'FaithJourney', 'key', 'Key') || '',
+        churchName:   pick('church_name',  'ChurchName',  'churchName')  || p.church?.name   || currentUser?.church?.name   || '',
+        churchBranch: pick('church_branch','ChurchBranch','churchBranch') || p.church?.branch || currentUser?.church?.branch || '',
+        lookingFor:   pick('looking_for',  'LookingFor',  'lookingFor')  || '',
       });
 
-      // Capture existing photo URL from backend
-      const photo = (userProfile as any).profile_image || (userProfile as any).profileImage || (userProfile as any).avatar_url || '';
-      if (photo && !photo.startsWith('👤')) setExistingPhotoUrl(photo);
+      // Load existing profile image — field is profile_image in flat schema
+      if ((userProfile as any).profile_image || (userProfile as any).profileImage) {
+        setProfileImageUrl((userProfile as any).profile_image || (userProfile as any).profileImage);
+      }
 
       if (userProfile.idVerification) {
         setIdVerification({
@@ -133,26 +134,28 @@ export default function ProfilePage() {
       }
     } catch (error) {
       console.error('Failed to load profile:', error);
-      // Silent fallback — use cached context data, no annoying CORS toast
+      // Fall back to currentUser data from context (set at login/signup)
       if (currentUser) {
+        const u = currentUser as any;
         setProfileData({
-          first_name: currentUser.first_name || '',
-          last_name: currentUser.last_name || '',
-          username: currentUser.name || '',
-          email: currentUser.email || '',
-          age: currentUser.age || 25,
-          gender: currentUser.gender || 'male',
-          phone: currentUser.phone || '',
-          bio: currentUser.bio || '',
-          career: currentUser.career || '',
-          denomination: currentUser.denomination || '',
-          city: currentUser.location?.city || '',
-          country: currentUser.location?.country || '',
-          interests: currentUser.interests || [],
-          values: currentUser.values || [],
-          faithJourney: currentUser.faithJourney || '',
-          churchName: currentUser.church?.name || '',
-          churchBranch: currentUser.church?.branch || '',
+          first_name:   u.first_name   || u.FirstName   || '',
+          last_name:    u.last_name    || u.LastName    || '',
+          username:     u.name         || u.user_name   || u.UserName   || '',
+          email:        u.email        || u.Email       || '',
+          age:          u.age          || u.Age         || 25,
+          gender:      (u.gender       || u.Gender      || 'male') as 'male' | 'female',
+          phone:        u.phone        || u.Phone       || '',
+          bio:          u.bio          || u.Bio         || '',
+          career:       u.career       || u.Career      || '',
+          denomination: u.denomination || u.Denomination|| '',
+          country:      u.location?.country || '',
+          city:         u.location?.city    || '',
+          interests:    u.interests    || [],
+          values:       u.values       || [],
+          faithJourney: u.faithJourney || u.key         || '',
+          churchName:   u.church?.name   || u.church_name   || '',
+          churchBranch: u.church?.branch || u.church_branch || '',
+          lookingFor:   u.looking_for    || u.lookingFor    || '',
         });
       }
     } finally {
@@ -164,74 +167,69 @@ export default function ProfilePage() {
     setProfileData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Show preview immediately on file select
+  // Handle photo file selection — show preview immediately
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Image must be under 5MB');
       return;
     }
+
     setSelectedFile(file);
     const reader = new FileReader();
     reader.onloadend = () => setPreviewUrl(reader.result as string);
     reader.readAsDataURL(file);
-    toast.info('Photo selected — will upload when you save');
+    toast.success('Photo selected — click Save Changes to upload');
   };
 
-  const handleIdDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setIdDocument(file);
-      toast.success('Document selected. Click "Submit for Verification" to upload.');
+  // Upload photo to backend, returns the URL
+  const uploadPhoto = async (file: File): Promise<string | null> => {
+    try {
+      setIsUploadingPhoto(true);
+      const url = await usersService.uploadPhoto(file);
+      return url;
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to upload photo');
+      return null;
+    } finally {
+      setIsUploadingPhoto(false);
     }
-  };
-
-  const handleSubmitIdVerification = async () => {
-    if (!idDocument) { toast.error('Please select a document first'); return; }
-    if (!idVerification.documentType) { toast.error('Please select a document type'); return; }
-    toast.info('ID verification submission is coming soon.');
   };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      let newPhotoUrl = existingPhotoUrl;
+      let newImageUrl = profileImageUrl;
 
-      // 1. Upload photo first if one was selected
+      // Upload photo first if one was selected
       if (selectedFile) {
-        setIsUploadingPhoto(true);
-        try {
-          const uploadedUrl = await usersService.uploadPhoto(selectedFile);
-          if (uploadedUrl) {
-            newPhotoUrl = uploadedUrl;
-            setExistingPhotoUrl(uploadedUrl);
-            setPreviewUrl('');
-            setSelectedFile(null);
-            toast.success('Photo uploaded!');
-          }
-        } catch (photoError: any) {
-          toast.error(photoError.message || 'Photo upload failed — profile info will still save');
-        } finally {
-          setIsUploadingPhoto(false);
+        const uploaded = await uploadPhoto(selectedFile);
+        if (uploaded) {
+          newImageUrl = uploaded;
+          setProfileImageUrl(uploaded);
+          setPreviewUrl('');
+          setSelectedFile(null);
         }
       }
 
-      // 2. Send flat snake_case payload — exactly what the backend /update/user expects
+      // PUT /update/user — EXACT fields from Swagger (image confirmed):
+      // age, bio, career, church_branch, church_name, denomination, gender,
+      // interests[], key, looking_for, profile_image
+      // NOTE: first_name, last_name, phone, city, country are NOT accepted by this endpoint
       const updateData = {
-        age: profileData.age,
-        bio: profileData.bio,
-        career: profileData.career,
-        church_branch: profileData.churchBranch,
-        church_name: profileData.churchName,
-        city: profileData.city,
-        country: profileData.country,
-        denomination: profileData.denomination,
-        gender: profileData.gender,
-        interests: profileData.interests,
-        key: '',
-        looking_for: '',
-        profile_image: newPhotoUrl || '',
+        age:           profileData.age,
+        bio:           profileData.bio          || undefined,
+        career:        profileData.career       || undefined,
+        church_branch: profileData.churchBranch || undefined,
+        church_name:   profileData.churchName   || undefined,
+        denomination:  profileData.denomination || undefined,
+        gender:        profileData.gender,
+        interests:     profileData.interests?.length ? profileData.interests : undefined,
+        key:           profileData.faithJourney || undefined,  // faith journey → 'key'
+        looking_for:   profileData.lookingFor   || undefined,
+        ...(newImageUrl ? { profile_image: newImageUrl } : {}),
       };
 
       await usersService.updateProfile(updateData);
@@ -253,17 +251,34 @@ export default function ProfilePage() {
     loadProfileData();
   };
 
-  const getVerificationStatusBadge = (status: string) => {
-    switch (status) {
-      case 'verified':  return <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Verified</Badge>;
-      case 'submitted': return <Badge className="bg-blue-500"><Clock className="w-3 h-3 mr-1" />Under Review</Badge>;
-      case 'rejected':  return <Badge className="bg-red-500"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
-      default:          return <Badge variant="outline"><AlertCircle className="w-3 h-3 mr-1" />Pending</Badge>;
+  const handleIdDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIdDocument(file);
+      toast.success('Document selected. Click "Submit for Verification" to upload.');
     }
   };
 
-  // What to actually display as the avatar
-  const displayImage = previewUrl || existingPhotoUrl;
+  const handleSubmitIdVerification = async () => {
+    if (!idDocument) { toast.error('Please select a document first'); return; }
+    if (!idVerification.documentType) { toast.error('Please select a document type'); return; }
+    try {
+      toast.info('ID verification submission coming soon.');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to submit document');
+    }
+  };
+
+  const getVerificationStatusBadge = (status: string) => {
+    switch (status) {
+      case 'verified':   return <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Verified</Badge>;
+      case 'submitted':  return <Badge className="bg-blue-500"><Clock className="w-3 h-3 mr-1" />Under Review</Badge>;
+      case 'rejected':   return <Badge className="bg-red-500"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
+      default:           return <Badge variant="outline"><AlertCircle className="w-3 h-3 mr-1" />Pending</Badge>;
+    }
+  };
+
+  const displayImage = previewUrl || profileImageUrl;
 
   if (!isAuthenticated || !currentUser) return null;
 
@@ -278,75 +293,77 @@ export default function ProfilePage() {
   }
 
   return (
-    <DashboardLayout showRightSidebar={false}>
+    <DashboardLayout>
       <div className="max-w-4xl mx-auto px-4 py-8">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-muted-foreground mb-2">My Profile</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-1">My Profile</h1>
             <p className="text-muted-foreground">Manage your personal information and preferences</p>
           </div>
-          
-          {!isEditing ? (
-            <Button onClick={() => setIsEditing(true)}>
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Profile
-            </Button>
-          ) : (
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
-                <X className="w-4 h-4 mr-2" />
-                Cancel
+          <div className="flex gap-2">
+            {!isEditing ? (
+              <Button onClick={() => setIsEditing(true)}>
+                <Edit className="w-4 h-4 mr-2" />Edit Profile
               </Button>
-              <Button onClick={handleSave} disabled={isSaving || isUploadingPhoto}>
-                {isSaving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {isUploadingPhoto ? 'Uploading photo...' : 'Saving...'}
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Changes
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
+            ) : (
+              <>
+                <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
+                  <X className="w-4 h-4 mr-2" />Cancel
+                </Button>
+                <Button onClick={handleSave} disabled={isSaving || isUploadingPhoto}>
+                  {isSaving ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</>
+                  ) : (
+                    <><Save className="w-4 h-4 mr-2" />Save Changes</>
+                  )}
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Profile Picture Section */}
+        {/* Profile Picture */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-card rounded-2xl border border-border p-6 mb-6"
         >
-          <h2 className="text-xl font-semibold text-muted-foreground mb-4">Profile Picture</h2>
-          
+          <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+            <User className="w-5 h-5" />Profile Picture
+          </h2>
+
           <div className="flex items-center gap-6">
-            {/* Avatar with hover overlay in edit mode */}
-            <div className="relative group flex-shrink-0">
-              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-6xl overflow-hidden border-4 border-border">
+            <div className="relative group">
+              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center overflow-hidden border-4 border-border">
                 {displayImage ? (
                   <img src={displayImage} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
-                  <span>{currentUser.avatar || '👤'}</span>
+                  <span className="text-5xl">{currentUser.avatar || '👤'}</span>
                 )}
               </div>
 
-              {/* Hover overlay */}
+              {/* Upload overlay — always visible in edit mode */}
               {isEditing && (
-                <label
+                <motion.label
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   htmlFor="photo-upload"
                   className="absolute inset-0 rounded-full bg-black/50 flex flex-col items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                 >
-                  <Camera className="w-6 h-6 text-white mb-1" />
-                  <span className="text-white text-xs font-medium">Change</span>
-                </label>
+                  {isUploadingPhoto ? (
+                    <Loader2 className="w-6 h-6 text-white animate-spin" />
+                  ) : (
+                    <>
+                      <Camera className="w-6 h-6 text-white mb-1" />
+                      <span className="text-white text-xs font-medium">Change</span>
+                    </>
+                  )}
+                </motion.label>
               )}
 
-              {/* Persistent camera badge */}
+              {/* Always-visible camera button in edit mode */}
               {isEditing && (
                 <label
                   htmlFor="photo-upload"
@@ -358,29 +375,30 @@ export default function ProfilePage() {
 
               <input
                 id="photo-upload"
+                ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 onChange={handlePhotoSelect}
                 className="hidden"
               />
             </div>
-            
-            <div>
-              <h3 className="text-lg font-semibold text-muted-foreground">
+
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-foreground">
                 {profileData.first_name} {profileData.last_name}
               </h3>
               <p className="text-muted-foreground">@{profileData.username}</p>
-              {(profileData.city || profileData.country) && (
+              {(profileData.country) && (
                 <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                   <MapPin className="w-3 h-3" />
-                  {[profileData.city, profileData.country].filter(Boolean).join(', ')}
+                  {profileData.city ? `${profileData.city}, ` : ''}{profileData.country}
                 </p>
               )}
               <div className="mt-2">
                 <TierBadge tier={currentUser.tier} />
               </div>
 
-              {/* Photo hint */}
+              {/* Photo hint in edit mode */}
               <AnimatePresence>
                 {isEditing && (
                   <motion.p
@@ -390,8 +408,8 @@ export default function ProfilePage() {
                     className="text-xs text-muted-foreground mt-2"
                   >
                     {selectedFile
-                      ? `✓ "${selectedFile.name}" ready — saves with profile`
-                      : 'Hover avatar or click camera to change photo (max 5MB)'}
+                      ? `✓ "${selectedFile.name}" ready to upload`
+                      : 'Click the camera icon to change your photo (max 5MB)'}
                   </motion.p>
                 )}
               </AnimatePresence>
@@ -403,14 +421,12 @@ export default function ProfilePage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.05 }}
           className="bg-card rounded-2xl border border-border p-6 mb-6"
         >
-          <h2 className="text-xl font-semibold text-muted-foreground mb-4 flex items-center gap-2">
-            <Award className="w-5 h-5" />
-            Basic Information
+          <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Award className="w-5 h-5" />Basic Information
           </h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>First Name</Label>
@@ -425,7 +441,7 @@ export default function ProfilePage() {
               <Input value={profileData.username} onChange={(e) => handleInputChange('username', e.target.value)} disabled={!isEditing} />
             </div>
             <div>
-              <Label>Email <span className="text-xs text-muted-foreground font-normal">(cannot be changed)</span></Label>
+              <Label>Email <span className="text-xs text-muted-foreground">(cannot be changed)</span></Label>
               <Input value={profileData.email} disabled className="bg-muted" />
             </div>
             <div>
@@ -459,12 +475,11 @@ export default function ProfilePage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.1 }}
           className="bg-card rounded-2xl border border-border p-6 mb-6"
         >
-          <h2 className="text-xl font-semibold text-muted-foreground mb-4 flex items-center gap-2">
-            <MapPin className="w-5 h-5" />
-            Location
+          <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+            <MapPin className="w-5 h-5" />Location
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -482,34 +497,37 @@ export default function ProfilePage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.15 }}
           className="bg-card rounded-2xl border border-border p-6 mb-6"
         >
-          <h2 className="text-xl font-semibold text-muted-foreground mb-4 flex items-center gap-2">
-            <BookOpen className="w-5 h-5" />
-            About Me
+          <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+            <BookOpen className="w-5 h-5" />About Me
           </h2>
-          <div>
-            <Label>Bio</Label>
-            <Textarea value={profileData.bio} onChange={(e) => handleInputChange('bio', e.target.value)} disabled={!isEditing} placeholder="Tell us about yourself..." rows={4} />
-          </div>
+          <Label>Bio</Label>
+          <Textarea
+            value={profileData.bio}
+            onChange={(e) => handleInputChange('bio', e.target.value)}
+            disabled={!isEditing}
+            placeholder="Tell us about yourself..."
+            rows={4}
+            className="mt-1"
+          />
         </motion.div>
 
-        {/* Faith Information */}
+        {/* Faith */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.2 }}
           className="bg-card rounded-2xl border border-border p-6 mb-6"
         >
-          <h2 className="text-xl font-semibold text-muted-foreground mb-4 flex items-center gap-2">
-            <Church className="w-5 h-5" />
-            Faith & Church
+          <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Church className="w-5 h-5" />Faith & Church
           </h2>
           <div className="space-y-4">
             <div>
               <Label>Denomination</Label>
-              <Input value={profileData.denomination} onChange={(e) => handleInputChange('denomination', e.target.value)} disabled={!isEditing} placeholder="e.g., Baptist, Catholic, Non-denominational" />
+              <Input value={profileData.denomination} onChange={(e) => handleInputChange('denomination', e.target.value)} disabled={!isEditing} placeholder="e.g., Baptist, Catholic, Non-denominational" className="mt-1" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -523,36 +541,50 @@ export default function ProfilePage() {
             </div>
             <div>
               <Label>Faith Journey</Label>
-              <Textarea value={profileData.faithJourney} onChange={(e) => handleInputChange('faithJourney', e.target.value)} disabled={!isEditing} placeholder="Share your faith journey..." rows={4} />
+              <Textarea value={profileData.faithJourney} onChange={(e) => handleInputChange('faithJourney', e.target.value)} disabled={!isEditing} placeholder="Share your faith journey..." rows={4} className="mt-1" />
+            </div>
+            <div>
+              <Label>Looking For</Label>
+              <select
+                value={profileData.lookingFor}
+                onChange={(e) => handleInputChange('lookingFor', e.target.value)}
+                disabled={!isEditing}
+                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">Select what you're looking for</option>
+                <option value="marriage">Marriage</option>
+                <option value="serious_relationship">Serious Relationship</option>
+                <option value="friendship">Friendship</option>
+                <option value="not_sure">Not Sure Yet</option>
+              </select>
             </div>
           </div>
         </motion.div>
 
-        {/* ID Verification Section */}
+        {/* ID Verification */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.25 }}
           className="bg-card rounded-2xl border border-border p-6 mb-6"
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-muted-foreground flex items-center gap-2">
-              <Award className="w-5 h-5" />
-              ID Verification
+            <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+              <Award className="w-5 h-5" />ID Verification
             </h2>
             {getVerificationStatusBadge(idVerification.status)}
           </div>
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Verify your identity to increase trust and unlock premium features
-            </p>
+            <p className="text-sm text-muted-foreground">Verify your identity to increase trust and unlock premium features.</p>
+
             {idVerification.status === 'rejected' && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-800">
+              <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+                <p className="text-sm text-red-800 dark:text-red-300">
                   <strong>Rejection Reason:</strong> {idVerification.rejectionReason || 'Please resubmit your document'}
                 </p>
               </div>
             )}
+
             {idVerification.status !== 'verified' && (
               <>
                 <div>
@@ -560,7 +592,7 @@ export default function ProfilePage() {
                   <select
                     value={idVerification.documentType}
                     onChange={(e) => setIdVerification(prev => ({ ...prev, documentType: e.target.value }))}
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background mt-1"
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm mt-1"
                   >
                     <option value="">Select document type</option>
                     <option value="passport">Passport</option>
@@ -568,34 +600,34 @@ export default function ProfilePage() {
                     <option value="national_id">National ID Card</option>
                   </select>
                 </div>
+
                 <div>
                   <Label>Upload Document</Label>
-                  <div className="mt-2">
-                    <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-all duration-200">
-                      <div className="text-center">
-                        <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">
-                          {idDocument ? `✓ ${idDocument.name}` : 'Click to upload ID document'}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">JPG, PNG or PDF (max 10MB)</p>
-                      </div>
-                      <input type="file" accept="image/*,.pdf" onChange={handleIdDocumentSelect} className="hidden" />
-                    </label>
-                  </div>
+                  <label className="mt-2 flex items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary hover:bg-primary/5 transition-all duration-200">
+                    <div className="text-center">
+                      <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        {idDocument ? `✓ ${idDocument.name}` : 'Click to upload ID document'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">JPG, PNG or PDF (max 10MB)</p>
+                    </div>
+                    <input type="file" accept="image/*,.pdf" onChange={handleIdDocumentSelect} className="hidden" />
+                  </label>
                 </div>
+
                 <Button onClick={handleSubmitIdVerification} disabled={!idDocument || !idVerification.documentType} className="w-full">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Submit for Verification
+                  <Upload className="w-4 h-4 mr-2" />Submit for Verification
                 </Button>
               </>
             )}
+
             {idVerification.status === 'verified' && (
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-xl">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-600" />
                   <div>
-                    <p className="font-medium text-green-900">Identity Verified</p>
-                    <p className="text-sm text-green-700">
+                    <p className="font-medium text-green-900 dark:text-green-300">Identity Verified</p>
+                    <p className="text-sm text-green-700 dark:text-green-400">
                       Verified on {idVerification.verifiedAt ? new Date(idVerification.verifiedAt).toLocaleDateString() : 'N/A'}
                     </p>
                   </div>
@@ -605,75 +637,57 @@ export default function ProfilePage() {
           </div>
         </motion.div>
 
-        {/* Security Verification Section */}
+        {/* Security */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.3 }}
           className="bg-card rounded-2xl border border-border p-6"
         >
-          <h2 className="text-xl font-semibold text-muted-foreground mb-4 flex items-center gap-2">
-            <Shield className="w-5 h-5" />
-            Security & Verification
+          <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Shield className="w-5 h-5" />Security & Verification
           </h2>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">Email Verification</p>
-                  <p className="text-sm text-muted-foreground">{profileData.email}</p>
+            {[
+              {
+                icon: Mail, label: 'Email Verification', value: profileData.email,
+                verified: securitySettings.emailVerified, action: 'Verify Email',
+              },
+              {
+                icon: Smartphone, label: 'Phone Verification', value: profileData.phone || 'No phone added',
+                verified: securitySettings.phoneVerified, action: 'Verify Phone', disabled: !profileData.phone,
+              },
+              {
+                icon: Key, label: 'Two-Factor Authentication',
+                value: securitySettings.twoFactorEnabled ? 'Enabled' : 'Disabled',
+                verified: securitySettings.twoFactorEnabled, action: securitySettings.twoFactorEnabled ? 'Manage' : 'Enable 2FA',
+              },
+              {
+                icon: Lock, label: 'Password',
+                value: securitySettings.lastPasswordChange
+                  ? `Last changed ${new Date(securitySettings.lastPasswordChange).toLocaleDateString()}`
+                  : 'Never changed',
+                verified: false, action: 'Change Password', showRefresh: true,
+              },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center justify-between p-3 bg-muted/40 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <item.icon className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium text-sm">{item.label}</p>
+                    <p className="text-xs text-muted-foreground">{item.value}</p>
+                  </div>
                 </div>
+                {item.verified ? (
+                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                ) : (
+                  <Button variant="outline" size="sm" disabled={(item as any).disabled}>
+                    {(item as any).showRefresh && <RefreshCw className="w-3 h-3 mr-1" />}
+                    {item.action}
+                  </Button>
+                )}
               </div>
-              {securitySettings.emailVerified ? (
-                <CheckCircle className="w-5 h-5 text-green-500" />
-              ) : (
-                <Button variant="outline" size="sm">Verify Email</Button>
-              )}
-            </div>
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Smartphone className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">Phone Verification</p>
-                  <p className="text-sm text-muted-foreground">{profileData.phone || 'No phone number added'}</p>
-                </div>
-              </div>
-              {securitySettings.phoneVerified ? (
-                <CheckCircle className="w-5 h-5 text-green-500" />
-              ) : (
-                <Button variant="outline" size="sm" disabled={!profileData.phone}>Verify Phone</Button>
-              )}
-            </div>
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Key className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">Two-Factor Authentication</p>
-                  <p className="text-sm text-muted-foreground">{securitySettings.twoFactorEnabled ? 'Enabled' : 'Disabled'}</p>
-                </div>
-              </div>
-              <Button variant="outline" size="sm">
-                {securitySettings.twoFactorEnabled ? 'Manage' : 'Enable 2FA'}
-              </Button>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Lock className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">Password</p>
-                  <p className="text-sm text-muted-foreground">
-                    {securitySettings.lastPasswordChange 
-                      ? `Last changed ${new Date(securitySettings.lastPasswordChange).toLocaleDateString()}`
-                      : 'Never changed'}
-                  </p>
-                </div>
-              </div>
-              <Button variant="outline" size="sm">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Change Password
-              </Button>
-            </div>
+            ))}
           </div>
         </motion.div>
 

@@ -134,7 +134,7 @@ function PlanCard({ pkg, index, isSelected, onClick }: {
 // ══════════════════════════════════════════════════════════════════════════════
 export default function UpgradePage() {
   const router = useRouter();
-  const { isAuthenticated, currentUser, userLocation, addPoints, isInTrial, trialDaysRemaining, isAdmin } = useApp();
+  const { isAuthenticated, isLoading, currentUser, userLocation, addPoints, isInTrial, trialDaysRemaining, isAdmin } = useApp();
 
   // Plans
   const [packages, setPackages]       = useState<PointsPackage[]>(POINTS_PACKAGES);
@@ -157,7 +157,7 @@ export default function UpgradePage() {
   const [cardErrors, setCardErrors] = useState<Record<string, string>>({});
 
   useEffect(() => { if (isAdmin) router.push('/admin'); }, [isAdmin, router]);
-  useEffect(() => { if (!isAuthenticated) router.push('/login'); }, [isAuthenticated, router]);
+  useEffect(() => { if (!isLoading && !isAuthenticated) router.push('/login'); }, [isAuthenticated, isLoading, router]);
 
   // ── GET /plans ─────────────────────────────────────────────────────────────
   const loadPlans = async () => {

@@ -60,6 +60,7 @@ export interface User {
   avatar: string;
   photos: string[];
   denomination?: string;
+  looking_for?: string;
   interests?: string[];
   faithJourney?: string;
   values?: string[];

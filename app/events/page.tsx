@@ -9,6 +9,7 @@ import {
   BookOpen, Building2, Sparkles, Flower, Loader2, X, CheckCircle
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
+import { RightSidebar } from '@/components/dashboard/right-sidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -72,11 +73,15 @@ export default function EventsPage() {
   const [filterDate, setFilterDate] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newEvent, setNewEvent] = useState({ title: '', description: '', date: '', location: '', maxAttendees: '' });
+  const [newEvent, setNewEvent] = useState({
+    title: '', description: '', date: '', time: '',
+    location: '', city: '', category: 'social',
+    maxAttendees: '', price: '', isVirtual: false, isFree: true,
+  });
   const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => { if (isAdmin) router.push('/admin'); }, [isAdmin, router]);
-  useEffect(() => { if (!isAuthenticated) router.push('/login'); }, [isAuthenticated, router]);
+  useEffect(() => { if (!isLoading && !isAuthenticated) router.push('/login'); }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
     const load = async () => {
@@ -125,25 +130,55 @@ export default function EventsPage() {
   };
 
   const handleCreate = async () => {
-    if (!newEvent.title || !newEvent.date || !newEvent.location) { toast.error('Title, date and location are required'); return; }
+    if (!newEvent.title || !newEvent.date || !newEvent.location) {
+      toast.error('Title, date and location are required');
+      return;
+    }
     setIsCreating(true);
     try {
-      const created = await eventsService.createEvent({ title: newEvent.title, description: newEvent.description, date: new Date(newEvent.date), location: newEvent.location, maxAttendees: newEvent.maxAttendees ? parseInt(newEvent.maxAttendees) : undefined });
-      setEvents(prev => [{ ...created, date: new Date(created.date), isFree: true, tags: [], category: 'social', attendees: 0 } as UIEvent, ...prev]);
-      toast.success('Event created!');
+      const payload = {
+        title: newEvent.title,
+        description: newEvent.description,
+        date: new Date(newEvent.date).toISOString(),   // ISO string as backend expects
+        time: newEvent.time || undefined,
+        location: newEvent.location,
+        city: newEvent.city || undefined,
+        category: newEvent.category,
+        maxAttendees: newEvent.maxAttendees ? parseInt(newEvent.maxAttendees) : undefined,
+        price: newEvent.price ? parseFloat(newEvent.price) : undefined,
+        isFree: newEvent.isFree,
+        isVirtual: newEvent.isVirtual,
+        attendees: 0,
+        isSponsored: false,
+        tags: [],
+      };
+      const created = await eventsService.createEvent(payload);
+      // Normalise response into UIEvent shape
+      const newUIEvent: UIEvent = {
+        ...created,
+        date: new Date(created.date),
+        isFree: created.isFree ?? (!created.price || created.price === 0),
+        tags: created.tags || [],
+        category: created.category || newEvent.category,
+        time: created.time || newEvent.time,
+      };
+      setEvents(prev => [newUIEvent, ...prev]);
+      toast.success('Event created! 🎉');
       setShowCreateModal(false);
-      setNewEvent({ title: '', description: '', date: '', location: '', maxAttendees: '' });
+      setNewEvent({ title: '', description: '', date: '', time: '', location: '', city: '', category: 'social', maxAttendees: '', price: '', isVirtual: false, isFree: true });
     } catch (err: any) {
       toast.error(err.message || 'Failed to create event');
-    } finally { setIsCreating(false); }
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
     <DashboardLayout>
-      <div className="max-w-5xl mx-auto px-4 py-6">
+      <div className="w-full min-w-0">
 
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground font-serif mb-1">Discover Events</h1>
             <p className="text-muted-foreground text-sm">Find worship services, social gatherings, and dating events near you.</p>
@@ -168,7 +203,7 @@ export default function EventsPage() {
         <AnimatePresence>
           {showFilters && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-4">
-              <div className="p-5 bg-card rounded-2xl border border-border grid sm:grid-cols-3 gap-4">
+              <div className="p-4 bg-card rounded-2xl border border-border grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
                   { label: 'Date', value: filterDate, set: setFilterDate, opts: [['all', 'Any Date'], ['today', 'Today'], ['week', 'This Week']] },
                   { label: 'Type', value: filterType, set: setFilterType, opts: [['all', 'All Types'], ['in-person', 'In-Person'], ['virtual', 'Virtual'], ['free', 'Free Only']] },
@@ -189,7 +224,7 @@ export default function EventsPage() {
         </AnimatePresence>
 
         {/* Category pills */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-3 sm:mx-0 px-3 sm:px-0 scrollbar-hide">
           {categories.map(cat => (
             <motion.button key={cat.id} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => setActiveCategory(cat.id)}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${activeCategory === cat.id ? 'bg-primary text-primary-foreground shadow-md' : 'bg-card border border-border hover:bg-muted'}`}>
@@ -204,10 +239,10 @@ export default function EventsPage() {
         {isLoading ? (
           <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
         ) : filtered.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filtered.map((event, i) => (
               <motion.div key={event.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                className="bg-card rounded-2xl border border-border overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all duration-300 group">
+                className="bg-card rounded-2xl border border-border overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all duration-300 group min-w-0">
                 {/* Banner */}
                 <div className="relative h-36 bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
                   <span className="text-6xl opacity-50">{CATEGORY_EMOJI[event.category || ''] || '📅'}</span>
@@ -287,30 +322,87 @@ export default function EventsPage() {
                 <h2 className="text-lg font-bold text-foreground">Create New Event</h2>
                 <Button variant="ghost" size="icon" onClick={() => setShowCreateModal(false)}><X className="w-4 h-4" /></Button>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
+                {/* Title */}
                 <div>
                   <label className="text-sm font-medium mb-1 block">Title *</label>
                   <Input value={newEvent.title} onChange={e => setNewEvent(p => ({ ...p, title: e.target.value }))} placeholder="Event title" />
                 </div>
+
+                {/* Description */}
                 <div>
                   <label className="text-sm font-medium mb-1 block">Description</label>
                   <textarea value={newEvent.description} onChange={e => setNewEvent(p => ({ ...p, description: e.target.value }))} placeholder="Tell people about your event…" rows={3}
                     className="w-full px-3 py-2 rounded-xl border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-secondary/50" />
                 </div>
+
+                {/* Date + Time */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-sm font-medium mb-1 block">Date & Time *</label>
-                    <Input type="datetime-local" value={newEvent.date} onChange={e => setNewEvent(p => ({ ...p, date: e.target.value }))} />
+                    <label className="text-sm font-medium mb-1 block">Date *</label>
+                    <Input type="date" value={newEvent.date} onChange={e => setNewEvent(p => ({ ...p, date: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Time</label>
+                    <Input type="time" value={newEvent.time} onChange={e => setNewEvent(p => ({ ...p, time: e.target.value }))} />
+                  </div>
+                </div>
+
+                {/* Location + City */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Location *</label>
+                    <Input value={newEvent.location} onChange={e => setNewEvent(p => ({ ...p, location: e.target.value }))} placeholder="Venue or Zoom link" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">City</label>
+                    <Input value={newEvent.city} onChange={e => setNewEvent(p => ({ ...p, city: e.target.value }))} placeholder="e.g. Lagos" />
+                  </div>
+                </div>
+
+                {/* Category + Max Attendees */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Category</label>
+                    <select value={newEvent.category} onChange={e => setNewEvent(p => ({ ...p, category: e.target.value }))}
+                      className="w-full h-10 px-3 rounded-xl border border-input bg-background text-sm">
+                      <option value="social">Social</option>
+                      <option value="worship">Worship</option>
+                      <option value="fellowship">Fellowship</option>
+                      <option value="study">Bible Study</option>
+                      <option value="dating">Dating</option>
+                      <option value="outdoor">Outdoor</option>
+                      <option value="workshop">Workshop</option>
+                    </select>
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-1 block">Max Attendees</label>
                     <Input type="number" min="1" value={newEvent.maxAttendees} onChange={e => setNewEvent(p => ({ ...p, maxAttendees: e.target.value }))} placeholder="e.g. 50" />
                   </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Location *</label>
-                  <Input value={newEvent.location} onChange={e => setNewEvent(p => ({ ...p, location: e.target.value }))} placeholder="e.g. Lagos, Nigeria or Zoom link" />
+
+                {/* Toggles: Free / Virtual */}
+                <div className="flex gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer flex-1 p-3 rounded-xl border border-input bg-background">
+                    <input type="checkbox" checked={newEvent.isFree} onChange={e => setNewEvent(p => ({ ...p, isFree: e.target.checked, price: e.target.checked ? '' : p.price }))}
+                      className="w-4 h-4 rounded" />
+                    <span className="text-sm font-medium">Free Event</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer flex-1 p-3 rounded-xl border border-input bg-background">
+                    <input type="checkbox" checked={newEvent.isVirtual} onChange={e => setNewEvent(p => ({ ...p, isVirtual: e.target.checked }))}
+                      className="w-4 h-4 rounded" />
+                    <span className="text-sm font-medium">Virtual</span>
+                  </label>
                 </div>
+
+                {/* Price — only if not free */}
+                {!newEvent.isFree && (
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Price (₦)</label>
+                    <Input type="number" min="0" value={newEvent.price} onChange={e => setNewEvent(p => ({ ...p, price: e.target.value }))} placeholder="e.g. 2500" />
+                  </div>
+                )}
+
                 <Button onClick={handleCreate} disabled={isCreating} className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground h-11">
                   {isCreating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating…</> : 'Create Event'}
                 </Button>
@@ -319,6 +411,9 @@ export default function EventsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      <div className="hidden xl:block">
+        <RightSidebar />
+      </div>
     </DashboardLayout>
   );
 }

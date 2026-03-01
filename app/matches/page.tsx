@@ -42,14 +42,15 @@ export default function MatchesPage() {
   const [likedBack, setLikedBack] = useState<Set<string>>(new Set());
 
   useEffect(() => { if (isAdmin) router.push('/admin'); }, [isAdmin, router]);
-  useEffect(() => { if (!isAuthenticated) router.push('/login'); }, [isAuthenticated, router]);
+  useEffect(() => { if (!isLoading && !isAuthenticated) router.push('/login'); }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
       try {
         // Try mutual matches first, then like matches
-        let data = await matchesService.getMatches();
+        // GET /like/matches requires { liked_id: currentUserId } in body
+        let data = await matchesService.getMatches(currentUser?.id);
         if (!data?.length) data = await matchesService.getLikeMatches();
         if (data?.length > 0) {
           setMatches(data.map((m: any) => ({

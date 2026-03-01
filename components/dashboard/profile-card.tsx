@@ -12,9 +12,15 @@ interface ProfileCardProps {
   index?: number;
 }
 
+// Safe fallback when backend returns null/undefined/lowercase tier
+const DEFAULT_TIER_INFO = { icon: '🥉', color: '#CD7F32', min: 0, max: 500 };
+
 export function ProfileCard({ user, index = 0 }: ProfileCardProps) {
   const { currentUser, toggleFollow, isFollowing, canMessage } = useApp();
-  const tierInfo = TIER_RANGES[user.tier];
+  // Normalize tier casing — backend may return 'bronze' or null
+  const rawTier = user.tier ?? 'Bronze';
+  const normalizedTier = (rawTier.charAt(0).toUpperCase() + rawTier.slice(1).toLowerCase()) as keyof typeof TIER_RANGES;
+  const tierInfo = TIER_RANGES[normalizedTier] ?? DEFAULT_TIER_INFO;
   const following = isFollowing(user.id);
 
   return (
@@ -52,12 +58,12 @@ export function ProfileCard({ user, index = 0 }: ProfileCardProps) {
           <div>
             <Link href={`/profile/${user.id}`}>
               <h3 className="font-semibold text-muted-foreground hover:text-primary transition-colors">
-                {user.name}, {user.age}
+{user.name || user.first_name || user.user_name || "User"}{user.age ? `, ${user.age}` : ""}
               </h3>
             </Link>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <MapPin className="w-3 h-3" />
-              <span>{user.location.country}</span>
+              <span>{user.location?.city || user.location?.country || "Unknown"}</span>
               {user.distance && (
                 <>
                   <span className="mx-1">•</span>
