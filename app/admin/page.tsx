@@ -89,7 +89,12 @@ export default function AdminDashboard() {
   useEffect(() => {
     // Don't redirect while still loading authentication state
     if (isLoading) return;
-    
+
+    // Check localStorage directly as a reliable fallback —
+    // avoids redirect if context state hasn't fully rehydrated yet
+    const cachedType = typeof window !== 'undefined' ? localStorage.getItem('user_type') : null;
+    if (cachedType === 'ADMIN') return; // definitely an admin, stay put
+
     if (!currentUser) {
       router.push('/login');
     } else if (currentUser && !isAdmin) {

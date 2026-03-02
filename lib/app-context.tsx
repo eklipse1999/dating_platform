@@ -84,6 +84,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             if (parsed.trialEndDate) parsed.trialEndDate = new Date(parsed.trialEndDate);
             setCurrentUser(parsed);
             setIsAuthenticated(true);
+            // Set isLoading false immediately for admin — no need to wait for API
+            // This prevents the race condition where isLoading=false + currentUser=null redirect fires
+            setIsLoading(false);
           } catch {}
         }
       }
@@ -113,7 +116,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           last_name:    pick('last_name',  'LastName',   'lastName')  || '',
           name:         pick('user_name',  'UserName',   'username',  'Username', 'name', 'Name') || '',
           email:        pick('email',      'Email')                   || '',
-          type:         pick('type',       'Type')                    || 'USER',
+          type:         (pick('type', 'Type', 'user_type', 'UserType') || 'USER').toUpperCase() === 'ADMIN' ? 'ADMIN' : (pick('type', 'Type', 'user_type', 'UserType') || 'USER'),
           age:          pick('age',        'Age')                     || 25,
           gender:      (pick('gender',     'Gender')                  || 'male') as 'male' | 'female',
           phone:        pick('phone',      'Phone')                   || '',
@@ -787,7 +790,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   users.slice(0, 10);
 
   // Helper values
-  const isAdmin = currentUser?.type?.includes("ADMIN".toUpperCase()) || false;
+  const isAdmin = currentUser?.type?.toUpperCase() === "ADMIN" || localStorage.getItem("user_type") === "ADMIN";
   const accountAgeDays = currentUser ? Math.floor((Date.now() - new Date(currentUser.accountCreatedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
   const canScheduleDates = currentUser?.points !== undefined && currentUser.points > 0;
 
