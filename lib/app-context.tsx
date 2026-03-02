@@ -174,9 +174,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, []);
 
+  // Helper: check if a location is real (not empty/unknown)
+  const isRealLocation = (loc: UserLocation | null | undefined): boolean => {
+    if (!loc) return false;
+    const city = loc.city?.trim().toLowerCase();
+    const country = loc.country?.trim().toLowerCase();
+    return !!city && !!country && city !== 'unknown' && country !== 'unknown';
+  };
+
   const login = async (email: string, password: string): Promise<{ type: string }> => {
     const response = await authService.login({ email, password });
-    if(response.data.type == "ADMIN"){
+
+    if (response.data.type == "ADMIN") {
       const adminUser: User = {
         id: response.data?.id || response.user?.id || "",
         first_name: response.data?.first_name || "",
@@ -207,46 +216,99 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       router.push("/admin");
       return { type: "ADMIN" };
     }
-    // Fetch user profile from backend to get actual location and other data
-    let userLocation: UserLocation = {
-      lat: 0,
-      lng: 0,
-      city: 'Unknown',
-      country: 'Unknown',
-    };
-    
+
+    // ── SMART LOCATION LOGIC ──────────────────────────────────────────────────
+    // Step 1: Check if backend already has a real location for this user
+    let userLocation: UserLocation = { lat: 0, lng: 0, city: 'Unknown', country: 'Unknown' };
+    let backendHasLocation = false;
+
     try {
       const userProfile = await usersService.getCurrentUser();
-      if (userProfile.location) {
+      // Parse location — backend may return a string like "Kumasi, Ghana" or an object
+      const rawLoc = (userProfile as any).location;
+      if (rawLoc && typeof rawLoc === 'string' && rawLoc.trim() && rawLoc.toLowerCase() !== 'unknown') {
+        // Backend returned a location string — parse it
+        const parts = rawLoc.split(',').map((p: string) => p.trim());
+        userLocation = { lat: 0, lng: 0, city: parts[0] || '', country: parts[1] || parts[0] || '' };
+        backendHasLocation = isRealLocation(userLocation);
+      } else if (rawLoc && typeof rawLoc === 'object') {
         userLocation = {
-          lat: userProfile.location.lat || 0,
-          lng: userProfile.location.lng || 0,
-          city: userProfile.location.city || 'Unknown',
-          country: userProfile.location.country || 'Unknown',
+          lat: rawLoc.lat || 0,
+          lng: rawLoc.lng || 0,
+          city: rawLoc.city || '',
+          country: rawLoc.country || '',
         };
+        backendHasLocation = isRealLocation(userLocation);
       }
-    } catch (error) {
-      console.log('Could not fetch user profile, using default location');
+    } catch {
+      // Backend fetch failed — will fall through to detection
     }
-    
-    // Create user from response
+
+    // Step 2: Check localStorage cache
+    let cachedLocation: UserLocation | null = null;
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('userLocation');
+      if (saved) {
+        try { cachedLocation = JSON.parse(saved); } catch {}
+      }
+    }
+
+    // Step 3: Decide what to do
+    if (backendHasLocation) {
+      // ✅ Backend already has location — use it, no detection needed
+      // Save to localStorage so it is available instantly next time
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('userLocation', JSON.stringify(userLocation));
+      }
+    } else if (isRealLocation(cachedLocation)) {
+      // ✅ localStorage has location but backend doesn't — send it to backend once
+      userLocation = cachedLocation!;
+      try {
+        const locString = [userLocation.city, userLocation.country].filter(Boolean).join(', ');
+        await usersService.updateLocation(locString);
+      } catch {}
+    } else {
+      // 🌍 No location anywhere — this is a new/first-time user, detect via IP
+      try {
+        const ipRes = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(4000) });
+        if (ipRes.ok) {
+          const ipData = await ipRes.json();
+          if (ipData.country_name) {
+            userLocation = {
+              lat: ipData.latitude || 0,
+              lng: ipData.longitude || 0,
+              city: ipData.city || '',
+              country: ipData.country_name,
+            };
+            // Save to backend AND localStorage — only happens once for this user
+            const locString = [userLocation.city, userLocation.country].filter(Boolean).join(', ');
+            await usersService.updateLocation(locString);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('userLocation', JSON.stringify(userLocation));
+            }
+          }
+        }
+      } catch {}
+    }
+    // ── END SMART LOCATION LOGIC ──────────────────────────────────────────────
+
     const user: User = {
       id: response.user?.id || '',
       first_name: response.data?.first_name,
-      last_name:response.data?.last_name,
+      last_name: response.data?.last_name,
       name: response.user?.username,
-      type:response.data?.type,
+      type: response.data?.type,
       email: email,
-      age: 25,
-      gender: 'male',
-      phone: '',
-      bio: '',
+      age: response.data?.age || 25,
+      gender: (response.data?.gender as 'male' | 'female') || 'male',
+      phone: response.data?.phone || '',
+      bio: response.data?.bio || '',
       location: userLocation,
       points: response.data?.points || 50,
       tier: getTierFromPoints(response.data?.points || 50),
-      accountCreatedAt: new Date(),
-      isVerified: false,
-      avatar: '👤',
+      accountCreatedAt: new Date(response.data?.created_at || Date.now()),
+      isVerified: response.data?.isVerified || false,
+      avatar: response.data?.avatar || '👤',
       photos: [],
       interests: [],
       values: [],
@@ -255,6 +317,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setCurrentUser(user);
     setUserLocation(userLocation);
     setIsAuthenticated(true);
+
     return { type: user.type || 'USER' };
   };
 
@@ -345,6 +408,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setIsAuthenticated(true);
     if (typeof window !== 'undefined') {
       localStorage.setItem('user', JSON.stringify(user));
+    }
+
+    // Detect and save location once at signup — never needs to be asked again
+    try {
+      const ipRes = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(4000) });
+      if (ipRes.ok) {
+        const ipData = await ipRes.json();
+        if (ipData.country_name) {
+          const newLocation = {
+            lat: ipData.latitude || 0,
+            lng: ipData.longitude || 0,
+            city: ipData.city || '',
+            country: ipData.country_name,
+          };
+          const locString = [newLocation.city, newLocation.country].filter(Boolean).join(', ');
+          await usersService.updateLocation(locString);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('userLocation', JSON.stringify(newLocation));
+          }
+          setUserLocation(newLocation);
+          setCurrentUser(prev => prev ? { ...prev, location: newLocation } : prev);
+        }
+      }
+    } catch {
+      // Non-blocking — new user can still use the app without location
     }
   };
 
