@@ -244,11 +244,11 @@ export default function UpgradePage() {
     setPaymentError('');
 
     const payload = {
-      amount:   selectedPkg.price,
-      plan_id:  selectedPkg.id,
-      type:     gateway === 'Paystack' ? 'paystack' : 'stripe',
-      email:    currentUser.email || '',
-      currency: selectedPkg.currency || 'GHS',
+      amount:  selectedPkg.price,
+      plan_id: selectedPkg.id,
+      type:    gateway === 'Paystack' ? 'paystack' : 'stripe',
+      email:   currentUser.email || '',
+      // currency intentionally omitted — backend determines from user region
     };
 
     try {
