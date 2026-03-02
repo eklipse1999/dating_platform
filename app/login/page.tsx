@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useApp } from '@/lib/app-context';
-import { LocationPermissionModal } from '@/components/location-permission-modal';
 import { Checkbox } from '@/components/ui/checkbox';
 
 // Floating orbs for the decorative panel
@@ -85,7 +84,6 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [showLocationModal, setShowLocationModal] = useState(false);
   const [isHuman, setIsHuman] = useState(false);
   const [captchaError, setCaptchaError] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -116,9 +114,7 @@ export default function LoginPage() {
         return;
       }
       
-      setTimeout(() => {
-        setShowLocationModal(true);
-      }, 600);
+      router.push('/dashboard');
     } catch (error: any) {
       toast.error(error.message || 'Login failed');
     } finally {
@@ -126,10 +122,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleLocationComplete = () => {
-    setShowLocationModal(false);
-    router.push('/dashboard');
-  };
 
   return (
     <>
@@ -441,7 +433,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <LocationPermissionModal isOpen={showLocationModal} onComplete={handleLocationComplete} />
     </>
   );
 }
