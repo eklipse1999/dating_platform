@@ -3,9 +3,11 @@ import { API_CONFIG } from '../config';
 
 // POST /payments — exact body schema from Swagger
 export interface PaymentData {
-  amount: number;      // number (required)
-  plan_id: string;     // string (required)
-  type: string;        // string e.g. "card", "paystack", "stripe"
+  amount: number;
+  plan_id: string;
+  type: string;
+  email: string;       // required by Paystack to init transaction
+  currency?: string;
 }
 
 // POST /payments response — 200 OK with additionalProp map
@@ -39,11 +41,16 @@ export const paymentsService = {
   // POST /payments  — exact Swagger body: { amount: number, plan_id: string, type: string }
   // type: "stripe" | "paystack" based on user's country
   async processPayment(data: PaymentData): Promise<PaymentResponse> {
-    const response = await apiClient.post(API_CONFIG.ENDPOINTS.PAYMENTS.PROCESS, {
-      amount:  data.amount,   // backend's own cents value (e.g. 999 for $9.99)
-      plan_id: data.plan_id,  // UUID from GET /plans
-      type:    data.type,     // "stripe" or "paystack"
-    });
+    const body: Record<string, any> = {
+      amount:   data.amount,
+      plan_id:  data.plan_id,
+      type:     data.type,
+      email:    data.email,
+    };
+    if (data.currency) body.currency = data.currency;
+
+    console.log('💳 Sending to /payments:', JSON.stringify(body, null, 2));
+    const response = await apiClient.post(API_CONFIG.ENDPOINTS.PAYMENTS.PROCESS, body);
     // 200 OK — return raw response; calling code handles it
     return response.data;
     // Note: apiClient's response interceptor will throw on 4xx/5xx,

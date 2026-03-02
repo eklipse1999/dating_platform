@@ -244,31 +244,45 @@ export default function UpgradePage() {
     setPaymentError('');
 
     const payload = {
-      amount:  selectedPkg.price,
-      plan_id: selectedPkg.id,
-      type:    gateway === 'Paystack' ? 'paystack'.toLowerCase() : 'stripe'.toLowerCase(),
+      amount:   selectedPkg.price,
+      plan_id:  selectedPkg.id,
+      type:     gateway === 'Paystack' ? 'paystack' : 'stripe',
+      email:    currentUser.email || '',
+      currency: selectedPkg.currency || 'GHS',
     };
 
     try {
+      console.log('💳 POST /payments payload:', JSON.stringify(payload, null, 2));
       const res: PaymentResponse = await paymentsService.processPayment(payload);
-      console.log('✅ Payment response:', res.authorization_url || "");
-      window.open(res.authorization_url || '', '_blank');
+      console.log('✅ Payment response:', JSON.stringify(res, null, 2));
 
-      // Capture reference from any known response field shape
-      const ref = res.reference || res.transactionId
-        || res.additionalProp1 || res.additionalProp2 || '';
+      // Paystack returns authorization_url — open it
+      const authUrl = res.authorization_url || res.data?.authorization_url || '';
+      if (authUrl) {
+        window.location.href = authUrl; // redirect in same tab (cleaner than popup)
+        return;
+      }
+
+      // Capture reference
+      const ref = res.reference || res.transactionId || res.data?.reference || '';
       setPaymentRef(String(ref));
-
-      // Update user points + tier locally
       addPoints?.(selectedPkg.points);
       setPaymentSuccess(true);
       toast.success(`${selectedPkg.points.toLocaleString()} points added!`);
 
     } catch (err: any) {
-      const msg = err?.message || 'Payment failed. Please try again.';
-      setPaymentError(msg);
-      toast.error(msg);
-      console.error('❌ POST /payments failed:', err);
+      // Show exact backend error message so we know what field is wrong
+      const backendData = err?.response?.data;
+      const backendMsg = backendData?.message || backendData?.error
+        || (typeof backendData === 'string' ? backendData : null)
+        || err?.message
+        || 'Payment failed. Please try again.';
+      console.error('❌ POST /payments failed');
+      console.error('❌ Status:', err?.response?.status);
+      console.error('❌ Backend said:', JSON.stringify(backendData, null, 2));
+      console.error('❌ Payload we sent:', JSON.stringify(payload, null, 2));
+      setPaymentError(backendMsg);
+      toast.error(backendMsg);
     } finally {
       setIsProcessing(false);
     }
