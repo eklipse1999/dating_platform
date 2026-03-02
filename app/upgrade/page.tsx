@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,6 +18,10 @@ import { Label } from '@/components/ui/label';
 import { useApp } from '@/lib/app-context';
 import { POINTS_PACKAGES, getPaymentGateway, PointsPackage } from '@/lib/types';
 import { paymentsService, PaymentResponse } from '@/lib/api/services/payement.service';
+import apiClient from '@/lib/api/client';
+import { set } from 'date-fns';
+
+
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 // Backend returns price in cents (999 = $9.99); values ≤ 500 treated as dollars
@@ -137,7 +141,7 @@ export default function UpgradePage() {
   const { isAuthenticated, isLoading, currentUser, userLocation, addPoints, isInTrial, trialDaysRemaining, isAdmin } = useApp();
 
   // Plans
-  const [packages, setPackages]       = useState<PointsPackage[]>(POINTS_PACKAGES);
+  const [packages, setPackages]       = useState<PointsPackage[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
   const [plansError, setPlansError]   = useState(false);
   const [plansSource, setPlansSource] = useState<'live' | 'fallback'>('fallback');
@@ -156,8 +160,20 @@ export default function UpgradePage() {
   const [cvc, setCvc]               = useState('');
   const [cardErrors, setCardErrors] = useState<Record<string, string>>({});
 
+
   useEffect(() => { if (isAdmin) router.push('/admin'); }, [isAdmin, router]);
   useEffect(() => { if (!isLoading && !isAuthenticated) router.push('/login'); }, [isAuthenticated, isLoading, router]);
+  
+  // const fetchPlans = async()=>{
+  //   try {
+  //     const res = await apiClient('/plans');
+  //     setPackages(res.data); 
+  //   } catch (err) {
+  //     console.error('❌ GET /plans failed:', err);
+  //   }
+  // }
+
+  // useEffect(() => { fetchPlans(); }, []);
 
   // ── GET /plans ─────────────────────────────────────────────────────────────
   const loadPlans = async () => {
@@ -230,13 +246,13 @@ export default function UpgradePage() {
     const payload = {
       amount:  selectedPkg.price,
       plan_id: selectedPkg.id,
-      type:    gateway === 'Paystack' ? 'paystack' : 'stripe',
+      type:    gateway === 'Paystack' ? 'paystack'.toLowerCase() : 'stripe'.toLowerCase(),
     };
 
     try {
-      console.log('💳 POST /payments', payload);
       const res: PaymentResponse = await paymentsService.processPayment(payload);
-      console.log('✅ Payment response:', res);
+      console.log('✅ Payment response:', res.authorization_url || "");
+      window.open(res.authorization_url || '', '_blank');
 
       // Capture reference from any known response field shape
       const ref = res.reference || res.transactionId

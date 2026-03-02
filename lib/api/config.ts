@@ -50,7 +50,7 @@ export const API_CONFIG = {
     // Payments
     // Payments — POST /payments: body { amount, plan_id, type }
     PAYMENTS: {
-      PROCESS: '/payments',                // POST /payments
+      PROCESS: '/payment',                // POST /payments
     },
 
     // Plans — GET /plans, GET /plans/{id}
